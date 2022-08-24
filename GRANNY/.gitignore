@@ -1,0 +1,4 @@
+*.txt 
+test_perf.py
+*.h5
+*.pyc
