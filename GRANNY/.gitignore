@@ -2,3 +2,4 @@
 test_perf.py
 *.h5
 *.pyc
+*.DS_Store
