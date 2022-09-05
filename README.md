@@ -4,37 +4,29 @@
 
 ## Introduction 
 
-Superficial scald is a physiological disorder that occurs following a chilling injury during early weeks of fruit storage, but with delayed symptom development - most notably peel necrosis that occurs in irregular patterns. Currently, quantification of the superficial scald incidence is performed manually by trained technicians with a few limitations: 
+Superficial scald is a physiological disorder that occurs following a chilling injury during early weeks of fruit storage, but with delayed symptom development - most notably peel necrosis that occurs in irregular patterns. Currently, quantification of the superficial scald incidence is performed manually by trained technicians with a few inconsistencies: 
 - The set of rating values is small and coarse-grained. 
 - The ratings are subjected to human error and individual bias
-- 
 
 In order to resolve the problem, the [Ficklin Research Program](http://ficklinlab.cahnrs.wsu.edu/) at Washington State University has developed a computer vision approach for automatic detection and rating in apple images, specifically the "Granny Smith" cultivar.
 
 Inspired by the well-known apple cultivar, **GRANNY** is Python-based implementation of Mask-RCNN and image segmentation techniques, aiming to assist technicians in the superficial disorder rating process. 
 
-Usage guidelines of **GRANNY** are provided. 
-
 ## Installation and Usage
 
 ### Installation
 
-It is recommended to use a package manager such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/) to create a seperate, independent environment for **GRANNY**. 
+It is recommended to use a package manager such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/) to create a seperate, independent environment for **GRANNY**. An description of the package installation using conda is provided below. 
 
-To create a virtual environment using conda:
+Due to the limitation of TensorFlow 1.15, it is required to have Python version be **less than or equal** to 3.7
 ```bash
-    conda create -n <venv>
+    conda create -n <venv> python==3.7 -y
 ```
-Where `<venv>` is the name of the virtual environment
+where `<venv>` is the name of the virtual environment
 
 To activate the environment:
 ```bash
     conda activate <venv>
-```
-
-Due to the limitation of TensorFlow 1.15, it is required to have Python version be **less than or equal** to 3.7
-```bash
-    conda install python==3.7
 ```
 
 To install **GRANNY**, use the following:
