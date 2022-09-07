@@ -8,9 +8,10 @@ import tensorflow as tf
 tf.autograph.set_verbosity(3)
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import sys
+import pathlib
 import shutil
 import skimage
-from . import GRANNY_config as config
+import GRANNY_config as config
 import re
 import matplotlib.pyplot as plt
 import cv2
@@ -21,10 +22,11 @@ from tkinter import filedialog
 
 class GRANNY(object): 
 	def __init__(self):
-		self.ROOT_DIR = os.path.curdir
+		self.ROOT_DIR = pathlib.Path(__file__).parent.resolve()
 		self.MODEL_DIR = os.path.join(os.path.curdir, "logs")
-		self.NEW_DATA_DIR = "input_data"
-		self.PRETRAINED_MODEL = os.path.join(self.ROOT_DIR, "Mask_RCNN-2.1", "mask_rcnn_balloon.h5")
+		self.NEW_DATA_DIR = "input_data" + os.sep
+		# self.PRETRAINED_MODEL = os.path.join(self.ROOT_DIR, "Mask_RCNN-2.1", "mask_rcnn_balloon.h5")
+		self.PRETRAINED_MODEL = os.path.join(self.ROOT_DIR, "mask_rcnn_balloon.h5")
 		self.VERBOSE = 1
 		self.FILE_NAME = ""
 		self.FOLDER_NAME = ""
@@ -38,13 +40,13 @@ class GRANNY(object):
 		)
 		
 		# Location where masked apple trays will be saved
-		self.FULLMASK_DIR = "full_masked_data"
+		self.FULLMASK_DIR = "full_masked_data" + os.sep
 
 		# Location where segmented/individual apples will be saved 
-		self.SEGMENTED_DIR = "segmented_data"
+		self.SEGMENTED_DIR = "segmented_data" + os.sep
 
 		# Location where apples with the scald removed will be saved
-		self.BINARIZED_IMAGE = "binarized_data"
+		self.BINARIZED_IMAGE = "binarized_data" + os.sep
 
 		
 	def clean_binarized_dir(self): 
@@ -291,8 +293,9 @@ class GRANNY(object):
 			img: original image to be used as ground truth
 		"""
 		fraction = 0 
-		ground_area = 1/3*np.count_nonzero(img)
-		mask_area = 1/3*np.count_nonzero(bw)
+		img = np.uint8(img)
+		ground_area = 1/3*np.count_nonzero(img[:,:,0:2])
+		mask_area = 1/3*np.count_nonzero(bw[:,:,0:2])
 		fraction = 1 - mask_area/ground_area 
 		if fraction < 0: 
 			fraction = 0
@@ -346,7 +349,6 @@ class GRANNY(object):
 				score = self.calculate_scald(binarized_image, nopurple_img)
 				idx = -file_name[::-1].find(os.sep)
 				file_name = file_name[idx:]
-				print(file_name)
 				skimage.io.imsave(os.path.join(self.BINARIZED_IMAGE, file_name), binarized_image)
 				with open("rating.txt","w") as w:
 					w.writelines(f"{self.clean_name(file_name)}:\t\t{score}")
@@ -415,7 +417,8 @@ class GRANNY(object):
 
 	def launch_gui(self):
 		"""
-			Launch a GUI window asking for directory name/ file name to perform \"--action\" on
+			Launch a GUI zwindow asking for directory name/ file name to perform \"--action\" on
+			Currently, the GUI is still under construction
 		"""
 		win = Tk()
 		if self.ACTION == "extract": 

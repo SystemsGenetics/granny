@@ -911,23 +911,16 @@ def fpn_classifier_graph(rois, feature_maps,
     # ROI Pooling
     x = PyramidROIAlign([pool_size, pool_size], image_shape,
                         name="roi_align_classifier")([rois] + feature_maps)
-    print(x.shape)
     # Two 1024 FC layers (implemented with Conv2D for consistency)
     x = KL.TimeDistributed(KL.Conv2D(1024, (pool_size, pool_size), padding="valid"),
                            name="mrcnn_class_conv1")(x)
-    print(x.shape)
     x = KL.TimeDistributed(BatchNorm(axis=3), name='mrcnn_class_bn1')(x)
-    print(x.shape)
     x = KL.Activation('relu')(x)
-    print(x.shape)
     x = KL.TimeDistributed(KL.Conv2D(1024, (1, 1)),
                            name="mrcnn_class_conv2")(x)
-    print(x.shape)
     x = KL.TimeDistributed(BatchNorm(axis=3),
                            name='mrcnn_class_bn2')(x)
-    print(x.shape)
     x = KL.Activation('relu')(x)
-    print(x.shape)
     shared = KL.Lambda(lambda x: K.squeeze(K.squeeze(x, 3), 2),
                        name="pool_squeeze")(x)
 
@@ -941,13 +934,10 @@ def fpn_classifier_graph(rois, feature_maps,
     # [batch, boxes, num_classes * (dy, dx, log(dh), log(dw))]
     x = KL.TimeDistributed(KL.Dense(num_classes * 4, activation='linear'),
                            name='mrcnn_bbox_fc')(shared)
-    print(x.shape)
     # Reshape to [batch, boxes, num_classes, (dy, dx, log(dh), log(dw))]
     s = K.int_shape(x)
-    print(s)
     mrcnn_bbox = KL.Reshape((s[1], num_classes, 4), name="mrcnn_bbox")(x)
     # mrcnn_bbox = KL.Reshape((s[0], num_classes, 4), name="mrcnn_bbox")(x)
-    print(mrcnn_bbox.shape)
     return mrcnn_class_logits, mrcnn_probs, mrcnn_bbox
 
 

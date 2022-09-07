@@ -15,7 +15,6 @@ Inspired by the well-known apple cultivar, **GRANNY** is Python-based implementa
 ## Installation and Usage
 
 ### Installation
-
 It is recommended to use a package manager such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/) to create a seperate, independent environment for **GRANNY**. An description of the package installation using conda is provided below. 
 
 Due to the limitation of TensorFlow 1.15, it is required to have Python version be **less than or equal** to 3.7
