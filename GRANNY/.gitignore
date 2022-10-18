@@ -3,3 +3,9 @@ test_perf.py
 *.h5
 *.pyc
 *.DS_Store
+*.JPEG
+*.PNG
+*.png 
+*.JPG 
+*.jpg
+ 

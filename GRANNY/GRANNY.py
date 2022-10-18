@@ -3,10 +3,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import glob
 import numpy as np
 import pandas as pd
-pd.options.mode.chained_assignment = None
 import tensorflow as tf
-tf.autograph.set_verbosity(3)
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import sys
 import pathlib
 import shutil
@@ -19,6 +16,9 @@ from tkinter import *
 import PIL as pil
 from PIL import ImageTk, Image
 from tkinter import filedialog
+pd.options.mode.chained_assignment = None
+tf.autograph.set_verbosity(3)
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 class GRANNY(object): 
 	def __init__(self):
@@ -111,6 +111,8 @@ class GRANNY(object):
 					file_name.append(os.path.join(root, file))
 			for fold in dirs:
 				folder_name.append(os.path.join(root,fold))
+			if folder_name == []: 
+				folder_name.append(os.path.join(root))
 		return folder_name, file_name
 
 	def clean_name(self, fname): 
@@ -331,7 +333,7 @@ class GRANNY(object):
 		"""
 		img = skimage.io.imread(old_im_dir)
 		if img.shape[0]>img.shape[1]:
-			img = skimage.transform.rotate(img, 90, resize = True)
+			img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
 		skimage.io.imsave(new_im_dir, img)
 		return img
 
@@ -371,7 +373,7 @@ class GRANNY(object):
 						skimage.io.imsave(os.path.join(self.BINARIZED_IMAGE, file_name + ".png"), binarized_image)
 						scores.append(score)
 				with open("ratings.txt","w") as w:
-					for i, score in enumerate(scores)	: 
+					for i, score in enumerate(scores): 
 						w.writelines(f"{self.clean_name(files[i])}:\t\t{score}")
 						w.writelines("\n")
 			except FileNotFoundError: 
@@ -393,7 +395,12 @@ class GRANNY(object):
 			for data_dir in data_dirs: 
 				self.check_path(data_dir.replace(self.OLD_DATA_DIR, self.FULLMASK_DIR))
 				self.check_path(data_dir.replace(self.OLD_DATA_DIR, self.SEGMENTED_DIR))
+				self.check_path(data_dir.replace(self.OLD_DATA_DIR, self.NEW_DATA_DIR))
 			for file_name in file_names:
+				idx = -file_name[::-1].find(os.sep)
+				name = file_name[idx:]
+				print(f"\t- Passing {name} into Mask R-CNN model. -")
+				print(f"{name}")
 				img = self.rotate_image(
 								old_im_dir = file_name, 
 								new_im_dir = file_name.replace(self.OLD_DATA_DIR, self.NEW_DATA_DIR), 
@@ -412,45 +419,10 @@ class GRANNY(object):
 						im = img,
 						fname = file_name.replace(self.OLD_DATA_DIR, self.SEGMENTED_DIR)
 					)
+				print(f"\t- Individual objects in {name} extracted. - \n" )
 		except FileNotFoundError:
 			print(f"\t- Folder/File Does Not Exist -")
 
-	def launch_gui(self):
-		"""
-			Launch a GUI zwindow asking for directory name/ file name to perform \"--action\" on
-			Currently, the GUI is still under construction
-		"""
-		win = Tk()
-		if self.ACTION == "extract": 
-			win.dirname = filedialog.askdirectory(
-				initialdir = os.path.curdir,
-				message = "Select An Image Directory", 
-				mustexist = True,
-			)
-			self.OLD_DATA_DIR = win.dirname
-			self.mask_extract_image()
-		elif self.ACTION == "rate": 
-			if self.MODE == 1:
-				win.filename = filedialog.askopenfile(
-					initialdir = os.path.curdir,
-					title = "Select An Image", 
-					filetypes = [("Image Files",f) for f in self.FILE_EXTENSION],
-				)
-				self.FILE_NAME = win.filename.name
-			elif self.MODE == 2: 
-				win.dirname = filedialog.askdirectory(
-					initialdir = os.path.curdir,
-					message = "Select An Image Directory", 
-					mustexist = True,
-				)
-				self.FOLDER_NAME = win.dirname
-			else: 
-				print("\t- Invalid MODE. Specify \"2\" for multiple images processing-")
-			self.rate_binarize_image()
-		else: 
-			print("\t- Invalid ACTION. Specify either \"extract\" or \"rate\" -")
-		win.mainloop()
-		return 
 
 	def main(self): 
 		"""
