@@ -15,6 +15,12 @@ Inspired by the well-known apple cultivar, **GRANNY** is Python-based implementa
 ## Installation and Usage
 
 ### Installation
+To get started, clone the model to your directory: 
+
+```bash 
+    git clone https://github.com/SystemsGenetics/granny.git
+```
+
 It is recommended to use a package manager such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/) to create a seperate, independent environment for **GRANNY**. An description of the package installation using conda is provided below. 
 
 Due to the limitation of TensorFlow 1.15, it is required to have Python version be **less than or equal** to 3.7
@@ -28,9 +34,9 @@ To activate the environment:
     conda activate <venv>
 ```
 
-To install **GRANNY**, use the following:
+Inside the environment, run the following to set up command line interfaces:
 ```bash
-    pip install granny
+    sh setup.sh
 ```
 
 ### Command Line Arguments
@@ -39,6 +45,7 @@ To perform extraction and/or rating on "Granny Smith" images, run **GRANNY** in 
 ```bash
     granny  [-a,--action] <ACTION>  [-p,--image_path] <PATH>  [-m,--mode] <MODE>  [-v,--verbose] <VERBOSE>
 ```
+
 
 where: 
 | Arguments  | Type | Values |
