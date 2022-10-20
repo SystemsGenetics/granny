@@ -23,7 +23,7 @@ setuptools.setup(
         developed by the Ficklin Research Program, to rate disorder severity in "Granny Smith" apple.',
     author='Nhan H Nguyen',
     license='GNU General Public License v3.0',
-    python_requires='<=3.7',
+    python_requires='<=3.7.12',
     install_requires=requirements,
     entry_points={'console_scripts': [
         'granny = GRANNY.command:main',
