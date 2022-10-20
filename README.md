@@ -18,7 +18,7 @@ Inspired by the well-known apple cultivar, **GRANNY** is Python-based implementa
 To get started, clone the model to your directory: 
 
 ```bash 
-    git clone https://github.com/SystemsGenetics/granny.git
+    git clone https://github.com/SystemsGenetics/granny.git && cd granny
 ```
 
 It is recommended to use a package manager such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/) to create a seperate, independent environment for **GRANNY**. An description of the package installation using conda is provided below. 
