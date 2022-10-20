@@ -8,7 +8,7 @@ import sys
 import pathlib
 import shutil
 import skimage
-import GRANNY_config as config
+from . import GRANNY_config as config
 import re
 import matplotlib.pyplot as plt
 import cv2

@@ -7,3 +7,10 @@ dist/
 *.DS_Store/
 *.ipynb
 test*
+*.sh
+*.JPEG 
+*.JPG
+*.PNG 
+*.jpeg 
+*.jpg
+*.png 
