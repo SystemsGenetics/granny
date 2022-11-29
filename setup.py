@@ -12,7 +12,7 @@ pillow
 protobuf<=3.20
 keras==2.3
 """.split()
-    
+
 
 setuptools.setup(
     name='granny',
@@ -29,4 +29,3 @@ setuptools.setup(
         'granny = GRANNY.command:main',
     ]},
 )
-

@@ -8,7 +8,7 @@ import sys
 import pathlib
 import shutil
 import skimage
-from . import GRANNY_config as config
+import GRANNY_config as config
 import re
 import matplotlib.pyplot as plt
 import cv2
@@ -40,13 +40,13 @@ class GRANNY(object):
 		)
 		
 		# Location where masked apple trays will be saved
-		self.FULLMASK_DIR = "full_masked_data" + os.sep
+		self.FULLMASK_DIR = "results" + os.sep + "full_masked_images" + os.sep
 
 		# Location where segmented/individual apples will be saved 
-		self.SEGMENTED_DIR = "segmented_data" + os.sep
+		self.SEGMENTED_DIR = "results" + os.sep + "segmented_images" + os.sep
 
 		# Location where apples with the scald removed will be saved
-		self.BINARIZED_IMAGE = "binarized_data" + os.sep
+		self.BINARIZED_IMAGE = "results" + os.sep + "binarized_images" + os.sep
 
 		
 	def clean_binarized_dir(self): 
@@ -352,9 +352,10 @@ class GRANNY(object):
 				idx = -file_name[::-1].find(os.sep)
 				file_name = file_name[idx:]
 				skimage.io.imsave(os.path.join(self.BINARIZED_IMAGE, file_name), binarized_image)
-				with open("rating.txt","w") as w:
+				with open("results" + os.sep +"rating.txt","w") as w:
 					w.writelines(f"{self.clean_name(file_name)}:\t\t{score}")
 					w.writelines("\n")
+				print(f"\t- {self.clean_name(file_name)} rated. Check \"results/\" for output. - \n" )
 			except FileNotFoundError:
 				print(f"\t- Folder/File does not exist. -")
 		elif self.MODE == 2:
@@ -372,10 +373,11 @@ class GRANNY(object):
 						file_name = file_name[idx:]
 						skimage.io.imsave(os.path.join(self.BINARIZED_IMAGE, file_name + ".png"), binarized_image)
 						scores.append(score)
-				with open("ratings.txt","w") as w:
+				with open("results" + os.sep + "ratings.txt","w") as w:
 					for i, score in enumerate(scores): 
 						w.writelines(f"{self.clean_name(files[i])}:\t\t{score}")
 						w.writelines("\n")
+						print(f"\t- {self.clean_name(file_name)} rated. Check \"results/\" for output. - \n" )
 			except FileNotFoundError: 
 				print(f"\t- Folder/File Does Not Exist -")
 		else: 
@@ -419,7 +421,7 @@ class GRANNY(object):
 						im = img,
 						fname = file_name.replace(self.OLD_DATA_DIR, self.SEGMENTED_DIR)
 					)
-				print(f"\t- Individual objects in {name} extracted. - \n" )
+				print(f"\t- {name} extracted. Check \"results/\" for output. - \n" )
 		except FileNotFoundError:
 			print(f"\t- Folder/File Does Not Exist -")
 

@@ -50,18 +50,27 @@ To perform extraction and/or rating on "Granny Smith" images, run **GRANNY** in 
 where: 
 | Arguments  | Type | Values |
 | ---------  | ---- | ------ |
-| `<ACTION>` | Required | Either "extract" or "rate" <br />"extract" - perform individual apples extraction from apple trays; <br /> "rate" - perform disorder rating on single apple images.|
+| `<ACTION>` | Required | Either **"extract"** or **"rate"**: <br />"extract" - perform individual apples extraction from apple trays; <br /> "rate" - perform disorder rating on single apple images.|
 | `<PATH>`   | Required | Specify either an image directory containing multiple images or a single image file. |
 | `<MODE>`   | Optional | Default to 1. Specify 2 for multiple images processing in `--action rate`. |
 | `<VERBOSE>` | Optional | Default to 1. Specify 0 to turn off model display. |
 
-### Output
+### Output and Results
+Upon completion, **GRANNY** will have created a directory named `results` by default. Depending on the `<ACTION>`, output images will be stored in the corresponding sub-directories:
+ 
+- `binarized_images` - stores 
+
+| `<ACTION>` | Location | 
+| ---------- | -------- | 
+| "extract"  |  `full_masked_images` - stores original images with detected objects. <br /> `segmented_images` - stores each object instance as an individual image. | 
+| "rate"     |  `binarized_images` - stores processed images with the scald being removed.|  
+
 
 ### **GRANNY** Directory
 Please refer to [**GRANNY** directory description](https://github.com/SystemsGenetics/granny/blob/master/GRANNY/README.md) for a detailed listing of the **GRANNY**'s components.  
 
 ### Limitations 
-This program contains limitations. 
+This program contains certain limitations. 
 
 
 
