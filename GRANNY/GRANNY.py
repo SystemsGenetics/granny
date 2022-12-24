@@ -274,6 +274,7 @@ class GRANNY(object):
 		
 		return df_list 
 
+
 	def sort_instances(self, box): 
 		""" 
 			Sort and identify apples 
@@ -308,6 +309,7 @@ class GRANNY(object):
 		apple_list = self.label_instances_helper(df)
 		return apple_list
 	
+
 	def extract_image(self, df_list, mask, im, fname = ""): 
 		""" 
 			Extract individual image from masks created by Mask-RCNN 
@@ -404,6 +406,7 @@ class GRANNY(object):
 		bin_mask = cv2.dilate(cv2.erode(bin_mask, kernel = strel, iterations = 1), kernel = strel, iterations = 1)
 		bin_mask = cv2.erode(cv2.dilate(bin_mask, kernel = strel, iterations = 1), kernel = strel, iterations = 1)
 		return bin_mask
+
 
 	def segment_green(self, img): 
 		"""
@@ -608,6 +611,7 @@ class GRANNY(object):
 				print(f"\t- Folder/File Does Not Exist -")
 		else: 
 			print("-\t Invalid MODE. Specify either \"1\" or \"2\". -")
+
 
 	def mask_extract_image(self): 
 		"""
