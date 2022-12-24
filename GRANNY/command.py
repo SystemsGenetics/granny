@@ -22,7 +22,7 @@ def main():
     
     args = parser.parse_args()
     
-    gn.setAction(args.action, args.path, args.mode)
+    gn.setParameters(args.action, args.path, args.mode)
 
     gn.setVerbosity(args.verbose)
 

@@ -218,7 +218,7 @@ class GRANNY(object):
 								class_names, score)
 
 		# save the figure
-		plt.savefig(os.path.join(fname + ".png"))
+		plt.savefig(os.path.join(fname + ".png"), bbox_inches='tight')
 
 		return mask, box
 	
