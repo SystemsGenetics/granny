@@ -441,7 +441,7 @@ class GRANNY(object):
 		channel1Min = 1*bin
 		channel1Max = im_range*bin
 		channel2Min = -1/2*im_range*bin
-		channel2Max = (np.argmax(hist) - 2/9*im_range + 1)*bin
+		channel2Max = (np.argmax(hist) - 3/9*im_range + 1)*bin
 		channel3Min = 1*bin
 		channel3Max = im_range*bin
 
