@@ -537,7 +537,7 @@ class GRANNY(object):
 
 	def rate_binarize_image(self): 
 		""" 
-			Main method performing Image Binarization, i.e. rate and remove scald, on individual apple images 
+			(GS) Main method performing Image Binarization, i.e. rate and remove scald, on individual apple images 
 			The scores will be written to a .txt file
 
 			Args: 

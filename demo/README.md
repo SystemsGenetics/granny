@@ -107,7 +107,7 @@ Upon completion, **GRANNY** will have created a directory named `results` by def
 
 - `segmented_images` - stores individual apple images
 
-
+- `binarized_images` - 
 
 | `<ACTION>` | Location | 
 | ---------- | -------- | 
