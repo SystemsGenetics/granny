@@ -130,6 +130,12 @@ class GRANNY(object):
 		file_name = []
 		folder_name = []
 
+		# if data_dir is a file
+		if data_dir.endswith(self.FILE_EXTENSION): 
+			idx = -data_dir[::-1].find(os.sep)
+			file_name.append(data_dir[idx:])
+			folder_name.append(data_dir[:idx])
+
 		# list all folders and files in data_dir
 		for root, dirs, files in os.walk(data_dir):
 			
