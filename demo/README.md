@@ -1,5 +1,5 @@
 ## Quick start 
-Don't want to install anything on your computer, we have set up a [Google Colab](soon). 
+Don't want to install anything on your computer, we have set up a [Google Colab](https://colab.research.google.com/drive/10aJ_kQMXNRb9srB-YD0OPJpE8GOvgQlU?usp=share_link). 
 
 ## Intallation and Usage
 Want to try on your dataset? You can install our model to get started. First, clone to your directory: 

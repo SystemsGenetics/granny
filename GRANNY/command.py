@@ -15,7 +15,7 @@ def main():
     required = True, help = "Required. Specify a directory for --action==\"extract\" or a file for --action==\"rate\"")
 
     parser.add_argument("-m", "--mode", dest = "mode", type = int, nargs = "?", 
-    required = False, help = "Optional. Specify 2 for multiples images processing when --action==\"rate\".")
+    required = False, help = "Optional. Specify 2 for multiples images processing when --action==\"rate\". There is no need to specify when extracting.")
     
     parser.add_argument("-v", "--verbose", dest = "verbose", type = int, nargs = "?", 
     default = gn.VERBOSE, required = False, help = "Optional. Specify 0 to switch off model display.")
