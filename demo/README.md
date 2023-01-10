@@ -45,14 +45,14 @@ where:
 This is an apple tray, consisting of 18 apples: 
 
 <div align="center">
-  <img src="images/apple_tray/6moPos_TC-1(3)-2-A.JPG" width="500px" />
+  <img src="images/apple_tray/demo_image.JPG" width="500px" />
   <p>Example of an apple tray.</p>
 </div>
 
 
 In the command line, run GRANNY 
 ```bash 
-granny --action extract --path images/apple_tray/6moPos_TC-1(3)-2-A.JPG
+granny --action extract --path images/apple_tray/demo_image.JPG
 ```
 to get a full-tray mask: 
 
