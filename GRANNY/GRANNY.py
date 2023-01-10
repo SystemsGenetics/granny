@@ -506,7 +506,7 @@ class GRANNY(object):
 			Returns: 
 				(numpy.array) img: rotated image
 		"""
-		img = skimage.io.imread(old_im_dir)
+		img = skimage.io.imread(old_im_dir, plugin = "matplotlib")
 		if img.shape[0]>img.shape[1]:
 			img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
 		skimage.io.imsave(new_im_dir, img)
@@ -560,7 +560,7 @@ class GRANNY(object):
 			try:
 				# read the image from file
 				file_name = self.FILE_NAME
-				img = skimage.io.imread(file_name)
+				img = skimage.io.imread(file_name, plugin = "matplotlib")
 
 				# remove the surroundings
 				nopurple_img, binarized_image, bw = self.score_image(img)
@@ -594,7 +594,7 @@ class GRANNY(object):
 				for file_name in files: 
 
 					# read the image from file
-					img = skimage.io.imread(file_name)
+					img = skimage.io.imread(file_name, plugin = "matplotlib")
 					file_name = self.clean_name(file_name)
 
 					# remove the surroundings
