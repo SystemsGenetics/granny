@@ -8,4 +8,4 @@ test_perf.py
 *.png 
 *.JPG 
 *.jpg
- 
+*.zip
