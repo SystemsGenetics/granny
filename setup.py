@@ -19,7 +19,7 @@ setuptools.setup(
     name='granny',
     packages=setuptools.find_packages(),
     url="https://github.com/SystemsGenetics/granny",
-    version='1.1.3',
+    version='1.1.4',
     description='GRANNY is an implementation of Mask-RCNN and image processing techniques,\
         developed by the Ficklin Research Program, to rate disorder severity in "Granny Smith" apple.',
     author='Nhan H. Nguyen',

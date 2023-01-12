@@ -506,7 +506,7 @@ class GRANNY(object):
 			Returns: 
 				(numpy.array) img: rotated image
 		"""
-		img = skimage.io.imread(old_im_dir, plugin = "matplotlib")
+		img = skimage.io.imread(old_im_dir)
 		if img.shape[0]>img.shape[1]:
 			img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
 		skimage.io.imsave(new_im_dir, img)
@@ -535,9 +535,13 @@ class GRANNY(object):
 
 		# calculate fraction 
 		fraction = 0 
-		fraction = 1 - mask_area/ground_area 
+		if ground_area == 0:
+			return 1
+		else: 
+			fraction = 1 - mask_area/ground_area 
+
 		if fraction < 0: 
-			fraction = 0
+			return 0
 		return fraction
 
 
@@ -560,7 +564,7 @@ class GRANNY(object):
 			try:
 				# read the image from file
 				file_name = self.FILE_NAME
-				img = skimage.io.imread(file_name, plugin = "matplotlib")
+				img = skimage.io.imread(file_name)
 
 				# remove the surroundings
 				nopurple_img, binarized_image, bw = self.score_image(img)
@@ -568,14 +572,15 @@ class GRANNY(object):
 				# calculate the scald region and save image 
 				score = self.calculate_scald(binarized_image, nopurple_img)
 				idx = -file_name[::-1].find(os.sep)
-				file_name = file_name[idx:]
+				if idx!= 1:
+					file_name = file_name[idx:]
 				skimage.io.imsave(os.path.join(self.BINARIZED_IMAGE, file_name), binarized_image)
 
 				# save the scores to results/rating.txt
 				with open("results" + os.sep +"rating.txt","w") as w:
 					w.writelines(f"{self.clean_name(file_name)}:\t\t{score}")
 					w.writelines("\n")
-				print(f"\t- {self.clean_name(file_name)} rated. Check \"results/\" for output. - \n" )
+				print(f"\t- Done. Check \"results/\" for output. - \n" )
 			except FileNotFoundError:
 				print(f"\t- Folder/File does not exist. -")
 		
@@ -594,7 +599,7 @@ class GRANNY(object):
 				for file_name in files: 
 
 					# read the image from file
-					img = skimage.io.imread(file_name, plugin = "matplotlib")
+					img = skimage.io.imread(file_name)
 					file_name = self.clean_name(file_name)
 
 					# remove the surroundings
@@ -603,7 +608,8 @@ class GRANNY(object):
 					# calculate the scald region and save image
 					score = self.calculate_scald(binarized_image, nopurple_img)
 					idx = -file_name[::-1].find(os.sep)
-					file_name = file_name[idx:]
+					if idx!= 1:
+						file_name = file_name[idx:]
 					scores.append(score)
 					skimage.io.imsave(os.path.join(self.BINARIZED_IMAGE, file_name + ".png"), binarized_image)
 				
@@ -612,7 +618,7 @@ class GRANNY(object):
 					for i, score in enumerate(scores): 
 						w.writelines(f"{self.clean_name(files[i])}:\t\t{score}")
 						w.writelines("\n")
-						print(f"\t- {self.clean_name(file_name)} rated. Check \"results/\" for output. - \n" )
+					print(f"\t- Done. Check \"results/\" for output. - \n" )
 			except FileNotFoundError: 
 				print(f"\t- Folder/File Does Not Exist -")
 		else: 
@@ -648,13 +654,15 @@ class GRANNY(object):
 
 			# pass each image to the model 
 			for file_name in file_names:
-				# get file name 
+				# get just file name, i.e. remove relative path
 				idx = -file_name[::-1].find(os.sep)
-				name = file_name[idx:]
+				if idx!= 1:
+					name = file_name[idx:]
+				else: 
+					name = file_name
 
 				# print, for debugging purpose
 				print(f"\t- Passing {name} into Mask R-CNN model. -")
-				print(f"{name}") 
 
 				# check and rotate the image to landscape (4000x6000)
 				img = self.rotate_image(
