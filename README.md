@@ -17,8 +17,8 @@ Inspired by the well-known apple cultivar, **GRANNY** is Python-based implementa
 
 - [Nhan Nguyen](mailto:nhan.h.nguyen@wsu.edu) - Ficklin lab's undergraduate researcher
 - [Heidi Hargarten](mailto:heidi.hargarten@usda.gov) - Honaas lab's postdoctoral researcher
-- [Loren Honaas](mailto:loren.honaas@usda.gov) - Honaas lab's principle investigator
-- [Stephen Ficklin](mailto:stephen.ficklin@wsu.edu) - Ficklin lab's principle investigator
+- [Loren Honaas](mailto:loren.honaas@usda.gov) - Honaas lab's principal investigator
+- [Stephen Ficklin](mailto:stephen.ficklin@wsu.edu) - Ficklin lab's principal investigator
 
 ## Installation and Usage
 
