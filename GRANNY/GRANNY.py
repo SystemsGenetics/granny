@@ -10,6 +10,7 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 import os
+import warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 pd.options.mode.chained_assignment = None
 tf.autograph.set_verbosity(3)
@@ -308,7 +309,9 @@ class GRANNY(object):
 
         # sort the DataFrame and return the list of instances
         apple_list = self.label_instances_helper(df)
-        return apple_list
+
+        ar = np.asarray(apple_list, dtype=object)
+        return ar
 
     def extract_image(self, df_list, mask, im, fname=""):
         """ 
@@ -325,7 +328,7 @@ class GRANNY(object):
                         None
         """
         # loop over 18 apples/pears
-        for df in df_list:
+        for k, df in enumerate(df_list):
 
             # loop over the coordinates
             for i in range(0, len(df)):
@@ -698,6 +701,9 @@ class GRANNY(object):
                         fname=file_name.replace(
                             self.OLD_DATA_DIR, self.SEGMENTED_DIR)
                     )
+                else:
+                    warnings.warn(
+                        "The program could not be working as expected.", UserWarning, stacklevel=1)
 
                 # for debugging purpose
                 print(
