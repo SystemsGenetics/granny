@@ -18,6 +18,10 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
 class GRANNY(object):
+    """ 
+        Implementation for semantic segmentation of instances and superficial scald rating in "Granny Smith" apples
+    """
+
     def __init__(self):
         # current directory
         self.ROOT_DIR = pathlib.Path(__file__).parent.resolve()
