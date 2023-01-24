@@ -708,7 +708,7 @@ class GRANNY(object):
 
                     # the instances will not be sorted
                     warnings.warn(
-                        "this is not a regular tray, the instances will not be sorted.", UserWarning, stacklevel=1)
+                        "this is not a regular tray, the instances will not be sorted.")
 
                     # if there are more instances than NUM_INSTANCES
                     if self.NUM_INSTANCES > len(box):
