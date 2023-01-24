@@ -9,7 +9,7 @@ Superficial scald is a physiological disorder that occurs following a chilling i
 - The set of rating values is small and coarse-grained.
 - The ratings are subjected to human error and individual bias
 
-In the collaboration with the [Honaas lab](https://www.ars.usda.gov/pacific-west-area/wenatchee-wa/physiology-and-pathology-of-tree-fruits-research/people/loren-honaas/) at the USDA ARS, the [Ficklin Research Program](http://ficklinlab.cahnrs.wsu.edu/) at Washington State University has developed a computer vision approach for automatic detection and superficial scald rating in the "Granny Smith" apple images.
+In the collaboration with [Honaas lab](https://www.ars.usda.gov/pacific-west-area/wenatchee-wa/physiology-and-pathology-of-tree-fruits-research/people/loren-honaas/) at the USDA ARS, the [Ficklin Research Program](http://ficklinlab.cahnrs.wsu.edu/) at Washington State University has developed a computer vision approach for automatic detection and superficial scald rating in the "Granny Smith" apple images.
 
 Inspired by the well-known apple cultivar, **GRANNY** is Python-based implementation of Mask-RCNN and image segmentation techniques, aiming to assist technicians in the superficial disorder rating process.
 
