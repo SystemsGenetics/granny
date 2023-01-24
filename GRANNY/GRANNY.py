@@ -1,4 +1,3 @@
-from tkinter import *
 import cv2
 import matplotlib.pyplot as plt
 import re
@@ -32,16 +31,17 @@ class GRANNY(object):
         # new directory of the rotated input images
         self.NEW_DATA_DIR = "input_data" + os.sep
 
-        # directory of the pretrained weights
+        # directory of the pretrained we
         self.PRETRAINED_MODEL = os.path.join(
             self.ROOT_DIR, "mask_rcnn_balloon.h5")
 
-        # initialize parameters
+        # initialize default parameters
         self.VERBOSE = 0
         self.FILE_NAME = ""
         self.FOLDER_NAME = ""
         self.OLD_DATA_DIR = ""
         self.ACTION = ""
+        self.NUM_INSTANCES = 0
 
         # accepted file extensions
         self.FILE_EXTENSION = (
@@ -60,7 +60,7 @@ class GRANNY(object):
         # location where apples with the scald removed will be saved
         self.BINARIZED_IMAGE = "results" + os.sep + "binarized_images" + os.sep
 
-    def setParameters(self, action, fname, mode):
+    def setParameters(self, action, fname, num_instances):
         """
                 Setter method for action to perform in main()
 
@@ -83,10 +83,10 @@ class GRANNY(object):
             self.FOLDER_NAME = fname
 
         # set mode for single/multiple-image processing
-        if mode == None:
-            self.MODE = 1
+        if num_instances == None:
+            self.NUM_INSTANCES = 1
         else:
-            self.MODE = mode
+            self.NUM_INSTANCES = num_instances
 
     def setVerbosity(self, verbose):
         """ 
@@ -230,7 +230,7 @@ class GRANNY(object):
 
     def label_instances_helper(self, df):
         """ 
-                Helper function to sort apples using their center coordinates
+                Helper function to sort the 18-apple tray using their center coordinates
 
                 This sorting algorithm follows the numbering convention in 
                 '01-input_data/GS-1-16_FilesForImageAnalysis/GS-1-16_ImageTutorial.pptx'. 
@@ -291,7 +291,7 @@ class GRANNY(object):
                 (numpy.array) box: [N, 4] where each row is y1, x1, y2, x2
 
                 Returns:
-                (list) apple_list: sorted coordinates of apples/pears 
+                (numpy.array) apple_ar: sorted coordinates of apples/pears 
         """
         # convert to DataFrame
         df = pd.DataFrame(box)
@@ -314,15 +314,15 @@ class GRANNY(object):
         # sort the DataFrame and return the list of instances
         apple_list = self.label_instances_helper(df)
 
-        ar = np.asarray(apple_list, dtype=object)
-        return ar
+        apple_ar = np.asarray(apple_list, dtype=object)
+        return apple_ar
 
-    def extract_image(self, df_list, mask, im, fname=""):
+    def extract_image(self, sorted_arr, mask, im, fname=""):
         """ 
                 Extract individual image from masks created by Mask-RCNN 
 
                 Args: 
-                        (list) df_list: sorted coordinates of apples/pears
+                        (numpy.array) sorted_arr: sorted coordinates of apples/pears
                         (numpy.array) mask: binary mask of individual apples
                         (numpy.array) im: full image (tray of apples) to extract 
                         (str) data_dir: directory to save the images
@@ -332,13 +332,13 @@ class GRANNY(object):
                         None
         """
         # loop over 18 apples/pears
-        for k, df in enumerate(df_list):
+        for k, ar in enumerate(sorted_arr):
 
             # loop over the coordinates
-            for i in range(0, len(df)):
+            for i in range(0, len(ar)):
 
-                # convert to np.array
-                ar = np.array(df)
+                # make sure ar is np.array
+                ar = np.array(ar)
 
                 # take the corresponsing mask
                 m = mask[:, :, ar[i][-1]]
@@ -555,7 +555,7 @@ class GRANNY(object):
     def rate_binarize_image(self):
         """ 
                 (GS) Main method performing Image Binarization, i.e. rate and remove scald, on individual apple images 
-                The scores will be written to a .txt file
+                The scores will be written to a .csv file
 
                 Args: 
                         None
@@ -567,7 +567,7 @@ class GRANNY(object):
         self.check_path(self.BINARIZED_IMAGE)
 
         # single-image rating
-        if self.MODE == 1:
+        if self.NUM_INSTANCES == 1:
             try:
                 # read the image from file
                 file_name = self.FILE_NAME
@@ -584,16 +584,16 @@ class GRANNY(object):
                 skimage.io.imsave(os.path.join(
                     self.BINARIZED_IMAGE, file_name), binarized_image)
 
-                # save the scores to results/rating.txt
-                with open("results" + os.sep + "rating.txt", "w") as w:
+                # save the scores to results/rating.csv
+                with open("results" + os.sep + "rating.csv", "w") as w:
                     w.writelines(f"{self.clean_name(file_name)}:\t\t{score}")
                     w.writelines("\n")
                 print(f"\t- Done. Check \"results/\" for output. - \n")
             except FileNotFoundError:
-                print(f"\t- Folder/File does not exist. -")
+                print(f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values. -")
 
         # multi-images rating
-        elif self.MODE == 2:
+        else:
             try:
                 # list all files and folders in the folder
                 folders, files = self.list_all(self.FOLDER_NAME)
@@ -623,17 +623,15 @@ class GRANNY(object):
                     skimage.io.imsave(os.path.join(
                         self.BINARIZED_IMAGE, file_name + ".png"), binarized_image)
 
-                # save the scores to results/rating.txt
-                with open("results" + os.sep + "ratings.txt", "w") as w:
+                # save the scores to results/rating.csv
+                with open("results" + os.sep + "ratings.csv", "w") as w:
                     for i, score in enumerate(scores):
                         w.writelines(
                             f"{self.clean_name(files[i])}:\t\t{score}")
                         w.writelines("\n")
                     print(f"\t- Done. Check \"results/\" for output. - \n")
             except FileNotFoundError:
-                print(f"\t- Folder/File Does Not Exist -")
-        else:
-            print("-\t Invalid MODE. Specify either \"1\" or \"2\". -")
+                print(f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values.-")
 
     def mask_extract_image(self):
         """
@@ -695,19 +693,44 @@ class GRANNY(object):
                         self.OLD_DATA_DIR, self.FULLMASK_DIR)
                 )
 
-                # only take images that have at least 18 instances (18 apples/pears)
-                if len(box) >= 18:
-                    df_list = self.sort_instances(box)
-                    self.extract_image(
-                        df_list=df_list,
-                        mask=mask,
-                        im=img,
-                        fname=file_name.replace(
-                            self.OLD_DATA_DIR, self.SEGMENTED_DIR)
-                    )
+                # when NUM_INSTANCES = 18 (18 apples/pears) or NUM_INSTANCES not specified
+                if self.NUM_INSTANCES == 1 or self.NUM_INSTANCES == 18:
+
+                    # sort all instances using the convention in demo/18_apples_tray_convention.pdf
+                    sorted_ar = self.sort_instances(box)
+
+                    # extract the images
+                    self.extract_image(sorted_arr=sorted_ar, mask=mask, im=img, fname=file_name.replace(
+                        self.OLD_DATA_DIR, self.SEGMENTED_DIR))
+
+                # when NUM_INSTANCES != 18
                 else:
+
+                    # the instances will not be sorted
                     warnings.warn(
-                        "The program could not be working as expected.", UserWarning, stacklevel=1)
+                        "this is not a regular tray, the instances will not be sorted.", UserWarning, stacklevel=1)
+
+                    # if there are more instances than NUM_INSTANCES
+                    if self.NUM_INSTANCES > len(box):
+                        print(
+                            f"Only {len(box)} instances is detected.")
+                        box = box
+
+                    # if there are less instances than NUM_INSTANCES
+                    else:
+                        box = box[0:self.NUM_INSTANCES-1, :]
+
+                    # concatenate the location array information
+                    box = np.array(np.concatenate((box, np.array(
+                        np.arange(1, len(box) + 1, dtype=int), ndmin=2).T, np.array(
+                        np.arange(0, len(box), dtype=int), ndmin=2).T), axis=1))
+
+                    # increase the dimensions to 2D
+                    box = box[:, np.newaxis, :]
+
+                    # extract the images
+                    self.extract_image(sorted_arr=box, mask=mask, im=img, fname=file_name.replace(
+                        self.OLD_DATA_DIR, self.SEGMENTED_DIR))
 
                 # for debugging purpose
                 print(
