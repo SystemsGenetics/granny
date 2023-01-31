@@ -15,10 +15,10 @@ Inspired by the well-known apple cultivar, **GRANNY** is Python-based implementa
 
 ## Project Contributors
 
-- [Nhan Nguyen](mailto:nhan.h.nguyen@wsu.edu) - Ficklin lab's undergraduate researcher
-- [Heidi Hargarten](mailto:heidi.hargarten@usda.gov) - Honaas lab's postdoctoral researcher
-- [Loren Honaas](mailto:loren.honaas@usda.gov) - Honaas lab's principal investigator
-- [Stephen Ficklin](mailto:stephen.ficklin@wsu.edu) - Ficklin lab's principal investigator
+- [Nhan Nguyen](nhan.h.nguyen@wsu.edu) - Ficklin lab's undergraduate researcher
+- [Heidi Hargarten](https://www.ars.usda.gov/people-locations/person?person-id=52227) - Honaas lab's postdoctoral researcher
+- [Loren Honaas](https://www.ars.usda.gov/pacific-west-area/wenatchee-wa/physiology-and-pathology-of-tree-fruits-research/people/loren-honaas/) - Honaas lab's principal investigator
+- [Stephen Ficklin](http://ficklinlab.cahnrs.wsu.edu/) - Ficklin lab's principal investigator
 
 ## Installation and Usage
 
@@ -26,4 +26,4 @@ Want **GRANNY** to rate your apples? Please refer to our [demo](https://github.c
 
 ### Limitations
 
-This program contains certain limitations.
+This program contains certain constraints that are limitted .

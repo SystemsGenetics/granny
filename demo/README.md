@@ -41,7 +41,7 @@ Inside the environment, run the following to set up command line interfaces:
 To perform extraction and/or rating on "Granny Smith" images, run **GRANNY** in the following way in the command line:
 
 ```bash
-granny  [-a,--action] <ACTION>  [-p,--image_path] <PATH>  [-m,--mode] <MODE>  [-v,--verbose] <VERBOSE>
+granny  [-a,--action] <ACTION>  [-p,--image_path] <PATH>  [-n,--num_instances] <NUM_INSTANCES>  [-v,--verbose] <VERBOSE>
 ```
 
 where:
@@ -49,7 +49,7 @@ where:
 | --------- | ---- | ------ |
 | `<ACTION>` | Required | Either **"extract"** or **"rate"**: <br />"extract" - perform individual apples extraction from apple trays; <br /> "rate" - perform disorder rating on single apple images.|
 | `<PATH>` | Required | Specify either an image directory containing multiple images or a single image file. |
-| `<MODE>` | Optional | Default to 1. Specify 2 for multiple images processing in `--action rate`. |
+| `<NUM_INSTANCES>` | Optional | Default to 18. Specify 2 for multiple images processing in `--action rate`. |
 | `<VERBOSE>` | Optional | Default to 1. Specify 0 to turn off model display. |
 
 ---
