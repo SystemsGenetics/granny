@@ -1,6 +1,6 @@
-## "**GRANNY** is going to rate your apples"
+## "**Granny** is going to rate your apples"
 
-**GRANNY** is a program for superficial disorder rating in "Granny Smith" apples.
+**Granny** is a program for superficial disorder rating in "Granny Smith" apples.
 
 ## Introduction
 
@@ -11,7 +11,7 @@ Superficial scald is a physiological disorder that occurs following a chilling i
 
 In the collaboration with [Honaas lab](https://www.ars.usda.gov/pacific-west-area/wenatchee-wa/physiology-and-pathology-of-tree-fruits-research/people/loren-honaas/) at the USDA ARS, the [Ficklin Research Program](http://ficklinlab.cahnrs.wsu.edu/) at Washington State University has developed a computer vision approach for automatic detection and superficial scald rating in the "Granny Smith" apple images.
 
-Inspired by the well-known apple cultivar, **GRANNY** is Python-based implementation of Mask-RCNN and image segmentation techniques, aiming to assist technicians in the superficial disorder rating process.
+Inspired by the well-known apple cultivar, **Granny** is Python-based implementation of Mask-RCNN and image segmentation techniques, aiming to assist technicians in the superficial disorder rating process.
 
 ## Project Contributors
 
@@ -22,8 +22,8 @@ Inspired by the well-known apple cultivar, **GRANNY** is Python-based implementa
 
 ## Installation and Usage
 
-Want **GRANNY** to rate your apples? Please refer to our [demo](https://github.com/SystemsGenetics/granny/tree/master/demo) page for installation and usage.
+Want **Granny** to rate your apples? Please refer to our [demo](https://github.com/SystemsGenetics/Granny/tree/master/demo) page for installation and usage.
 
 ### Limitations
 
-This program contains certain constraints that are limitted .
+This program contains certain constraints that are limitted to phenomic research.

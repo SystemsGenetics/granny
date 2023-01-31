@@ -12,7 +12,7 @@ Want to try on your dataset? You can install our model to get started. First, cl
 git clone https://github.com/SystemsGenetics/granny.git && cd granny
 ```
 
-It is recommended to use a package manager such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/) to create a seperate, independent environment for **GRANNY**. An description of the package installation using conda is provided below.
+It is recommended to use a package manager such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/) to create a seperate, independent environment for **Granny**. An description of the package installation using conda is provided below.
 
 Due to the limitation of TensorFlow 1.15, it is required to have Python version be **less than or equal** to 3.7
 
@@ -38,7 +38,7 @@ Inside the environment, run the following to set up command line interfaces:
 
 ## Command Line Interface
 
-To perform extraction and/or rating on "Granny Smith" images, run **GRANNY** in the following way in the command line:
+To perform extraction and/or rating on "Granny Smith" images, run **Granny** in the following way in the command line:
 
 ```bash
 granny  [-a,--action] <ACTION>  [-p,--image_path] <PATH>  [-n,--num_instances] <NUM_INSTANCES>  [-v,--verbose] <VERBOSE>
@@ -63,7 +63,7 @@ This is an apple tray, consisting of 18 apples:
   <p>Example of an apple tray.</p>
 </div>
 
-1. In the command line, run GRANNY
+1. In the command line, run Granny
 
 ```bash
 granny --action extract --path images/apple_tray/demo_image.JPG
@@ -116,7 +116,7 @@ to get a full-tray mask:
     <img src="images/segmented_images/demo_image_14.png" width="100" />
 </p>
 
-2. With individual apples extracted to your `"results"`, run GRANNY with a `"rate"` action
+2. With individual apples extracted to your `"results"`, run Granny with a `"rate"` action
 
 ```bash
 granny --action rate --path ./results/segmented_images/ --mode 2
@@ -166,7 +166,7 @@ to get
 
 ## Output and Results
 
-Upon completion, **GRANNY** will have created a directory named `results` by default. Depending on the `<ACTION>`, output images will be stored in the corresponding sub-directories:
+Upon completion, **Granny** will have created a directory named `results` by default. Depending on the `<ACTION>`, output images will be stored in the corresponding sub-directories:
 
 - `full_masked_images` - stores masked full-tray images
 
@@ -181,6 +181,6 @@ Upon completion, **GRANNY** will have created a directory named `results` by def
 
 ---
 
-## **GRANNY** Directory
+## **Granny** Directory
 
-Please refer to [**GRANNY** directory description](https://github.com/SystemsGenetics/granny/blob/master/GRANNY/README.md) for a detailed listing of the **GRANNY**'s components.
+Please refer to [**Granny** directory description](https://github.com/SystemsGenetics/granny/blob/master/GRANNY/README.md) for a detailed listing of the **Granny**'s components.
