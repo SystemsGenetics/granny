@@ -4,34 +4,31 @@ import argparse
 from . import GRANNY as granny
 
 def main():
-    gn = granny.GRANNY()
 
     parser = argparse.ArgumentParser(description = "Implementation of Mask-RCNN and image binarization to rate disorder severity on Granny Smith apples.")
 
     parser.add_argument("-a", "--action", dest = "action", type = str, nargs = "?", 
-    required = True, help = "Required. Specify either \"extract\" or \"rate\".")
+    required = True, help = "Required. Specify an action to perform.")
 
-    parser.add_argument("-p", "--image_path", dest = "path", type = str, nargs = "?", 
-    required = True, help = "Required. Specify a directory for --action==\"extract\" or a file for --action==\"rate\"")
+    parser.add_argument("-d", "--image_dir", dest = "dir", type = str, nargs = "?", 
+    required = True, help = "Required. Specify a directory or a file.")
 
     parser.add_argument("-n", "--num_instances", dest = "num_instances", type = int, nargs = "?", 
-    required = False, help = "Optional. For --action \"extract\", specify how many number of instances you want to extract, by default it is 18.\
-    For --action \"rate\", specify 2 when passing in multiple images, by default it is 1 for single image processing.")
+    required = False, help = "Optional, default is 18. The number of instances on each image.")
     
     parser.add_argument("-v", "--verbose", dest = "verbose", type = int, nargs = "?", 
-    default = gn.VERBOSE, required = False, help = "Optional. Specify 0 to switch off model display.")
+    default = 0, required = False, help = "Optional. Specify 1 to turn on model display.")
     
     args = parser.parse_args()
-    
-    gn.setParameters(args.action, args.path, args.num_instances)
 
-    gn.setVerbosity(args.verbose)
-
-    gn.main()
-
-def launch_gui(): 
-    
-    gn = granny.GRANNY()
-
-    gn.launch_gui()
+    if args.action == "extract": 
+        granny.GrannyExtractInstances(args.action, args.dir, args.num_instances, args.verbose).mask_extract_image()
+    elif args.action == "scald": 
+        granny.GrannySuperficialScald(args.action, args.dir, args.num_instances, args.verbose).rate_binarize_image()
+    elif args.action == "pear": 
+        granny.GrannyPeelColor(args.action, args.dir, args.num_instances, args.verbose).sort_peel_color()
+    elif args.action == "starch": 
+        granny.GrannyStarchIndex(args.action, args.dir, args.num_instances, args.verbose).main()
+    else: 
+        print("\t- Invalid Action. -")
 
