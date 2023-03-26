@@ -11,18 +11,19 @@ Superficial scald is a physiological disorder that occurs following a chilling i
 
 In the collaboration with [Honaas lab](https://www.ars.usda.gov/pacific-west-area/wenatchee-wa/physiology-and-pathology-of-tree-fruits-research/people/loren-honaas/) at the USDA ARS, the [Ficklin Research Program](http://ficklinlab.cahnrs.wsu.edu/) at Washington State University has developed a computer vision approach for automatic detection and superficial scald rating in the "Granny Smith" apple images.
 
-Inspired by the well-known apple cultivar, **Granny** is Python-based implementation of Mask-RCNN and image segmentation techniques, aiming to assist technicians in the superficial disorder rating process.
+Inspired by the well-known apple cultivar, **Granny** is Python-based implementation of Mask-RCNN and image segmentation techniques, aiming to assist technicians in post-harvest maturity index experiments.
 
 ## Project Contributors
 
 - [Nhan Nguyen](nhan.h.nguyen@wsu.edu) - Ficklin lab's undergraduate researcher
+- [Joseph Michaud](https://www.ars.usda.gov/people-locations/person/?person-id=57281) - Biological Science Technician
 - [Heidi Hargarten](https://www.ars.usda.gov/people-locations/person?person-id=52227) - Honaas lab's postdoctoral researcher
 - [Loren Honaas](https://www.ars.usda.gov/pacific-west-area/wenatchee-wa/physiology-and-pathology-of-tree-fruits-research/people/loren-honaas/) - Honaas lab's principal investigator
 - [Stephen Ficklin](http://ficklinlab.cahnrs.wsu.edu/) - Ficklin lab's principal investigator
 
 ## Installation and Usage
 
-Want **Granny** to rate your apples? Please refer to our [demo](https://github.com/SystemsGenetics/Granny/tree/master/demo) page for installation and usage.
+Want **Granny** to rate your apples? Please refer to our [docs](https://github.com/SystemsGenetics/Granny/tree/master/docs) page for installation and usage.
 
 ### Limitations
 

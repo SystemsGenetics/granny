@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import os
 import warnings
+import json
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 pd.options.mode.chained_assignment = None
 tf.autograph.set_verbosity(3)
@@ -709,35 +710,34 @@ class GrannySuperficialScald(GrannyBaseClass):
 
 
 class GrannyPeelColor(GrannyBaseClass): 
-    def __init__(self, action, fname, num_instances, verbose): 
+    def __init__(self, action, fname, num_instances, rgb = 0, verbose = 0): 
         super(GrannyPeelColor, self).__init__(action, fname, num_instances, verbose)
         self.MEAN_VALUES_L = [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
         self.MEAN_VALUES_A = [
-            -22.73535185450301,
-            -35.856673734593976,
-            -14.839191848288477,
-            -38.33945889256972,
-            -38.35401900977177,
-            -25.183705217005663,
-            -37.46455193845067,
-            -18.57975296251061,
-            -20.153556829155015,
-            -28.66620337913712,
-            -15.422998269835011
+            -37.431935692331884,
+            -38.293360653725784,
+            -35.82872139214024,
+            -28.65441389649031,
+            -20.132066117704923,
+            -25.194905219214903,
+            -22.755906449379097,
+            -18.56182827236788,
+            -15.454144111751553,
+            -14.824498082241526
         ]
         self.MEAN_VALUES_B = [
-            84.36038598038662,
-            72.21634388774689,
-            91.21422051166374,
-            60.41978876347979,
-            60.40667779362334,
-            81.7513027496333,
-            58.068541555881474,
-            86.95338287223824,
-            78.30049344632643,
-            77.42875637928557,
-            92.37148315325989
+            58.106332924284644,
+            60.495161874167344,
+            72.19300566542566,
+            77.41069574523988,
+            78.2944440629932,
+            81.71376220418327,
+            84.27577503150619,
+            86.90495332877367,
+            92.36555388970727,
+            91.26334782696254,
         ]
+        self.rgb = 0 
 
     def remove_purple(self, img):
         """
@@ -832,7 +832,7 @@ class GrannyPeelColor(GrannyBaseClass):
         # normalize by shifting point in the spherical coordinates
         radius = np.sqrt(mean_l**2 + mean_a**2 + mean_b**2)
         scaled_l = 50
-        scaled_a = np.sign(mean_a)*np.sqrt((radius**2 - scaled_l**2)/(1 + (mean_b/mean_a)**2))
+        scaled_a = np.sign(mean_a)*np.sqrt(np.abs(radius**2 - scaled_l**2)/(1 + (mean_b/mean_a)**2))
         scaled_b = np.sign(mean_b)*mean_b/mean_a*scaled_a
 
         return scaled_l, scaled_a, scaled_b
@@ -851,14 +851,25 @@ class GrannyPeelColor(GrannyBaseClass):
         bin_num = 0 
         dist = 0
         if method == "Euclidean": 
-            dist = np.sqrt((color_list[1] - np.array(self.MEAN_VALUES_A))**2, (color_list[2] - np.array(self.MEAN_VALUES_B))**2) 
-            bin_num = np.argmin(dist)
-        
+            dist_a = color_list[1] - np.array(self.MEAN_VALUES_A)
+            dist_b = color_list[2] - np.array(self.MEAN_VALUES_B)
+            dist = np.sqrt((dist_a/np.linalg.norm(dist_a))**2 + (dist_b/np.linalg.norm(dist_b))**2) 
+            bin_num = np.argmin(dist) + 1
         return bin_num, dist
     
+    def get_distance_from_rgb(self, img): 
+        r = np.mean(img[:,:,0])
+        g = np.mean(img[:,:,1])
+        b = np.mean(img[:,:,2])
+        return 
+    
     def sort_peel_color(self): 
+        """ 
+
+        """
         # create "results" directory to save the results
         self.check_path(self.BIN_COLOR)
+
         if self.NUM_INSTANCES == 1: 
             try:
                 # create "results" directory to save the results
@@ -878,21 +889,32 @@ class GrannyPeelColor(GrannyBaseClass):
                 # get image values
                 l, a, b = self.get_green_yellow_values(img)
 
+                if self.rgb == "":
                 # calculate distance to each bin 
-                bin_num, distances = self.calculate_bin_distance([l, a, b])
+                    bin_num, distance = self.calculate_bin_distance([l, a, b])
+                else: 
+                    distance = self.get_distance_from_rgb(img)
 
                 # convert to string
                 string_dist = ""
-                for dist in distances: 
-                    string_dist += dist + ","
+                for dist in distance: 
+                    string_dist += str(dist) + ","
+
+                color_info = {}
+                color_info["bin_num"] = bin_num.tolist()
+                color_info["distances"] = distance.tolist()
+                color_info["LAB_pixels"] = [l, a, b]
 
                 # save the scores to results/rating.csv
                 with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w:
-                    w.writelines(f"{self.clean_name(file_name)},{bin_num},{string_dist}")
+                    w.writelines(f"{self.clean_name(file_name.split(os.sep)[-1])},{bin_num},{string_dist},{l},{a},{b}")
                     w.writelines("\n")
+
+                with open(self.BIN_COLOR + os.sep + "peel_colors.json", "w") as w:
+                    json.dump({file_name.split(os.sep)[-1]:color_info}, w)
                 print(f"\t- Done. Check \"results/\" for output. - \n")
 
-            except:
+            except FileNotFoundError:
                 print(f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values. -")
         
         else: 
@@ -904,9 +926,11 @@ class GrannyPeelColor(GrannyBaseClass):
                 for folder in folders:
                     self.check_path(folder.replace(
                         self.FOLDER_NAME, self.BIN_COLOR))
-                
+
                 bin_nums = []
                 distances = []
+                channels_values = []
+                color_infos = {} 
                 for file_name in files: 
                     img = skimage.io.imread(file_name)
 
@@ -926,17 +950,28 @@ class GrannyPeelColor(GrannyBaseClass):
                     # convert to string
                     string_dist = ""
                     for dist in distance: 
-                        string_dist += dist + ","
+                        string_dist += str(dist) + ","
                     
                     bin_nums.append(bin_num)
                     distances.append(string_dist)
+                    channels_values.append(str(l) + "," + str(a) + "," + str(b))
+                    color_info = {}
+                    color_info["bin_num"] = bin_num.tolist()
+                    color_info["distances"] = distance.tolist()
+                    color_info["LAB_pixels"] = [l, a, b]
+                    image_data = {}
+                    image_data[file_name.split(os.sep)[-1]] = color_info
+                    color_infos.update(image_data)
 
                 with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w: 
-                    for i in len(bin_nums): 
-                        w.writelines(f"{self.clean_name(files[i])},{bin_nums[i]},{string_dist[i]}")
+                    for i in range(len(bin_nums)): 
+                        w.writelines(f"{self.clean_name(files[i].split(os.sep)[-1])},{bin_nums[i]},{distances[i]}{channels_values[i]}")
                         w.writelines("\n")
-                    print(f"\t- Done. Check \"results/\" for output. - \n")
-            except: 
+
+                with open(self.BIN_COLOR + os.sep + "peel_colors.json", "w") as w: 
+                    json.dump(color_infos, w)
+                print(f"\t- Done. Check \"results/\" for output. - \n")
+            except FileNotFoundError: 
                 print(f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values. -")
 
 

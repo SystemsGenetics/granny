@@ -7,7 +7,7 @@ numpy
 opencv-python
 matplotlib>=3.5
 h5py<3.0.0
-scikit-image
+scikit-image==0.16.2
 tensorflow<=1.15
 pillow
 protobuf<=3.20

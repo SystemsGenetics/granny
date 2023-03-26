@@ -1,5 +1,6 @@
 build/ 
 dist/
+results/
 *.egg-info/ 
 *.txt 
 *.png

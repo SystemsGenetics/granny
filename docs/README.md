@@ -1,18 +1,20 @@
 ## Quick start
 
-Don't want to install anything on your computer, we have set up a [Google Colab](https://colab.research.google.com/drive/10aJ_kQMXNRb9srB-YD0OPJpE8GOvgQlU?usp=share_link).
+Don't want to install anything on your computer, we have set up a quick demo on [Google Colab](https://colab.research.google.com/drive/10aJ_kQMXNRb9srB-YD0OPJpE8GOvgQlU?usp=share_link).
 
 ---
 
+## Overview
+
+The implementation of the program comprises of 2 main steps, allowing some flexiblity in usage.
+
+1.  Extract instances using Mask-RCNN
+2.  Perform rating on each instance. Rating includes: 
+
+
 ## Intallation and Usage
 
-Want to try on your dataset? You can install our model to get started. First, clone to your directory:
-
-```bash
-git clone https://github.com/SystemsGenetics/granny.git && cd granny
-```
-
-It is recommended to use a package manager such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/) to create a seperate, independent environment for **Granny**. An description of the package installation using conda is provided below.
+Want to try on your dataset? You can install our model to get started. First, it is recommended to use a package manager such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/) to create a seperate, independent environment for **Granny**. An description of the package installation using conda is provided below.
 
 Due to the limitation of TensorFlow 1.15, it is required to have Python version be **less than or equal** to 3.7
 
@@ -31,7 +33,7 @@ conda activate <venv>
 Inside the environment, run the following to set up command line interfaces:
 
 ```bash
-!pip install --upgrade granny
+pip install --upgrade granny
 ```
 
 ---
@@ -116,10 +118,10 @@ to get a full-tray mask:
     <img src="images/segmented_images/demo_image_14.png" width="100" />
 </p>
 
-2. With individual apples extracted to your `"results"`, run Granny with a `"rate"` action
+2. With individual apples extracted to your `"results"`, run Granny with a `"scald"` action
 
 ```bash
-granny --action rate --path ./results/segmented_images/ --mode 2
+granny --action scald --image_dir ./results/segmented_images/ --mode 2
 ```
 
 to get
@@ -173,6 +175,7 @@ Upon completion, **Granny** will have created a directory named `results` by def
 - `segmented_images` - stores individual apple images
 
 - `binarized_images` - stores non-scald individual apple images
+
 
 | `<ACTION>` | Location                                                                                                                                             |
 | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
