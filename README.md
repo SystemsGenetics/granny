@@ -1,6 +1,8 @@
 ## "**Granny** is going to rate your apples"
 
-**Granny** is a program for superficial disorder rating in "Granny Smith" apples.
+**Granny** is a program aiming to assist technicians in post-harvest fruit maturity index experiments.
+
+--- 
 
 ## Introduction
 
@@ -13,18 +15,43 @@ In the collaboration with [Honaas lab](https://www.ars.usda.gov/pacific-west-are
 
 Inspired by the well-known apple cultivar, **Granny** is Python-based implementation of Mask-RCNN and image segmentation techniques, aiming to assist technicians in post-harvest maturity index experiments.
 
+--- 
+
 ## Project Contributors
 
-- [Nhan Nguyen](nhan.h.nguyen@wsu.edu) - Ficklin lab's undergraduate researcher
-- [Joseph Michaud](https://www.ars.usda.gov/people-locations/person/?person-id=57281) - Biological Science Technician
-- [Heidi Hargarten](https://www.ars.usda.gov/people-locations/person?person-id=52227) - Honaas lab's postdoctoral researcher
+- [Nhan Nguyen](http://ficklinlab.cahnrs.wsu.edu/#people) - Ficklin lab's undergraduate researcher
+- [Joseph Michaud](https://www.ars.usda.gov/people-locations/person/?person-id=57281) - Biological Science Technician, USDA-ARS Hood River
+- [Heidi Hargarten](https://www.ars.usda.gov/people-locations/person?person-id=52227) - Honaas lab's postdoctoral researcher, USDA-ARS Wenatchee
 - [Loren Honaas](https://www.ars.usda.gov/pacific-west-area/wenatchee-wa/physiology-and-pathology-of-tree-fruits-research/people/loren-honaas/) - Honaas lab's principal investigator
 - [Stephen Ficklin](http://ficklinlab.cahnrs.wsu.edu/) - Ficklin lab's principal investigator
 
-## Installation and Usage
+--- 
 
-Want **Granny** to rate your apples? Please refer to our [docs](https://github.com/SystemsGenetics/Granny/tree/master/docs) page for installation and usage.
+## Usage
 
-### Limitations
+The main usage of the program consists of 2 main steps:
 
-This program contains certain constraints that are limitted to phenomic research.
+- Step 1. Locate and extract instances using Mask-RCNN *[Instance Extraction]*.
+- Step 2. Rate each instance. Depending on your purpose, you can tell the program to 
+    - rate superficial scald in Granny Smith apples *[Superficial Scald]*
+    - calculate starch area on iodine-stained cross-sections *[Cross-section Starch]*
+    - sort color of the pears *[Pear Color]*
+
+Please refer to our [demo](https://github.com/SystemsGenetics/granny/tree/master/demo) page for a walk-through of each step's input and output. 
+
+--- 
+
+## Installation 
+
+Please refer to our [docs](https://github.com/SystemsGenetics/Granny/tree/master/docs) page for a detailed explanation of how to install the program and related packages in Python. 
+
+--- 
+
+## Limitations
+
+We are sorry in advance for the incovenience, but our program still contains a few limitations.
+- *[Instance Extraction]* Due to the dependency requirements, it is recommended to install Python's package managers such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/). Here, we provide instructions for installation of packages using conda. 
+- *[Superficial Scald]* Due to the similarity in coloration, the stem of the apples could be potentially counted towards the total area of superficial scald.
+- *[Cross-section Starch]* In order to run our provided ImageJ scripts for starch analysis, the user must seperately install [Fiji](https://imagej.net/software/fiji/), we are currently trying to implement the Python wrapper function for calling ImageJ macros.
+- *[Cross-section Starch]* Due to the similarity in coloration, the code is unable to distinguish between bruising and iodine-stained area. 
+
