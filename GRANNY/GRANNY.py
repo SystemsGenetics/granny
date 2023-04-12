@@ -34,7 +34,7 @@ class GrannyBaseClass(object):
 
         # directory of the pretrained we
         self.PRETRAINED_MODEL = os.path.join(
-            self.ROOT_DIR, "mask_rcnn_balloon.h5")
+            self.ROOT_DIR, "mask_rcnn_starch_cross_section.h5")
 
         # initialize default parameters
         self.VERBOSE = verbose
