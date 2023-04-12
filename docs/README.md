@@ -7,8 +7,8 @@ Don't want to install anything on your computer, we have set up a quick demo on 
 ## Contents
 
 1. [Installation](#installation)
-2. [Command Line Interface](#command-line-interface)
-3. [Output Directory](#output-and-results)
+2. [Command Line Interface](#cli)
+3. [Output Directory](#output)
 
 
 --- 
