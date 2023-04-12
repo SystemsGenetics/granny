@@ -1,5 +1,5 @@
 ## Quick start
-This is just a boring documentation page to explain and provide instructions to the user, we suggest you check our [demo](https://colab.research.google.com/drive/10aJ_kQMXNRb9srB-YD0OPJpE8GOvgQlU?usp=share_link) page before going over this page.
+This is just a boring documentation page to explain and provide instructions to the user, we suggest you check our [demo](https://github.com/SystemsGenetics/granny/tree/master/demo) page before going over this page.
 
 --- 
 
