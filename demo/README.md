@@ -154,7 +154,8 @@ to get the following images, and a `ratings.csv` file containing scald area for 
 --- 
 
 ## <a name="starch"></a> Iodine-stained Cross-section Starch
-To calculate the total starch area of each individual cross-section, unfortunately, you will have to install a separate application to run our [provided macros](https://github.com/SystemsGenetics/granny/tree/master/GRANNY/Starch_Macros).
+The starch area of the cross-section is
+To calculate the total starch area of each individual cross-section, unfortunately, you will have to install a separate application to run our [provided macros](https://github.com/SystemsGenetics/granny/tree/master/GRANNY/Starch_Macros). 
 
 ... more instruction will be given. 
 

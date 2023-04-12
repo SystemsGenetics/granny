@@ -31,7 +31,7 @@ Inspired by the well-known apple cultivar, **Granny** is Python-based implementa
 
 The main usage of the program consists of 2 main steps:
 
-- Step 1. Locate and extract instances using Mask-RCNN *[Instance Extraction]*.
+- Step 1. Locate and extract instances using Mask-RCNN *[Instance Extraction]*. 
 - Step 2. Rate each instance. Depending on your purpose, you can tell the program to 
     - rate superficial scald in Granny Smith apples *[Superficial Scald]*
     - calculate starch area on iodine-stained cross-sections *[Cross-section Starch]*
@@ -54,4 +54,4 @@ We are sorry in advance for the inconvenience, but our program still contains a 
 - *[Superficial Scald]* Due to the similarity in coloration, the stem of the apples could be potentially counted towards the total area of superficial scald.
 - *[Cross-section Starch]* In order to run our provided ImageJ scripts for starch analysis, the user must seperately install [Fiji](https://imagej.net/software/fiji/). We are currently trying to implement the Python wrapper function for calling ImageJ macros.
 - *[Cross-section Starch]* Due to the similarity in coloration, the code is unable to distinguish between bruising and iodine-stained area. 
-
+- *[Pear Color]* Currently, the color of single pear image is being sorted based on the provided color card under 
