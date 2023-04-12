@@ -52,6 +52,6 @@ Please refer to our [docs](https://github.com/SystemsGenetics/Granny/tree/master
 We are sorry in advance for the incovenience, but our program still contains a few limitations.
 - *[Instance Extraction]* Due to the dependency requirements, it is recommended to install Python's package managers such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/). Here, we provide instructions for installation of packages using conda. 
 - *[Superficial Scald]* Due to the similarity in coloration, the stem of the apples could be potentially counted towards the total area of superficial scald.
-- *[Cross-section Starch]* In order to run our provided ImageJ scripts for starch analysis, the user must seperately install [Fiji](https://imagej.net/software/fiji/), we are currently trying to implement the Python wrapper function for calling ImageJ macros.
+- *[Cross-section Starch]* In order to run our provided ImageJ scripts for starch analysis, the user must seperately install [Fiji](https://imagej.net/software/fiji/). We are currently trying to implement the Python wrapper function for calling ImageJ macros.
 - *[Cross-section Starch]* Due to the similarity in coloration, the code is unable to distinguish between bruising and iodine-stained area. 
 

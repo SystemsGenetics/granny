@@ -3,44 +3,17 @@ This is just a boring documentation page explaining and providing instructions t
 
 ---
 
-## Contents
+## Content
 
-1. [Installation](#installation)
-2. [Command Line Interface](#cli)
-3. [Output Directory](#output)
-4. [Granny Code Directory](#granny-dir)
-
---- 
-
-## <a name="installation"></a> Installation
-
-Want to try on your dataset? You can install our model to get started. First, it is recommended to use a package manager such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/) to create a seperate, independent environment for **Granny**. An description of the package installation using conda is provided below.
-
-Due to the limitation of TensorFlow 1.15, it is required to have Python version be **less than or equal** to 3.7
-
-```bash
-conda create -n <venv> python==3.7 -y
-```
-
-where `<venv>` is the name of the virtual environment
-
-To activate the environment:
-
-```bash
-conda activate <venv>
-```
-
-Inside the environment, run the following to set up command line interfaces:
-
-```bash
-pip install --upgrade granny
-```
+1. [Command Line Interface](#cli)
+2. [Output Directory](#output)
+3. [Granny Code Directory](#granny-dir)
 
 ---
 
 ## <a name="cli"></a> Command Line Interface
 
-To perform extraction and/or rating on "Granny Smith" images, run **Granny** in the following way in the command line:
+**Granny** can be run by the following way in the command line:
 
 ```bash
 granny  [-a,--action] <ACTION>

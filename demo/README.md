@@ -3,7 +3,43 @@ Don't want to install anything on your computer, we have set up a quick demo on 
 
 --- 
 
-## Example
+## Content
+
+1. [Installation](#installation)
+2. [Extraction](#extract)
+3. [Superficial Scald Rating](#scald)
+4. [Cross-section Starch Calculation](#starch)
+5. [Pear Color Sorting](#pear)
+
+--- 
+
+## <a name="installation"></a> Installation
+
+Want to try on your dataset? You can install our model to get started. First, it is recommended to use a package manager such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/) to create a seperate, independent environment for **Granny**. An description of the package installation using conda is provided below.
+
+Due to the limitation of TensorFlow 1.15, it is required to have Python version be **less than or equal** to 3.7
+
+```bash
+conda create -n <venv> python==3.7 -y
+```
+
+where `<venv>` is the name of the virtual environment
+
+To activate the environment:
+
+```bash
+conda activate <venv>
+```
+
+Inside the environment, run the following to set up command line interfaces:
+
+```bash
+pip install --upgrade granny
+```
+
+---
+
+## <a name="extract"></a> Extraction
 
 This is an apple tray, consisting of 18 apples:
 
@@ -12,20 +48,20 @@ This is an apple tray, consisting of 18 apples:
   <p>Example of an apple tray.</p>
 </div>
 
-1. In the command line, run Granny
+In the command line, run Granny
 
 ```bash
 granny --action extract --path images/apple_tray/demo_image.JPG
 ```
 
-to get a full-tray mask:
+to get a full-tray masked image (helpful to know what instances are extracted):
 
 <div align="center">
   <img src="images/full_masked_images/demo_image.png" width="500px" />
   <p> </p>
 </div>
 
-... and individual apples:
+... and extracted individual images:
 
 1st row:
 
@@ -65,13 +101,17 @@ to get a full-tray mask:
     <img src="images/segmented_images/demo_image_14.png" width="100" />
 </p>
 
-2. With individual apples extracted to your `"results"`, run Granny with a `"scald"` action
+--- 
+
+## <a name="scald"></a> Superficial Scald Rating
+
+With individual apples extracted to your "results", run Granny with a "scald" action
 
 ```bash
 granny --action scald --image_dir ./results/segmented_images/ --num_instances 2
 ```
 
-to get
+to get the following images, and a `ratings.csv` file containing scald area for each intance. 
 
 1st row:
 
@@ -110,3 +150,15 @@ to get
     <img src="images/binarized_images/demo_image_15.png" width="100" />
     <img src="images/binarized_images/demo_image_14.png" width="100" />
 </p>
+
+--- 
+
+## <a name="starch"></a> Iodine-stained Cross-section Starch
+To calculate the total starch area of each individual cross-section, unfortunately, you will have to install a separate application to run our [provided macros](https://github.com/SystemsGenetics/granny/tree/master/GRANNY/Starch_Macros).
+
+... more instruction will be given. 
+
+--- 
+
+## <a name="pear"></a> Pear Color
+
