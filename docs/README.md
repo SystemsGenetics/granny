@@ -4,15 +4,16 @@ Don't want to install anything on your computer, we have set up a quick demo on 
 
 ---
 
-## Overview
+## Contents
 
-The implementation of the program comprises of 2 main steps, allowing some flexiblity in usage.
+1. [Installation](#installation)
+2. [Command Line Interface](#command-line-interface)
+3. [Output Directory](#output-and-results)
 
-1.  Extract instances using Mask-RCNN
-2.  Perform rating on each instance. Rating includes: 
 
+--- 
 
-## Intallation and Usage
+## <a name="installation"></a> Installation
 
 Want to try on your dataset? You can install our model to get started. First, it is recommended to use a package manager such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/) to create a seperate, independent environment for **Granny**. An description of the package installation using conda is provided below.
 
@@ -38,12 +39,12 @@ pip install --upgrade granny
 
 ---
 
-## Command Line Interface
+## <a name="cli"></a> Command Line Interface
 
 To perform extraction and/or rating on "Granny Smith" images, run **Granny** in the following way in the command line:
 
 ```bash
-granny  [-a,--action] <ACTION>  [-p,--image_path] <PATH>  [-n,--num_instances] <NUM_INSTANCES>  [-v,--verbose] <VERBOSE>
+granny  [-a,--action] <ACTION>  [-d,--image_dir] <PATH>  [-n,--num_instances] <NUM_INSTANCES>  [-v,--verbose] <VERBOSE>
 ```
 
 where:
@@ -121,7 +122,7 @@ to get a full-tray mask:
 2. With individual apples extracted to your `"results"`, run Granny with a `"scald"` action
 
 ```bash
-granny --action scald --image_dir ./results/segmented_images/ --mode 2
+granny --action scald --image_dir ./results/segmented_images/ --num_instances 2
 ```
 
 to get
@@ -166,7 +167,7 @@ to get
 
 ---
 
-## Output and Results
+## <a name="output"></a> Output and Results
 
 Upon completion, **Granny** will have created a directory named `results` by default. Depending on the `<ACTION>`, output images will be stored in the corresponding sub-directories:
 
