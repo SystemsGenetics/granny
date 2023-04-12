@@ -2,7 +2,7 @@
 
 **Granny** is a program aiming to assist technicians in post-harvest fruit maturity index experiments.
 
---- 
+---
 
 ## Introduction
 
@@ -15,7 +15,7 @@ In the collaboration with [Honaas lab](https://www.ars.usda.gov/pacific-west-are
 
 Inspired by the well-known apple cultivar, **Granny** is Python-based implementation of Mask-RCNN and image segmentation techniques, aiming to assist technicians in post-harvest maturity index experiments.
 
---- 
+---
 
 ## Project Contributors
 
@@ -25,33 +25,34 @@ Inspired by the well-known apple cultivar, **Granny** is Python-based implementa
 - [Loren Honaas](https://www.ars.usda.gov/pacific-west-area/wenatchee-wa/physiology-and-pathology-of-tree-fruits-research/people/loren-honaas/) - Honaas lab's principal investigator
 - [Stephen Ficklin](http://ficklinlab.cahnrs.wsu.edu/) - Ficklin lab's principal investigator
 
---- 
+---
 
 ## Usage
 
 The main usage of the program consists of 2 main steps:
 
-- Step 1. Locate and extract instances using Mask-RCNN *[Instance Extraction]*. 
-- Step 2. Rate each instance. Depending on your purpose, you can tell the program to 
-    - rate superficial scald in Granny Smith apples *[Superficial Scald]*
-    - calculate starch area on iodine-stained cross-sections *[Cross-section Starch]*
-    - sort color of the pears *[Pear Color]*
+- Step 1. Locate and extract instances using Mask-RCNN _[Instance Extraction]_.
+- Step 2. Rate each instance. Depending on your purpose, you can tell the program to
+  - rate superficial scald in Granny Smith apples _[Superficial Scald]_
+  - calculate starch area on iodine-stained cross-sections _[Cross-section Starch]_
+  - sort color of the pears _[Pear Color]_
 
-Please refer to our [demo](https://github.com/SystemsGenetics/granny/tree/master/demo) page for a walk-through of each step's input and output. 
+Please refer to our [demo](https://github.com/SystemsGenetics/granny/tree/master/demo) page for a walk-through of each step's input and output.
 
---- 
+---
 
-## Installation 
+## Installation
 
-Please refer to our [docs](https://github.com/SystemsGenetics/Granny/tree/master/docs) page for a detailed explanation of how to install the program and related packages in Python. 
+Please refer to our [docs](https://github.com/SystemsGenetics/Granny/tree/master/docs) page for a detailed explanation of how to install the program and related packages in Python.
 
---- 
+---
 
 ## Limitations
 
 We are sorry in advance for the inconvenience, but our program still contains a few limitations.
-- *[Instance Extraction]* Due to the dependency requirements, it is recommended to install Python's package managers such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/). Here, we provide instructions for installation of packages using conda. 
-- *[Superficial Scald]* Due to the similarity in coloration, the stem of the apples could be potentially counted towards the total area of superficial scald.
-- *[Cross-section Starch]* In order to run our provided ImageJ scripts for starch analysis, the user must seperately install [Fiji](https://imagej.net/software/fiji/). We are currently trying to implement the Python wrapper function for calling ImageJ macros.
-- *[Cross-section Starch]* Due to the similarity in coloration, the code is unable to distinguish between bruising and iodine-stained area. 
-- *[Pear Color]* Currently, the color of single pear image is being sorted based on the provided color card under 
+
+- _[Instance Extraction]_ Due to the dependency requirements, it is recommended to install Python's package managers such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/). Here, we provide instructions for installation of packages using conda.
+- _[Superficial Scald]_ Due to the similarity in coloration, the stem of the apples could be potentially counted towards the total area of superficial scald.
+- _[Cross-section Starch]_ In order to run our provided ImageJ scripts for starch analysis, the user must seperately install [Fiji](https://imagej.net/software/fiji/). We are currently trying to implement the Python wrapper function for calling ImageJ macros.
+- _[Cross-section Starch]_ Due to the similarity in coloration, the code is unable to distinguish between bruising and iodine-stained area.
+- _[Pear Color]_ Currently, the color of single pear image is only being sorted based on the provided color card under [demo/pear_images/color_preference](). 
