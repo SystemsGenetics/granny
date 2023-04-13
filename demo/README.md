@@ -1,20 +1,21 @@
-## Quick start
+## **Quick start**
 
 Don't want to install anything on your computer, we have set up a quick demo on [Google Colab](https://colab.research.google.com/drive/10aJ_kQMXNRb9srB-YD0OPJpE8GOvgQlU?usp=share_link).
 
 ---
 
-## Content
+## **Content**
 
 1. [Installation](#installation)
 2. [Extraction](#extract)
-3. [Superficial Scald Rating](#scald)
-4. [Cross-section Starch Calculation](#starch)
-5. [Pear Color Sorting](#pear)
+3. [Rate](#rate)
+    * [Superficial Scald](#scald)
+    * [Cross-section Starch](#starch)
+    * [Pear Color Sorting](#pear)
 
 ---
 
-## <a name="installation"></a> Installation
+## <a name="installation"></a> **Installation**
 
 Want to try on your dataset? You can install our model to get started. First, it is recommended to use a package manager such as [conda](https://www.anaconda.com/) or [virtualenv](https://pypi.org/project/virtualenv/) to create a seperate, independent environment for **Granny**. An description of the package installation using conda is provided below.
 
@@ -40,9 +41,11 @@ pip install --upgrade granny
 
 ---
 
-## <a name="extract"></a> Extraction
+## <a name="extract"></a> **Extraction**
 
-This is an apple tray, consisting of 18 apples:
+In order to rate each instance, each fruit will have to be extracted from the full-tray image. 
+
+Here is a demonstration on an apple tray, consisting of 18 apples (this also works for cross-sections and pears):
 
 <div align="center">
   <img src="granny_smith_images/apple_tray/apple_demo_image.JPG" width="500px" />
@@ -52,7 +55,7 @@ This is an apple tray, consisting of 18 apples:
 In the command line, run Granny
 
 ```bash
-granny --action extract --path granny_smith_images/apple_tray/apple_demo_image.JPG
+granny --action extract --image_dir granny_smith_images/apple_tray/apple_demo_image.JPG
 ```
 
 to get a full-tray masked image (helpful to know what instances are extracted):
@@ -102,9 +105,13 @@ to get a full-tray masked image (helpful to know what instances are extracted):
     <img src="granny_smith_images/segmented_images/apple_demo_image_14.png" width="100" />
 </p>
 
+--- 
+
+## <a name="rate"></a> **Rate**
+
 ---
 
-## <a name="scald"></a> Superficial Scald Rating
+### <a name="scald"></a> **Superficial Scald**
 
 With individual apples extracted to your "results", run Granny with a "scald" action
 
@@ -154,13 +161,20 @@ to get the following images, and a `ratings.csv` file containing scald area for 
 
 ---
 
-## <a name="starch"></a> Iodine-stained Cross-section Starch
+## <a name="starch"></a> **Iodine-stained Cross-section Starch**
 
-The starch area of the cross-section is
-To calculate the total starch area of each individual cross-section, unfortunately, you will have to install a separate application to run our [provided macros](https://github.com/SystemsGenetics/granny/tree/master/GRANNY/Starch_Macros).
+To calculate the total starch area of each individual cross-section, you will have to install a separate application to run our [provided macros](https://github.com/SystemsGenetics/granny/tree/master/GRANNY/Starch_Macros). 
 
 ... more instruction will be given.
 
 ---
 
-## <a name="pear"></a> Pear Color
+## <a name="pear"></a> **Pear Color**
+
+Similar to apples, pear images can also be extracted from trays: 
+<div align="center">
+  <img src="pear_images/full_masked_images/pear_demo_image.png" width="500px" />
+  <p>A tray of pears</p>
+</div>
+
+
