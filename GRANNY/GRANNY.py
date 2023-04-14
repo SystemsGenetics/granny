@@ -35,15 +35,7 @@ class GrannyBaseClass(object):
         # directory of the pretrained we
         self.PRETRAINED_MODEL = os.path.join(
             self.ROOT_DIR, "mask_rcnn_starch_cross_section.h5")
-
-        # initialize default parameters
-        self.VERBOSE = verbose
-        self.ACTION = action
-        self.FILE_NAME = fname
-        self.FOLDER_NAME = fname
-        self.OLD_DATA_DIR = fname
-        self.NUM_INSTANCES = num_instances
-
+        
         # accepted file extensions
         self.FILE_EXTENSION = (
             ".JPG", ".JPG".lower(),
@@ -52,6 +44,14 @@ class GrannyBaseClass(object):
             ".TIFF", ".TIFF".lower(),
         )
 
+        # initialize default parameters
+        self.VERBOSE = verbose
+        self.ACTION = action
+        self.FILE_NAME = fname if fname.endswith(self.FILE_EXTENSION) else ""
+        self.FOLDER_NAME = fname if not fname.endswith(self.FILE_EXTENSION) else os.sep.join(fname.split(os.sep)[0:-1])
+        self.FOLDER_NAME = self.FOLDER_NAME + os.sep if not self.FOLDER_NAME.endswith(os.sep) else self.FOLDER_NAME
+        self.OLD_DATA_DIR = self.FOLDER_NAME
+        self.NUM_INSTANCES = num_instances
         self.RESULT_DIR = "results" + os.sep
 
         # location where masked apple trays will be saved
@@ -101,8 +101,8 @@ class GrannyBaseClass(object):
 
         # if data_dir is a file
         if data_dir.endswith(self.FILE_EXTENSION):
-            file_name.append(data_dir.split(os.sep)[-1])
-            folder_name.append(data_dir.replace(data_dir.split(os.sep)[-1], os.path.curdir))
+            file_name.append(data_dir)
+            folder_name.append(data_dir.replace(data_dir.split(os.sep)[-1], ""))
             return folder_name, file_name
 
         # list all folders and files in data_dir
@@ -401,7 +401,7 @@ class GrannyExtractInstances(GrannyBaseClass):
                         self.OLD_DATA_DIR, self.FULLMASK_DIR)
                 )
 
-                # when NUM_INSTANCES = 18 (18 apples/pears) or NUM_INSTANCES not specified
+                # when NUM_INSTANCES = 18 (18 apples/pears) or NUM_INSTANCES not specified (== 1)
                 if self.NUM_INSTANCES == 1 or self.NUM_INSTANCES == 18:
 
                     # sort all instances using the convention in demo/18_apples_tray_convention.pdf
@@ -442,7 +442,7 @@ class GrannyExtractInstances(GrannyBaseClass):
 
                 # for debugging purpose
                 print(
-                    f"\t- {name} extracted. Check \"results/\" for output. - \n")
+                    f"\t- {name} done. Check \"results/\" for output. - \n")
         except FileNotFoundError:
             print(f"\t- Folder/File Does Not Exist -")
 
