@@ -11,6 +11,7 @@ import numpy as np
 import os
 import warnings
 import json
+import sys
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 pd.options.mode.chained_assignment = None
 tf.autograph.set_verbosity(3)
@@ -22,7 +23,7 @@ class GrannyBaseClass(object):
         Implementation for semantic segmentation of instances and superficial scald rating in "Granny Smith" apples
     """
 
-    def __init__(self, action = "", fname = "", num_instances = 1, verbose = 0 ):
+    def __init__(self, action = "", fname = "", num_instances = 1, verbose = 0):
         # current directory
         self.ROOT_DIR = pathlib.Path(__file__).parent.resolve()
 
@@ -51,6 +52,7 @@ class GrannyBaseClass(object):
         self.FOLDER_NAME = fname if not fname.endswith(self.FILE_EXTENSION) else os.sep.join(fname.split(os.sep)[0:-1])
         self.FOLDER_NAME = self.FOLDER_NAME + os.sep if not self.FOLDER_NAME.endswith(os.sep) else self.FOLDER_NAME
         self.OLD_DATA_DIR = self.FOLDER_NAME
+        self.INPUT_FNAME = fname
         self.NUM_INSTANCES = num_instances
         self.RESULT_DIR = "results" + os.sep
 
@@ -138,9 +140,11 @@ class GrannyBaseClass(object):
 
 class GrannyExtractInstances(GrannyBaseClass): 
     def __init__(self, action, fname, num_instances, verbose):
+        num_instances = 18 if num_instances == None else num_instances
+        verbose = 1 if verbose == 1 else 0
         super(GrannyExtractInstances, self).__init__(action, fname, num_instances, verbose)
 
-    def load_model(self, verbose=1):
+    def load_model(self, verbose=0):
         """ 
                 Load pretrained model, download if the model does not exist
 
@@ -231,7 +235,7 @@ class GrannyExtractInstances(GrannyBaseClass):
         # if the first row has 5 apples/pears
         df_list = []
         if len(df[df["rows"] == 1]) == 5:
-            apple_id = 18
+            apple_id = self.NUM_INSTANCES
             for i in range(1, 5):
                 dfx = df[df["rows"] == i].sort_values(
                     "xcenter", ascending=False, inplace=False, ignore_index=True)
@@ -272,7 +276,7 @@ class GrannyExtractInstances(GrannyBaseClass):
         df.columns = ["y1", "x1", "y2", "x2"]
 
         # take first 18 rows (18 apples)
-        df = df.iloc[0:18]
+        df = df.iloc[0:self.NUM_INSTANCES]
 
         # calculate centers for each apples
         df["ycenter"] = ((df["y1"]+df["y2"])/2).astype(int)
@@ -365,7 +369,7 @@ class GrannyExtractInstances(GrannyBaseClass):
             model = self.load_model(verbose=self.VERBOSE)
 
             # list all folders and files
-            data_dirs, file_names = self.list_all(self.OLD_DATA_DIR)
+            data_dirs, file_names = self.list_all(self.INPUT_FNAME)
 
             # check and create a new "results" directory to store the results
             for data_dir in data_dirs:
@@ -401,44 +405,22 @@ class GrannyExtractInstances(GrannyBaseClass):
                         self.OLD_DATA_DIR, self.FULLMASK_DIR)
                 )
 
-                # when NUM_INSTANCES = 18 (18 apples/pears) or NUM_INSTANCES not specified (== 1)
-                if self.NUM_INSTANCES == 1 or self.NUM_INSTANCES == 18:
+                # if there are more instances than NUM_INSTANCES
+                if self.NUM_INSTANCES > len(box):
+                    print(
+                        f"Only {len(box)} instances is detected.")
+                    box = box
 
-                    # sort all instances using the convention in demo/18_apples_tray_convention.pdf
-                    sorted_ar = self.sort_instances(box)
-
-                    # extract the images
-                    self.extract_image(sorted_arr=sorted_ar, mask=mask, im=img, fname=file_name.replace(
-                        self.OLD_DATA_DIR, self.SEGMENTED_DIR))
-
-                # when NUM_INSTANCES != 18
+                # if there are less instances than NUM_INSTANCES
                 else:
+                    box = box[0:self.NUM_INSTANCES, :]
 
-                    # the instances will not be sorted
-                    warnings.warn(
-                        "this is not a regular tray, the instances will not be sorted.")
+                # sort all instances using the convention in demo/18_apples_tray_convention.pdf
+                sorted_ar = self.sort_instances(box)
 
-                    # if there are more instances than NUM_INSTANCES
-                    if self.NUM_INSTANCES > len(box):
-                        print(
-                            f"Only {len(box)} instances is detected.")
-                        box = box
-
-                    # if there are less instances than NUM_INSTANCES
-                    else:
-                        box = box[0:self.NUM_INSTANCES, :]
-
-                    # concatenate the location array information
-                    box = np.array(np.concatenate((box, np.array(
-                        np.arange(1, len(box) + 1, dtype=int), ndmin=2).T, np.array(
-                        np.arange(0, len(box), dtype=int), ndmin=2).T), axis=1))
-
-                    # increase the dimensions to 2D
-                    box = box[:, np.newaxis, :]
-
-                    # extract the images
-                    self.extract_image(sorted_arr=box, mask=mask, im=img, fname=file_name.replace(
-                        self.OLD_DATA_DIR, self.SEGMENTED_DIR))
+                # extract the images
+                self.extract_image(sorted_arr=sorted_ar, mask=mask, im=img, fname=file_name.replace(
+                    self.OLD_DATA_DIR, self.SEGMENTED_DIR))
 
                 # for debugging purpose
                 print(
@@ -449,6 +431,8 @@ class GrannyExtractInstances(GrannyBaseClass):
 
 class GrannySuperficialScald(GrannyBaseClass): 
     def __init__(self, action, fname, num_instances, verbose):
+        num_instances = 1 if num_instances == None else num_instances
+        verbose = 0 if verbose == None else 1
         super(GrannySuperficialScald, self).__init__(action, fname, num_instances, verbose)
 
     def remove_purple(self, img):
