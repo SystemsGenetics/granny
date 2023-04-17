@@ -167,11 +167,6 @@ If you have a full-tray image of cross-sections, similarly to apples, you can ru
 
 
 <div align="center">
-<style>  
-.rotate{  
-  transform: rotate(90deg);  
-}  
-</style>
   <img src="cross_section_images/cross_section_tray/cross_section_demo_image.jpeg" width="400px" class="rotate"/>
   <p>Cross-sections</p>
 </div>
