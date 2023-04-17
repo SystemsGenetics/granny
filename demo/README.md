@@ -165,6 +165,11 @@ to get the following images, and a `ratings.csv` file containing scald area for 
 
 If you have a full-tray image of cross-sections, similarly to apples, you can run the [Extraction](#extract) step on the image(s) to get each individual cross-section. This is an example on a tray:
 
+<style>  
+.rotate{  
+  transform: rotate(90deg);  
+}  
+</style>
 <div align="center">
   <img src="cross_section_images/cross_section_tray/cross_section_demo_image.jpeg" width="400px" class="rotate"/>
   <p>Cross-sections</p>
@@ -208,14 +213,13 @@ If you have a full-tray image of cross-sections, similarly to apples, you can ru
     <img src="cross_section_images/segmented_images/cross_section_demo_image_14.png"  width="100" />
 </p>
 
-
 To calculate the total starch area of each individual cross-section, you will have to install a separate application, [Fiji](https://imagej.net/software/fiji/), to run our macros. The installation is fairly straight-forward, and that would be everything you need to install. Here is the instruction:
 
 1. Install [Fiji](https://imagej.net/software/fiji/)
 2. Download our [macros](https://github.com/SystemsGenetics/granny/tree/master/GRANNY/Starch_Macros)
 3. Launch Fiji
-    - Open the macros downloaded from step 2 
-    - Click Run 
+   - Open the macros downloaded from step 2
+   - Click Run
 4. Select input and output folder as prompted
 5. Inside your output folder, there will be a `"Results.csv"` file which stores the ratings and the total starch area
 
@@ -229,9 +233,3 @@ Similar to apples, you can use [Extraction](#extract) to extract pear images fro
   <img src="pear_images/full_masked_images/pear_demo_image.png" width="500px"/>
   <p>Pears</p>
 </div>
-
-<style>  
-.rotate{  
-  transform: rotate(90deg);  
-}  
-</style>
