@@ -119,7 +119,7 @@ With individual apples extracted to your "results", run Granny with a "scald" ac
 granny --action scald --image_dir ./results/segmented_images/ --num_instances 2
 ```
 
-to get the following images, and a `ratings.csv` file containing scald area for each intance.
+to get the following images, and a `ratings.csv` file containing scald area for each instance.
 
 1st row:
 
