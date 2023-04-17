@@ -165,7 +165,6 @@ to get the following images, and a `ratings.csv` file containing scald area for 
 
 If you have a full-tray image of cross-sections, similarly to apples, you can run the [Extraction](#extract) step on the image(s) to get each individual cross-section. This is an example on a tray:
 
-
 <div align="center">
   <img src="cross_section_images/cross_section_tray/cross_section_demo_image.jpeg" width="400px" class="rotate"/>
   <p>Cross-sections</p>
@@ -217,7 +216,9 @@ To calculate the total starch area of each individual cross-section, you will ha
    - Open the macros downloaded from step 2
    - Click Run
 4. Select input and output folder as prompted
-5. Inside your output folder, there will be a `"Results.csv"` file which stores the ratings and the total starch area
+5. Check your [output](https://github.com/SystemsGenetics/granny/tree/master/demo/cross_section_images/output) folder
+
+Inside your output folder, in addition to the output images, there will be a `"Results.csv"` file which stores the ratings and the total starch area.
 
 ---
 
