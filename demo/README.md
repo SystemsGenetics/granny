@@ -208,6 +208,8 @@ If you have a full-tray image of cross-sections, similarly to apples, you can ru
     <img src="cross_section_images/segmented_images/cross_section_demo_image_14.png"  width="100" />
 </p>
 
+#### How to install
+
 To calculate the total starch area of each individual cross-section, you will have to install a separate application, [Fiji](https://imagej.net/software/fiji/), to run our macros. The installation is fairly straight-forward, and that would be everything you need to install. Here is the instruction:
 
 1. Install [Fiji](https://imagej.net/software/fiji/)
@@ -215,10 +217,24 @@ To calculate the total starch area of each individual cross-section, you will ha
 3. Launch Fiji
    - Open the macros downloaded from step 2
    - Click Run
-4. Select input and output folder as prompted
-5. Check your [output](https://github.com/SystemsGenetics/granny/tree/master/demo/cross_section_images/output) folder
+4. Select input and output folder as prompted.
+5. Check your selected output folder
 
-Inside your output folder, in addition to the output images, there will be a `"Results.csv"` file which stores the ratings and the total starch area.
+#### Output
+
+Inside your [output](https://github.com/SystemsGenetics/granny/tree/master/demo/cross_section_images/output) folder, there are:
+
+1. Processed images of iodine stained cross-sections
+2. A `"Results.csv"` file which stores the ratings and the total starch area
+
+For any input image, below are the processed images:
+
+<div align="left">
+    <img src="cross_section_images/segmented_images/cross_section_demo_image_1.png" width="200" />
+  <img src="cross_section_images/output/cross_section_demo_image_1.pngstarch.jpg" width="200px"/>
+  <img src="cross_section_images/output/cross_section_demo_image_1.pngtotal_area.jpg" width="200px"/>
+  <p> Cross-section image (a) stained with iodine and used as input for the starch analysis macro, (b) resulting identifying starch threshold image, and (c) resulting full cross-sectional area threshold </p>
+</div>
 
 ---
 
