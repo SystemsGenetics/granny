@@ -15,9 +15,6 @@ def main():
 
     parser.add_argument("-n", "--num_instances", dest = "num_instances", type = int, nargs = "?", 
     required = False, help = "Optional, default is 18. The number of instances on each image.")
-    
-    parser.add_argument("-rgb", "--rgb_code", dest = "rgb", type = str, nargs = "?", 
-    default = "", required = False, help = "Optional. Provide an RGB value for color reference.")
 
     parser.add_argument("-v", "--verbose", dest = "verbose", type = int, nargs = "?", 
     default = 0, required = False, help = "Optional. Specify 1 to turn on model display.")
