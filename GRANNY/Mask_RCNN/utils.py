@@ -5,6 +5,9 @@ Common utility functions and classes.
 Copyright (c) 2017 Matterport, Inc.
 Licensed under the MIT License (see LICENSE for details)
 Written by Waleed Abdulla
+
+Configured for Python 3.7 and TensorFlow 1.15 by Nhan Nguyen 
+June 2022
 """
 
 import sys
