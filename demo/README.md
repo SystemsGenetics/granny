@@ -41,7 +41,7 @@ pip install --upgrade granny
 
 ---
 
-## <a name="extract"></a> **Extraction**
+## <a name="extract"></a> **EXTRACTION**
 
 In order to rate each instance, each fruit will have to be extracted from the full-tray image.
 
@@ -55,7 +55,7 @@ Here is a demonstration on an apple tray, consisting of 18 apples (this also wor
 In the command line, run Granny
 
 ```bash
-granny --action extract --image_dir granny_smith_images/apple_tray/apple_demo_image.JPG
+granny --action extract --image_dir granny_smith_images/apple_tray/apple_demo_image.JPG --num_instances 18
 ```
 
 to get a full-tray masked image (helpful to know what instances are extracted):
@@ -107,9 +107,7 @@ to get a full-tray masked image (helpful to know what instances are extracted):
 
 ---
 
-## <a name="rate"></a> **Rate**
-
----
+## <a name="rate"></a> **RATE**
 
 ### <a name="scald"></a> **Superficial Scald**
 
