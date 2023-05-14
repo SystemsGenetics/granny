@@ -499,7 +499,7 @@ class GrannySuperficialScald(GrannyBaseClass):
         bin_mask = cv2.erode(cv2.dilate(
             bin_mask, kernel=strel, iterations=1), kernel=strel, iterations=1)
         return bin_mask
-
+    
     def remove_scald(self, img):
         """
                 Remove the scald region from the individual apple images. 
@@ -514,30 +514,41 @@ class GrannySuperficialScald(GrannyBaseClass):
         """
         # convert from RGB to Lab color space
         new_img = img
-        lab_img = cv2.cvtColor(img, cv2.COLOR_RGB2Lab).astype(np.float32)
-
-        # rescale all 3 channels to the 0-90 range
-        for i in range(3):
-            lab_img[:, :, i] = (lab_img[:, :, i] - np.amin(lab_img[:, :, i])) / \
-                (np.amax(lab_img[:, :, i]) - np.amin(lab_img[:, :, i]))
-            lab_img[:, :, i] *= 90
-
-        # get channel 2 histogram for min and max values
-        lab_img = lab_img.astype(np.uint8)
-        hist, bin_edges = np.histogram(lab_img[:, :, 1], bins=90)
+        lab_img = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)
 
         # create binary matrix (ones and zeros)
         bin = np.uint8(cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) != 0)
 
-        # set max and min values for each channel
-        im_range = np.float32(90)
-        channel1Min = 1*bin
-        channel1Max = im_range*bin
-        channel2Min = -1/2*im_range*bin
-        channel2Max = (np.argmax(hist) - 3/9*im_range + 1)*bin
-        channel3Min = 1*bin
-        channel3Max = im_range*bin
+        # calculate mean value for each channel
+        mean_l = np.sum(lab_img[:,:,0]*bin)/np.count_nonzero(bin)
+        mean_a = np.sum(lab_img[:,:,1]*bin)/np.count_nonzero(bin)
+        mean_b = np.sum(lab_img[:,:,2]*bin)/np.count_nonzero(bin)
 
+        # calculate the scaled value for each channel by shifting in spherical coordinates
+        radius = np.sqrt(mean_l**2 + mean_a**2 + mean_b**2)
+        lightness = 128
+        scaled_l = np.sign(mean_l)*lightness
+        scaled_a = np.sign(mean_a)*np.sqrt(np.abs(radius**2 - lightness**2)/(1 + (mean_b/mean_a)**2))
+        scaled_b = np.sign(mean_b)*mean_b/mean_a*scaled_a
+
+        # scale everything to a consistent lightness 
+        lab_img[:,:,0] = np.uint8((scaled_l/mean_l)*lab_img[:,:,0])
+        lab_img[:,:,1] = np.uint8((scaled_a/mean_a)*lab_img[:,:,1])
+        lab_img[:,:,2] = np.uint8((scaled_b/mean_b)*lab_img[:,:,2])
+
+        print((scaled_l/mean_l))
+        print((scaled_a/mean_a))
+        print((scaled_b/mean_b))
+        print()
+
+        # set max and min values for each channel
+        channel1Min = 1*bin
+        channel1Max = 255*bin
+        channel2Min = 1*bin
+        channel2Max = 116*bin
+        channel3Min = 1*bin
+        channel3Max = 255*bin
+        
         # create threshold matrices for each for each channel
         threshold_1 = np.greater_equal(lab_img[:, :, 0], channel1Min) & np.less_equal(
             lab_img[:, :, 0], channel1Max)
