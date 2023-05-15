@@ -536,11 +536,6 @@ class GrannySuperficialScald(GrannyBaseClass):
         lab_img[:,:,1] = np.uint8((scaled_a/mean_a)*lab_img[:,:,1])
         lab_img[:,:,2] = np.uint8((scaled_b/mean_b)*lab_img[:,:,2])
 
-        print((scaled_l/mean_l))
-        print((scaled_a/mean_a))
-        print((scaled_b/mean_b))
-        print()
-
         # set max and min values for each channel
         channel1Min = 1*bin
         channel1Max = 255*bin
