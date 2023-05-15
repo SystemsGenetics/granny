@@ -847,12 +847,6 @@ class GrannyPeelColor(GrannyBaseClass):
             bin_num = np.argmin(dist) + 1
         return bin_num, dist
     
-    def get_distance_from_rgb(self, img): 
-        r = np.mean(img[:,:,0])
-        g = np.mean(img[:,:,1])
-        b = np.mean(img[:,:,2])
-        return 
-    
     def sort_peel_color(self): 
         """ 
 
@@ -890,18 +884,11 @@ class GrannyPeelColor(GrannyBaseClass):
                 for dist in distance: 
                     string_dist += str(dist) + ","
 
-                color_info = {}
-                color_info["bin_num"] = bin_num.tolist()
-                color_info["distances"] = distance.tolist()
-                color_info["LAB_pixels"] = [l, a, b]
-
                 # save the scores to results/rating.csv
                 with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w:
                     w.writelines(f"{self.clean_name(file_name.split(os.sep)[-1])},{bin_num},{string_dist},{l},{a},{b}")
                     w.writelines("\n")
 
-                with open(self.BIN_COLOR + os.sep + "peel_colors.json", "w") as w:
-                    json.dump({file_name.split(os.sep)[-1]:color_info}, w)
                 print(f"\t- Done. Check \"results/\" for output. - \n")
 
             except FileNotFoundError:
@@ -920,7 +907,7 @@ class GrannyPeelColor(GrannyBaseClass):
                 bin_nums = []
                 distances = []
                 channels_values = []
-                color_infos = {} 
+
                 for file_name in files: 
                     img = skimage.io.imread(file_name)
 
@@ -945,21 +932,12 @@ class GrannyPeelColor(GrannyBaseClass):
                     bin_nums.append(bin_num)
                     distances.append(string_dist)
                     channels_values.append(str(l) + "," + str(a) + "," + str(b))
-                    color_info = {}
-                    color_info["bin_num"] = bin_num.tolist()
-                    color_info["distances"] = distance.tolist()
-                    color_info["LAB_pixels"] = [l, a, b]
-                    image_data = {}
-                    image_data[file_name.split(os.sep)[-1]] = color_info
-                    color_infos.update(image_data)
 
                 with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w: 
                     for i in range(len(bin_nums)): 
                         w.writelines(f"{self.clean_name(files[i].split(os.sep)[-1])},{bin_nums[i]},{distances[i]}{channels_values[i]}")
                         w.writelines("\n")
 
-                with open(self.BIN_COLOR + os.sep + "peel_colors.json", "w") as w: 
-                    json.dump(color_infos, w)
                 print(f"\t- Done. Check \"results/\" for output. - \n")
             except FileNotFoundError: 
                 print(f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values. -")
