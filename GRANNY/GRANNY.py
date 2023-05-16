@@ -714,6 +714,8 @@ class GrannyPeelColor(GrannyBaseClass):
         #     45.947826417388654, 48.302078583371326, 58.190157230064415, 60.87525738218915, 61.80401151106037,
         #     63.52708437720722, 63.344500279173644, 64.09726801331166, 68.80767308073794, 67.3652391861267
         # ]
+        # self.LINE_POINT_1 = np.array([-50, 33.2681])
+        # self.LINE_POINT_2 = np.array([0, 78.2607])
         
         self.MEAN_VALUES_L = [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
         self.MEAN_VALUES_A = [
@@ -725,6 +727,8 @@ class GrannyPeelColor(GrannyBaseClass):
             81.7513027496333, 84.36038598038662, 86.95338287223824, 92.37148315325989, 91.21422051166374
         ]
 
+        self.LINE_POINT_1 = np.array([-50, 38.3199])
+        self.LINE_POINT_2 = np.array([0, 110.0861])
         self.rgb = 0 
 
 
@@ -848,9 +852,37 @@ class GrannyPeelColor(GrannyBaseClass):
             bin_num = np.argmin(dist) + 1
         return bin_num, dist
     
+    def calculate_score_distance(self, color_list): 
+        """
+
+        """
+        score = 0 
+        distance = 0 
+        color_point = np.array([color_list[1], color_list[2]])
+        n = self.LINE_POINT_2 - self.LINE_POINT_1
+        n /= np.linalg.norm(n)
+        projection = self.LINE_POINT_1 + n*np.dot(color_point - self.LINE_POINT_1,n)
+        score = np.linalg.norm(projection - self.LINE_POINT_1)/np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1)
+        distance = np.linalg.norm(np.cross(self.LINE_POINT_2 - self.LINE_POINT_1, color_point - self.LINE_POINT_1))/np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1)
+        print(f"Coordinates: {projection}")
+        print(f"Score: {score}")
+        print(f"Distance from line: {distance}")
+        return score, distance
+    
     def sort_peel_color(self): 
         """ 
+                (Pear) Main method performing rating for pear's peel color
+                
+                This is the main method being called by the Python argument parser from the command.py to set up CLI for 
+                pear's peel color rating. 
+                The results will be written to a .csv file, containing necessary information such as scores, 
+                The calculated scores will be written to a .csv file.
 
+                Args: 
+                        None
+
+                Returns: 
+                        None
         """
         # create "results" directory to save the results
         self.check_path(self.BIN_COLOR)
@@ -874,20 +906,15 @@ class GrannyPeelColor(GrannyBaseClass):
                 # get image values
                 l, a, b = self.get_green_yellow_values(img)
 
-                if self.rgb == "":
                 # calculate distance to each bin 
-                    bin_num, distance = self.calculate_bin_distance([l, a, b])
-                else: 
-                    distance = self.get_distance_from_rgb(img)
+                bin_num, distance = self.calculate_bin_distance([l, a, b])
 
-                # convert to string
-                string_dist = ""
-                for dist in distance: 
-                    string_dist += str(dist) + ","
+                # calculate distance to the least-mean-square line
+                score, orth_distance = self.calculate_score_distance([l, a, b])
 
                 # save the scores to results/rating.csv
                 with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w:
-                    w.writelines(f"{self.clean_name(file_name.split(os.sep)[-1])},{bin_num},{string_dist},{l},{a},{b}")
+                    w.writelines(f"{self.clean_name(file_name.split(os.sep)[-1])},{bin_num},{str(orth_distance)},{score},{l},{a},{b}")
                     w.writelines("\n")
 
                 print(f"\t- Done. Check \"results/\" for output. - \n")
@@ -906,8 +933,9 @@ class GrannyPeelColor(GrannyBaseClass):
                         self.FOLDER_NAME, self.BIN_COLOR))
 
                 bin_nums = []
-                distances = []
+                orth_distances = []
                 channels_values = []
+                ratings = []
 
                 for file_name in files: 
                     img = skimage.io.imread(file_name)
@@ -925,18 +953,17 @@ class GrannyPeelColor(GrannyBaseClass):
                     # calculate distance to each bin 
                     bin_num, distance = self.calculate_bin_distance([l, a, b])
 
-                    # convert to string
-                    string_dist = ""
-                    for dist in distance: 
-                        string_dist += str(dist) + ","
+                    # calculate distance to the least-mean-square line
+                    score, orth_distance = self.calculate_score_distance([l, a, b])
                     
                     bin_nums.append(bin_num)
-                    distances.append(string_dist)
+                    ratings.append(score)
+                    orth_distances.append(str(orth_distance))
                     channels_values.append(str(l) + "," + str(a) + "," + str(b))
 
                 with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w: 
                     for i in range(len(bin_nums)): 
-                        w.writelines(f"{self.clean_name(files[i].split(os.sep)[-1])},{bin_nums[i]},{distances[i]}{channels_values[i]}")
+                        w.writelines(f"{self.clean_name(files[i].split(os.sep)[-1])},{bin_nums[i]},{orth_distances[i]},{ratings[i]},{channels_values[i]}")
                         w.writelines("\n")
 
                 print(f"\t- Done. Check \"results/\" for output. - \n")
