@@ -702,32 +702,31 @@ class GrannySuperficialScald(GrannyBaseClass):
 class GrannyPeelColor(GrannyBaseClass): 
     def __init__(self, action, fname, num_instances, rgb = 0, verbose = 0): 
         super(GrannyPeelColor, self).__init__(action, fname, num_instances, verbose)
+        # self.MEAN_VALUES_L = [
+        #     65.46409053564173, 65.93893026633565, 69.13779435809776, 71.43683033604663, 70.45811857450016,
+        #     73.47674074368683, 76.35187387512626, 78.16686318517812, 80.02421866187458, 79.88775577232568
+        # ]
+        # self.MEAN_VALUES_A = [
+        #     -29.644531843745256, -30.650149465470946, -28.892427531452014, -22.53765384435397, -15.90757099266203,
+        #     -19.56968650580444, -17.071513900250608, -13.695975543688576, -11.488617337829794, -10.959318652083951
+        # ]
+        # self.MEAN_VALUES_B = [
+        #     45.947826417388654, 48.302078583371326, 58.190157230064415, 60.87525738218915, 61.80401151106037,
+        #     63.52708437720722, 63.344500279173644, 64.09726801331166, 68.80767308073794, 67.3652391861267
+        # ]
+        
         self.MEAN_VALUES_L = [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
         self.MEAN_VALUES_A = [
-            -37.431935692331884,
-            -38.293360653725784,
-            -35.82872139214024,
-            -28.65441389649031,
-            -20.132066117704923,
-            -25.194905219214903,
-            -22.755906449379097,
-            -18.56182827236788,
-            -15.454144111751553,
-            -14.824498082241526
+            -37.46455193845067, -38.33945889256972, -35.856673734593976, -28.66620337913712, -20.153556829155015,
+            -25.183705217005663, -22.73535185450301, -18.57975296251061, -15.422998269835011, -14.839191848288477
         ]
         self.MEAN_VALUES_B = [
-            58.106332924284644,
-            60.495161874167344,
-            72.19300566542566,
-            77.41069574523988,
-            78.2944440629932,
-            81.71376220418327,
-            84.27577503150619,
-            86.90495332877367,
-            92.36555388970727,
-            91.26334782696254,
+            58.068541555881474, 60.41978876347979, 72.21634388774689, 77.42875637928557, 78.30049344632643,
+            81.7513027496333, 84.36038598038662, 86.95338287223824, 92.37148315325989, 91.21422051166374
         ]
+
         self.rgb = 0 
+
 
     def remove_purple(self, img):
         """
@@ -824,8 +823,10 @@ class GrannyPeelColor(GrannyBaseClass):
         scaled_l = 50
         scaled_a = np.sign(mean_a)*np.sqrt(np.abs(radius**2 - scaled_l**2)/(1 + (mean_b/mean_a)**2))
         scaled_b = np.sign(mean_b)*mean_b/mean_a*scaled_a
-
+        
         return scaled_l, scaled_a, scaled_b
+        return mean_l, mean_a, mean_b
+        
     
     def calculate_bin_distance(self, color_list, method = "Euclidean"): 
         """
@@ -843,7 +844,7 @@ class GrannyPeelColor(GrannyBaseClass):
         if method == "Euclidean": 
             dist_a = color_list[1] - np.array(self.MEAN_VALUES_A)
             dist_b = color_list[2] - np.array(self.MEAN_VALUES_B)
-            dist = np.sqrt((dist_a/np.linalg.norm(dist_a))**2 + (dist_b/np.linalg.norm(dist_b))**2) 
+            dist = np.sqrt((dist_a/np.linalg.norm(dist_a))**2, (dist_b/np.linalg.norm(dist_b))**2) 
             bin_num = np.argmin(dist) + 1
         return bin_num, dist
     
