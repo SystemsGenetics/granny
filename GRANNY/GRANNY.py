@@ -347,6 +347,8 @@ class GrannyExtractInstances(GrannyBaseClass):
             img = cv2.cvtColor(img, cv2.COLOR_RGBA2RGB)
         if img.shape[0] > img.shape[1]:
             img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+        if self.ACTION == "pear": 
+            img = cv2.flip(img, 1) 
         skimage.io.imsave(new_im_dir, img)
         return img
 
@@ -519,10 +521,26 @@ class GrannySuperficialScald(GrannyBaseClass):
         # create binary matrix (ones and zeros)
         bin = np.uint8(cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) != 0)
 
+        hist = cv2.calcHist(lab_img, [1], None, [256], (0, 256), accumulate = False)
+        
+        # print(hist)
+        # print("Max:", np.argmax(hist), np.amax(hist)) 
+        # print("Min:", np.argmin(hist), np.amin(hist))
+
+        cv2.normalize(hist, hist, alpha=0, beta=256, norm_type=cv2.NORM_MINMAX)
+
+        # print(hist)
+        # print("Max:", np.argmax(hist), np.amax(hist)) 
+        # print("Min:", np.argmin(hist), np.amin(hist))
+
         # calculate mean value for each channel
         mean_l = np.sum(lab_img[:,:,0]*bin)/np.count_nonzero(bin)
+        print(f"Mean L:{mean_l}")
         mean_a = np.sum(lab_img[:,:,1]*bin)/np.count_nonzero(bin)
+        print(f"Mean A:{mean_a}")
         mean_b = np.sum(lab_img[:,:,2]*bin)/np.count_nonzero(bin)
+        print(f"Mean B:{mean_b}")
+
 
         # calculate the scaled value for each channel by shifting in spherical coordinates
         radius = np.sqrt(mean_l**2 + mean_a**2 + mean_b**2)
@@ -532,15 +550,17 @@ class GrannySuperficialScald(GrannyBaseClass):
         scaled_b = np.sign(mean_b)*mean_b/mean_a*scaled_a
 
         # scale everything to a consistent lightness 
-        lab_img[:,:,0] = np.uint8((scaled_l/mean_l)*lab_img[:,:,0])
-        lab_img[:,:,1] = np.uint8((scaled_a/mean_a)*lab_img[:,:,1])
-        lab_img[:,:,2] = np.uint8((scaled_b/mean_b)*lab_img[:,:,2])
+        # lab_img[:,:,0] = np.uint8((scaled_l/mean_l)*lab_img[:,:,0])
+        # lab_img[:,:,1] = np.uint8((scaled_a/mean_a)*lab_img[:,:,1])
+        # lab_img[:,:,2] = np.uint8((scaled_b/mean_b)*lab_img[:,:,2])
 
         # set max and min values for each channel
         channel1Min = 1*bin
         channel1Max = 255*bin
         channel2Min = 1*bin
-        channel2Max = 116*bin
+        # channel2Max = (116+(mean_b-128))*bin
+
+        channel2Max = (np.argmax(hist)-20)*bin
         channel3Min = 1*bin
         channel3Max = 255*bin
         
@@ -640,13 +660,18 @@ class GrannySuperficialScald(GrannyBaseClass):
             try:
                 # read the image from file
                 file_name = self.FILE_NAME
-                img = skimage.io.imread(file_name)
+
+                img = skimage.io.imread(file_name) 
+
+                print(f"\t- Rating {file_name}. -")
 
                 # remove the surroundings
                 nopurple_img, binarized_image, bw = self.score_image(img)
 
                 # calculate the scald region and save image
                 score = self.calculate_scald(binarized_image, nopurple_img)
+
+                print(f"\t- Score: {score}. -")
                 file_name = file_name.split(os.sep)[-1]
                 skimage.io.imsave(os.path.join(
                     self.BINARIZED_IMAGE, file_name), binarized_image)
@@ -673,6 +698,8 @@ class GrannySuperficialScald(GrannyBaseClass):
                 # remove scald and rate each apple
                 scores = []
                 for file_name in files:
+
+                    print(f"\t- Rating {file_name}. -")
 
                     # read the image from file
                     img = skimage.io.imread(file_name)
@@ -701,7 +728,11 @@ class GrannySuperficialScald(GrannyBaseClass):
 
 class GrannyPeelColor(GrannyBaseClass): 
     def __init__(self, action, fname, num_instances, rgb = 0, verbose = 0): 
+        num_instances = 1 if num_instances == None else num_instances
+        verbose = 0 if verbose == None else 1
         super(GrannyPeelColor, self).__init__(action, fname, num_instances, verbose)
+        
+        ''' Raw reference colors ''' 
         # self.MEAN_VALUES_L = [
         #     65.46409053564173, 65.93893026633565, 69.13779435809776, 71.43683033604663, 70.45811857450016,
         #     73.47674074368683, 76.35187387512626, 78.16686318517812, 80.02421866187458, 79.88775577232568
@@ -714,22 +745,49 @@ class GrannyPeelColor(GrannyBaseClass):
         #     45.947826417388654, 48.302078583371326, 58.190157230064415, 60.87525738218915, 61.80401151106037,
         #     63.52708437720722, 63.344500279173644, 64.09726801331166, 68.80767308073794, 67.3652391861267
         # ]
-        # self.LINE_POINT_1 = np.array([-50, 33.2681])
-        # self.LINE_POINT_2 = np.array([0, 78.2607])
-        
-        self.MEAN_VALUES_L = [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
-        self.MEAN_VALUES_A = [
-            -37.46455193845067, -38.33945889256972, -35.856673734593976, -28.66620337913712, -20.153556829155015,
-            -25.183705217005663, -22.73535185450301, -18.57975296251061, -15.422998269835011, -14.839191848288477
+
+        self.MEAN_VALUES_A = [ 
+            -32.44750225, -31.83257147, -25.9446722, -21.09812112, -16.97274929, 
+            -18.13955358, -16.84993067, -14.61041991, -11.04855559, -11.47330226
         ]
         self.MEAN_VALUES_B = [
-            58.068541555881474, 60.41978876347979, 72.21634388774689, 77.42875637928557, 78.30049344632643,
-            81.7513027496333, 84.36038598038662, 86.95338287223824, 92.37148315325989, 91.21422051166374
+            49.06275021, 49.6160969, 54.91433483, 59.27551351, 62.98773761, 
+            61.93778644, 63.09825619, 65.11348442, 68.31863516, 67.93642601
+        ]
+        self.SCORE = [ 
+            0.626914290076815, 0.6339848456157803, 0.7016846957558457, 0.7574109873047857,
+            0.8048450640691405, 0.7914289917882015, 0.8062572485320575, 0.8320074424392314, 
+            0.8729622333028093, 0.868078439684183
         ]
 
-        self.LINE_POINT_1 = np.array([-50, 38.3199])
-        self.LINE_POINT_2 = np.array([0, 110.0861])
-        self.rgb = 0 
+        self.LINE_POINT_1 = np.array([-86.97064, 0])
+        self.LINE_POINT_2 = np.array([0, 78.2607])
+        
+
+        ''' Scaled reference colors ''' 
+        # self.MEAN_VALUES_L = [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
+        # self.MEAN_VALUES_A = [
+        #     -37.46455193845067, -38.33945889256972, -35.856673734593976, -28.66620337913712, -20.153556829155015,
+        #     -25.183705217005663, -22.73535185450301, -18.57975296251061, -15.422998269835011, -14.839191848288477
+        # ]
+        # self.MEAN_VALUES_B = [
+        #     58.068541555881474, 60.41978876347979, 72.21634388774689, 77.42875637928557, 78.30049344632643,
+        #     81.7513027496333, 84.36038598038662, 86.95338287223824, 92.37148315325989, 91.21422051166374
+        # ]
+
+
+        # self.MEAN_VALUES_A = [
+        #     -36.64082458, -35.82390694, -29.47956688, -24.68504792, -21.51960279, 
+        #     -21.49440178, -19.49577289, -16.92159296, -13.70076143, -13.34873991,
+        # ]
+        # self.MEAN_VALUES_B = [
+        #     57.4946451, 58.6671866, 67.77337014, 74.65505828, 79.19849765, 
+        #     79.23466925, 82.10334927, 85.79813151, 90.42106829, 90.92633324,
+        # ]
+        
+        # self.LINE_POINT_1 = np.array([-76.69774, 0])
+        # self.LINE_POINT_2 = np.array([0, 110.0861])
+        # self.rgb = 0 
 
 
     def remove_purple(self, img):
@@ -822,13 +880,13 @@ class GrannyPeelColor(GrannyBaseClass):
         mean_a = np.sum(lab_img[:,:,1]*threshold_2)/np.count_nonzero(threshold_2) - 128
         mean_b = np.sum(lab_img[:,:,2]*threshold_3)/np.count_nonzero(threshold_3) - 128
 
-        # normalize by shifting point in the spherical coordinates
-        radius = np.sqrt(mean_l**2 + mean_a**2 + mean_b**2)
-        scaled_l = 50
-        scaled_a = np.sign(mean_a)*np.sqrt(np.abs(radius**2 - scaled_l**2)/(1 + (mean_b/mean_a)**2))
-        scaled_b = np.sign(mean_b)*mean_b/mean_a*scaled_a
+        # # normalize by shifting point in the spherical coordinates
+        # radius = np.sqrt(mean_l**2 + mean_a**2 + mean_b**2)
+        # scaled_l = 50
+        # scaled_a = np.sign(mean_a)*np.sqrt(np.abs(radius**2 - scaled_l**2)/(1 + (mean_b/mean_a)**2))
+        # scaled_b = np.sign(mean_b)*mean_b/mean_a*scaled_a
         
-        return scaled_l, scaled_a, scaled_b
+        # return scaled_l, scaled_a, scaled_b
         return mean_l, mean_a, mean_b
         
     
@@ -846,9 +904,22 @@ class GrannyPeelColor(GrannyBaseClass):
         bin_num = 0 
         dist = 0
         if method == "Euclidean": 
-            dist_a = color_list[1] - np.array(self.MEAN_VALUES_A)
-            dist_b = color_list[2] - np.array(self.MEAN_VALUES_B)
-            dist = np.sqrt((dist_a/np.linalg.norm(dist_a))**2, (dist_b/np.linalg.norm(dist_b))**2) 
+            dist_a = color_list[0] - np.array(self.MEAN_VALUES_A)
+            dist_b = color_list[1] - np.array(self.MEAN_VALUES_B)
+            dist = np.sqrt((dist_a/np.linalg.norm(dist_a))**2 + (0.2*dist_b/np.linalg.norm(dist_b))**2)
+            bin_num = np.argmin(dist) + 1
+        if method == "X-component": 
+            dist_a = color_list[0] - np.array(self.MEAN_VALUES_A)
+            dist_b = color_list[1] - np.array(self.MEAN_VALUES_B)
+            dist = np.sqrt((dist_a/np.linalg.norm(dist_a))**2)
+            bin_num = np.argmin(dist) + 1
+        if method == "Y-component": 
+            dist_a = color_list[0] - np.array(self.MEAN_VALUES_A)
+            dist_b = color_list[1] - np.array(self.MEAN_VALUES_B)
+            dist = np.sqrt((dist_a/np.linalg.norm(dist_b))**2)
+            bin_num = np.argmin(dist) + 1
+        if method == "Score": 
+            dist_a = color_list[0] - np.array(self.SCORE)
             bin_num = np.argmin(dist) + 1
         return bin_num, dist
     
@@ -858,16 +929,26 @@ class GrannyPeelColor(GrannyBaseClass):
         """
         score = 0 
         distance = 0 
+        point = 0
         color_point = np.array([color_list[1], color_list[2]])
         n = self.LINE_POINT_2 - self.LINE_POINT_1
         n /= np.linalg.norm(n)
         projection = self.LINE_POINT_1 + n*np.dot(color_point - self.LINE_POINT_1,n)
         score = np.linalg.norm(projection - self.LINE_POINT_1)/np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1)
         distance = np.linalg.norm(np.cross(self.LINE_POINT_2 - self.LINE_POINT_1, color_point - self.LINE_POINT_1))/np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1)
-        print(f"Coordinates: {projection}")
+        point = np.sign(color_point[1] - projection[1])
+        score = score - point*(0.9/2*distance/np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1))
+        print(f"Old Coordinates: {color_list}")
+        print(f"New Coordinates: {projection}")
         print(f"Score: {score}")
         print(f"Distance from line: {distance}")
-        return score, distance
+        print(f"Above/Under: {point}")
+        if score < 0: 
+            score = np.float16(0)
+        elif score > 1: 
+            score = np.float16(1.0)
+        return projection, score, distance, point
+
     
     def sort_peel_color(self): 
         """ 
@@ -906,15 +987,15 @@ class GrannyPeelColor(GrannyBaseClass):
                 # get image values
                 l, a, b = self.get_green_yellow_values(img)
 
-                # calculate distance to each bin 
-                bin_num, distance = self.calculate_bin_distance([l, a, b])
-
                 # calculate distance to the least-mean-square line
-                score, orth_distance = self.calculate_score_distance([l, a, b])
+                projection, score, orth_distance, point = self.calculate_score_distance([l, a, b])
+
+                # calculate distance to each bin 
+                bin_num, distance = self.calculate_bin_distance([projection[0], projection[1]])
 
                 # save the scores to results/rating.csv
                 with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w:
-                    w.writelines(f"{self.clean_name(file_name.split(os.sep)[-1])},{bin_num},{str(orth_distance)},{score},{l},{a},{b}")
+                    w.writelines(f"{self.clean_name(file_name.split(os.sep)[-1])},{bin_num},{score},{str(orth_distance)},{point},{l},{a},{b}")
                     w.writelines("\n")
 
                 print(f"\t- Done. Check \"results/\" for output. - \n")
@@ -935,9 +1016,13 @@ class GrannyPeelColor(GrannyBaseClass):
                 bin_nums = []
                 orth_distances = []
                 channels_values = []
+                points = []
                 ratings = []
 
                 for file_name in files: 
+
+                    print(f"\t- Rating {file_name}. -")
+
                     img = skimage.io.imread(file_name)
 
                     # remove surrounding purple
@@ -950,22 +1035,22 @@ class GrannyPeelColor(GrannyBaseClass):
                     # get image values
                     l, a, b = self.get_green_yellow_values(img)
 
-                    # calculate distance to each bin 
-                    bin_num, distance = self.calculate_bin_distance([l, a, b])
-
                     # calculate distance to the least-mean-square line
-                    score, orth_distance = self.calculate_score_distance([l, a, b])
-                    
+                    projection, score, orth_distance, point = self.calculate_score_distance([l, a, b])
+
+                    # # calculate distance to each bin 
+                    bin_num, distance = self.calculate_bin_distance([projection[0], projection[1]])
+                
                     bin_nums.append(bin_num)
                     ratings.append(score)
+                    points.append(point)
                     orth_distances.append(str(orth_distance))
                     channels_values.append(str(l) + "," + str(a) + "," + str(b))
 
                 with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w: 
                     for i in range(len(bin_nums)): 
-                        w.writelines(f"{self.clean_name(files[i].split(os.sep)[-1])},{bin_nums[i]},{orth_distances[i]},{ratings[i]},{channels_values[i]}")
+                        w.writelines(f"{self.clean_name(files[i].split(os.sep)[-1])},{bin_nums[i]},{ratings[i]},{orth_distances[i]},{points[i]},{channels_values[i]}")
                         w.writelines("\n")
-
                 print(f"\t- Done. Check \"results/\" for output. - \n")
             except FileNotFoundError: 
                 print(f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values. -")
