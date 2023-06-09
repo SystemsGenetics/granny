@@ -916,10 +916,11 @@ class GrannyPeelColor(GrannyBaseClass):
         if method == "Y-component": 
             dist_a = color_list[0] - np.array(self.MEAN_VALUES_A)
             dist_b = color_list[1] - np.array(self.MEAN_VALUES_B)
-            dist = np.sqrt((dist_a/np.linalg.norm(dist_b))**2)
+            dist = np.sqrt((dist_b/np.linalg.norm(dist_b))**2)
             bin_num = np.argmin(dist) + 1
         if method == "Score": 
-            dist_a = color_list[0] - np.array(self.SCORE)
+            dist = color_list[0] - np.array(self.SCORE)
+            dist = np.abs(dist)
             bin_num = np.argmin(dist) + 1
         return bin_num, dist
     
@@ -937,10 +938,11 @@ class GrannyPeelColor(GrannyBaseClass):
         score = np.linalg.norm(projection - self.LINE_POINT_1)/np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1)
         distance = np.linalg.norm(np.cross(self.LINE_POINT_2 - self.LINE_POINT_1, color_point - self.LINE_POINT_1))/np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1)
         point = np.sign(color_point[1] - projection[1])
-        score = score - point*(0.9/2*distance/np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1))
+        print(f"Old Score: {score}")
+        score = score - point*(0.6*distance/np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1))
+        print(f"New Score: {score}")
         print(f"Old Coordinates: {color_list}")
         print(f"New Coordinates: {projection}")
-        print(f"Score: {score}")
         print(f"Distance from line: {distance}")
         print(f"Above/Under: {point}")
         if score < 0: 
@@ -1039,7 +1041,10 @@ class GrannyPeelColor(GrannyBaseClass):
                     projection, score, orth_distance, point = self.calculate_score_distance([l, a, b])
 
                     # # calculate distance to each bin 
-                    bin_num, distance = self.calculate_bin_distance([projection[0], projection[1]])
+                    bin_num, distance = self.calculate_bin_distance([score], method = "Score")
+
+                    # # calculate distance to each bin 
+                    # bin_num, distance = self.calculate_bin_distance([projection[0], projection[1]])
                 
                     bin_nums.append(bin_num)
                     ratings.append(score)
