@@ -501,7 +501,7 @@ class GrannySuperficialScald(GrannyBaseClass):
         bin_mask = cv2.erode(cv2.dilate(
             bin_mask, kernel=strel, iterations=1), kernel=strel, iterations=1)
         return bin_mask
-    
+
     def remove_scald(self, img):
         """
                 Remove the scald region from the individual apple images. 
@@ -520,49 +520,20 @@ class GrannySuperficialScald(GrannyBaseClass):
 
         # create binary matrix (ones and zeros)
         bin = np.uint8(cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) != 0)
-
-        hist = cv2.calcHist(lab_img, [1], None, [256], (0, 256), accumulate = False)
-        
-        # print(hist)
-        # print("Max:", np.argmax(hist), np.amax(hist)) 
-        # print("Min:", np.argmin(hist), np.amin(hist))
-
-        cv2.normalize(hist, hist, alpha=0, beta=256, norm_type=cv2.NORM_MINMAX)
-
-        # print(hist)
-        # print("Max:", np.argmax(hist), np.amax(hist)) 
-        # print("Min:", np.argmin(hist), np.amin(hist))
-
-        # calculate mean value for each channel
-        mean_l = np.sum(lab_img[:,:,0]*bin)/np.count_nonzero(bin)
-        print(f"Mean L:{mean_l}")
-        mean_a = np.sum(lab_img[:,:,1]*bin)/np.count_nonzero(bin)
-        print(f"Mean A:{mean_a}")
-        mean_b = np.sum(lab_img[:,:,2]*bin)/np.count_nonzero(bin)
-        print(f"Mean B:{mean_b}")
-
-
-        # calculate the scaled value for each channel by shifting in spherical coordinates
-        radius = np.sqrt(mean_l**2 + mean_a**2 + mean_b**2)
-        lightness = 128
-        scaled_l = np.sign(mean_l)*lightness
-        scaled_a = np.sign(mean_a)*np.sqrt(np.abs(radius**2 - lightness**2)/(1 + (mean_b/mean_a)**2))
-        scaled_b = np.sign(mean_b)*mean_b/mean_a*scaled_a
-
-        # scale everything to a consistent lightness 
-        # lab_img[:,:,0] = np.uint8((scaled_l/mean_l)*lab_img[:,:,0])
-        # lab_img[:,:,1] = np.uint8((scaled_a/mean_a)*lab_img[:,:,1])
-        # lab_img[:,:,2] = np.uint8((scaled_b/mean_b)*lab_img[:,:,2])
+        hist, bin_edges = np.histogram(lab_img[:,:,1], bins = 256, range=(0,255))
+        hist_range = 255 - (hist[::-1]!=0).argmax() - (hist!=0).argmax()
+        threshold = np.max(np.argsort(hist)[-10:])
+        threshold = int(threshold - 2/3*hist_range)
+        threshold = 100 if threshold<100 else int(threshold)
 
         # set max and min values for each channel
         channel1Min = 1*bin
         channel1Max = 255*bin
         channel2Min = 1*bin
-        # channel2Max = (116+(mean_b-128))*bin
-
-        channel2Max = (np.argmax(hist)-20)*bin
+        channel2Max = threshold*bin
         channel3Min = 1*bin
         channel3Max = 255*bin
+        # print(f"Anticipated score: {1 - np.count_nonzero(lab_img[:,:,1]<=threshold)/np.count_nonzero(img[:,:,0]!=0)}")
         
         # create threshold matrices for each for each channel
         threshold_1 = np.greater_equal(lab_img[:, :, 0], channel1Min) & np.less_equal(
