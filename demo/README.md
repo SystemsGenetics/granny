@@ -11,7 +11,7 @@ Don't want to install anything on your computer, we have set up a quick demo on 
 3. [Rate](#rate)
    - [Superficial Scald](#scald)
    - [Cross-section Starch](#starch)
-   - [Pear Color Sorting](#pear)
+   - [Pear Color Analysis](#pear)
 
 ---
 
@@ -117,7 +117,7 @@ With individual apples extracted to your "results", run Granny with a "scald" ac
 granny --action scald --image_dir ./results/segmented_images/ --num_instances 2
 ```
 
-to get the following images, and a `ratings.csv` file containing scald area for each instance.
+to get the following images, and a `ratings.csv` file containing scald rating for each instance.
 
 1st row:
 
@@ -208,7 +208,7 @@ If you have a full-tray image of cross-sections, similarly to apples, you can ru
 
 #### How to install
 
-To calculate the total starch area of each individual cross-section, you will have to install a separate application, [Fiji](https://imagej.net/software/fiji/), to run our macros. The installation is fairly straight-forward, and that would be everything you need to install. Here is the instruction:
+To calculate the total starch area of each individual cross-section, you will have to install a separate application, [Fiji](https://imagej.net/software/fiji/), to run our macros. The installation is fairly straight-forward, and that would be everything you need to install. Here is the instructions:
 
 1. Install [Fiji](https://imagej.net/software/fiji/)
 2. Download our [macros](https://github.com/SystemsGenetics/granny/tree/master/GRANNY/Starch_Macros)
@@ -244,3 +244,61 @@ Similar to apples, you can use [Extraction](#extract) to extract pear images fro
   <img src="pear_images/full_masked_images/pear_demo_image.png" width="500px"/>
   <p>Pears</p>
 </div>
+
+1st row:
+
+<p float="left">
+    <img src="pear_images/segmented_images/pear_demo_image_1.png" width="100" />
+    <img src="pear_images/segmented_images/pear_demo_image_2.png" width="100" />
+    <img src="pear_images/segmented_images/pear_demo_image_3.png" width="100" /> 
+    <img src="pear_images/segmented_images/pear_demo_image_4.png" width="100" />
+</p>
+
+2nd row:
+
+<p float="left">
+    <img src="pear_images/segmented_images/pear_demo_image_9.png" width="100" />
+    <img src="pear_images/segmented_images/pear_demo_image_8.png" width="100" />
+    <img src="pear_images/segmented_images/pear_demo_image_7.png" width="100" /> 
+    <img src="pear_images/segmented_images/pear_demo_image_6.png" width="100" />
+    <img src="pear_images/segmented_images/pear_demo_image_5.png" width="100" />
+</p>
+
+3rd row:
+
+<p float="left">
+    <img src="pear_images/segmented_images/pear_demo_image_13.png"  width="100" />
+    <img src="pear_images/segmented_images/pear_demo_image_12.png"  width="100" />
+    <img src="pear_images/segmented_images/pear_demo_image_11.png"  width="100" /> 
+    <img src="pear_images/segmented_images/pear_demo_image_10.png"  width="100" />
+</p>
+
+4th row:
+
+<p float="left">
+    <img src="pear_images/segmented_images/pear_demo_image_18.png"  width="100" />
+    <img src="pear_images/segmented_images/pear_demo_image_17.png"  width="100" />
+    <img src="pear_images/segmented_images/pear_demo_image_16.png"  width="100" /> 
+    <img src="pear_images/segmented_images/pear_demo_image_15.png"  width="100" />
+    <img src="pear_images/segmented_images/pear_demo_image_14.png"  width="100" />
+</p>
+
+To analyze pear's peel color, run Granny with a "pear" action
+
+```bash
+granny --action pear --image_dir ./results/segmented_images/ --num_instances 2
+```
+
+The pear's color will be extracted and mapped to the closest referenced color on the card below. The results are written to a file named "peel_colors.csv", including
+
+    a. the file name
+    b. the closest-matched bin
+    c. a rating from 0-1
+    d. LAB channel values of the image
+
+<div align="center">
+  <img src="pear_images/color_preference/pear_color_card.JPG" width="500px"/>
+  <p>Color preferences</p>
+</div>
+
+
