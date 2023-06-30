@@ -747,17 +747,17 @@ class GrannyPeelColor(GrannyBaseClass):
         # ]
 
 
-        # self.MEAN_VALUES_A = [
-        #     -36.64082458, -35.82390694, -29.47956688, -24.68504792, -21.51960279, 
-        #     -21.49440178, -19.49577289, -16.92159296, -13.70076143, -13.34873991,
-        # ]
-        # self.MEAN_VALUES_B = [
-        #     57.4946451, 58.6671866, 67.77337014, 74.65505828, 79.19849765, 
-        #     79.23466925, 82.10334927, 85.79813151, 90.42106829, 90.92633324,
-        # ]
+        self.MEAN_VALUES_A = [
+            -36.64082458, -35.82390694, -29.47956688, -24.68504792, -21.51960279, 
+            -21.49440178, -19.49577289, -16.92159296, -13.70076143, -13.34873991,
+        ]
+        self.MEAN_VALUES_B = [
+            57.4946451, 58.6671866, 67.77337014, 74.65505828, 79.19849765, 
+            79.23466925, 82.10334927, 85.79813151, 90.42106829, 90.92633324,
+        ]
         
-        # self.LINE_POINT_1 = np.array([-76.69774, 0])
-        # self.LINE_POINT_2 = np.array([0, 110.0861])
+        self.LINE_POINT_1 = np.array([-76.69774, 0])
+        self.LINE_POINT_2 = np.array([0, 110.0861])
         # self.rgb = 0 
 
 
@@ -851,13 +851,13 @@ class GrannyPeelColor(GrannyBaseClass):
         mean_a = np.sum(lab_img[:,:,1]*threshold_2)/np.count_nonzero(threshold_2) - 128
         mean_b = np.sum(lab_img[:,:,2]*threshold_3)/np.count_nonzero(threshold_3) - 128
 
-        # # normalize by shifting point in the spherical coordinates
-        # radius = np.sqrt(mean_l**2 + mean_a**2 + mean_b**2)
-        # scaled_l = 50
-        # scaled_a = np.sign(mean_a)*np.sqrt(np.abs(radius**2 - scaled_l**2)/(1 + (mean_b/mean_a)**2))
-        # scaled_b = np.sign(mean_b)*mean_b/mean_a*scaled_a
+        # normalize by shifting point in the spherical coordinates
+        radius = np.sqrt(mean_l**2 + mean_a**2 + mean_b**2)
+        scaled_l = 50
+        scaled_a = np.sign(mean_a)*np.sqrt(np.abs(radius**2 - scaled_l**2)/(1 + (mean_b/mean_a)**2))
+        scaled_b = np.sign(mean_b)*mean_b/mean_a*scaled_a
         
-        # return scaled_l, scaled_a, scaled_b
+        return scaled_l, scaled_a, scaled_b
         return mean_l, mean_a, mean_b
         
     
