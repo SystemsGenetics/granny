@@ -22,13 +22,15 @@ def main():
     args = parser.parse_args()
 
     if args.action == "extract": 
-        granny.GrannyExtractInstances(args.action, args.dir, args.num_instances, args.verbose).mask_extract_image()
+        granny.GrannyExtractInstances(args.action, args.dir, args.num_instances, args.verbose).main()
     elif args.action == "scald": 
-        granny.GrannySuperficialScald(args.action, args.dir, args.num_instances, args.verbose).rate_binarize_image()
+        granny.GrannySuperficialScald(args.action, args.dir, args.num_instances, args.verbose).main()
     elif args.action == "peel": 
-        granny.GrannyPeelColor(args.action, args.dir, args.num_instances, args.rgb, args.verbose).sort_peel_color()
+        granny.GrannyPeelColor(args.action, args.dir, args.num_instances, args.rgb, args.verbose).main()
     elif args.action == "starch": 
         granny.GrannyStarchIndex(args.action, args.dir, args.num_instances, args.verbose).main()
+    elif args.action == "blush": 
+        granny.GrannyPearBlush(args.action, args.dir, args.num_instances, args.verbose).main()
     else: 
         print("\t- Invalid Action. -")
 
