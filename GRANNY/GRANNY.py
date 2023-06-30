@@ -9,9 +9,6 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 import os
-import warnings
-import json
-import sys
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 pd.options.mode.chained_assignment = None
 tf.autograph.set_verbosity(3)
@@ -352,7 +349,7 @@ class GrannyExtractInstances(GrannyBaseClass):
         skimage.io.imsave(new_im_dir, img)
         return img
 
-    def mask_extract_image(self):
+    def main(self):
         """
                 Main method performing Image Masking and Image Extraction on full tray images
                 Output directory: 'segmented_data' and 'full_masked_data'
@@ -609,7 +606,7 @@ class GrannySuperficialScald(GrannyBaseClass):
             return 0
         return fraction
     
-    def rate_binarize_image(self):
+    def main(self):
         """ 
                 (GS) Main method performing Image Binarization, i.e. rate and remove scald, on individual apple images 
                 
@@ -923,7 +920,7 @@ class GrannyPeelColor(GrannyBaseClass):
         return projection, score, distance, point
 
     
-    def sort_peel_color(self): 
+    def main(self): 
         """ 
                 (Pear) Main method performing rating for pear's peel color
                 
@@ -1038,3 +1035,8 @@ class GrannyStarchIndex(GrannyBaseClass):
     
     def main(): 
         pass
+
+class GrannyPearBlush(GrannyBaseClass): 
+    def __init__(self, action, fname, num_instances, verbose): 
+        super(GrannyBaseClass).__init__(self, action, fname, num_instances, verbose)
+    
