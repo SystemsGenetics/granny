@@ -1040,3 +1040,6 @@ class GrannyPearBlush(GrannyBaseClass):
     def __init__(self, action, fname, num_instances, verbose): 
         super(GrannyBaseClass).__init__(self, action, fname, num_instances, verbose)
     
+    def main(self): 
+        
+        pass 
