@@ -12,7 +12,9 @@ class GrannyPeelColor(granny.GrannyBase):
     def __init__(self, action: str, fname: str, num_instances: int, verbose):
         num_instances = 1 if num_instances == None else num_instances
         verbose = 0 if verbose == None else 1
-        super(GrannyPeelColor, self).__init__(action, fname, num_instances, verbose)
+        super(GrannyPeelColor, self).__init__(
+            action, fname, num_instances, verbose
+        )
 
         """ Raw reference colors """
         # self.MEAN_VALUES_L = [
@@ -131,15 +133,15 @@ class GrannyPeelColor(granny.GrannyBase):
         channel3Max = 126 * bin
 
         # create threshold matrices for each for each channel
-        threshold_1 = np.greater_equal(ycc_img[:, :, 0], channel1Min) & np.less_equal(
-            ycc_img[:, :, 0], channel1Max
-        )
-        threshold_2 = np.greater_equal(ycc_img[:, :, 1], channel2Min) & np.less_equal(
-            ycc_img[:, :, 1], channel2Max
-        )
-        threshold_3 = np.greater_equal(ycc_img[:, :, 2], channel3Min) & np.less_equal(
-            ycc_img[:, :, 2], channel3Max
-        )
+        threshold_1 = np.greater_equal(
+            ycc_img[:, :, 0], channel1Min
+        ) & np.less_equal(ycc_img[:, :, 0], channel1Max)
+        threshold_2 = np.greater_equal(
+            ycc_img[:, :, 1], channel2Min
+        ) & np.less_equal(ycc_img[:, :, 1], channel2Max)
+        threshold_3 = np.greater_equal(
+            ycc_img[:, :, 2], channel3Min
+        ) & np.less_equal(ycc_img[:, :, 2], channel3Max)
         th123 = threshold_1 & threshold_2 & threshold_3
 
         # create new image using threshold matrices
@@ -147,7 +149,9 @@ class GrannyPeelColor(granny.GrannyBase):
             new_img[:, :, i] = new_img[:, :, i] * th123
         return new_img
 
-    def get_green_yellow_values(self, img: NDArray[np.uint8]) -> Tuple[float, float, float]:
+    def get_green_yellow_values(
+        self, img: NDArray[np.uint8]
+    ) -> Tuple[float, float, float]:
         """
         Get the mean pixel values from the images representing the amount of
         green and yellow in the CIELAB color space. Then, normalize the values to L = 50.
@@ -187,9 +191,22 @@ class GrannyPeelColor(granny.GrannyBase):
             new_img[:, :, i] = new_img[:, :, i] * th123
 
         # get mean values from each channel
-        mean_l = np.sum(lab_img[:, :, 0]) / np.count_nonzero(threshold_1) * 100 / 255
-        mean_a = np.sum(lab_img[:, :, 1] * threshold_2) / np.count_nonzero(threshold_2) - 128
-        mean_b = np.sum(lab_img[:, :, 2] * threshold_3) / np.count_nonzero(threshold_3) - 128
+        mean_l = (
+            np.sum(lab_img[:, :, 0])
+            / np.count_nonzero(threshold_1)
+            * 100
+            / 255
+        )
+        mean_a = (
+            np.sum(lab_img[:, :, 1] * threshold_2)
+            / np.count_nonzero(threshold_2)
+            - 128
+        )
+        mean_b = (
+            np.sum(lab_img[:, :, 2] * threshold_3)
+            / np.count_nonzero(threshold_3)
+            - 128
+        )
 
         # # normalize by shifting point in the spherical coordinates
         # radius = np.sqrt(mean_l**2 + mean_a**2 + mean_b**2)
@@ -204,7 +221,8 @@ class GrannyPeelColor(granny.GrannyBase):
         self, color_list: List[int], method: str = "Euclidean"
     ) -> Tuple[int, NDArray[np.float16]]:
         """
-        Calculate the Euclidean distance from normalized image's LAB to each bin color.
+        Calculate the Euclidean distance from normalized image's LAB to each
+        bin color.
         Return the shortest distance and the corresponding bin.
 
         """
@@ -234,7 +252,9 @@ class GrannyPeelColor(granny.GrannyBase):
             bin_num = np.argmin(dist) + 1
         return bin_num, dist
 
-    def calculate_score_distance(self, color_list: List[float]) -> Tuple[float,]:
+    def calculate_score_distance(
+        self, color_list: List[float]
+    ) -> Tuple[float,]:
         """ """
         score = 0
         distance = 0
@@ -242,17 +262,24 @@ class GrannyPeelColor(granny.GrannyBase):
         color_point = np.array([color_list[1], color_list[2]])
         n = self.LINE_POINT_2 - self.LINE_POINT_1
         n /= np.linalg.norm(n)
-        projection = self.LINE_POINT_1 + n * np.dot(color_point - self.LINE_POINT_1, n)
-        score = np.linalg.norm(projection - self.LINE_POINT_1) / np.linalg.norm(
-            self.LINE_POINT_2 - self.LINE_POINT_1
+        projection = self.LINE_POINT_1 + n * np.dot(
+            color_point - self.LINE_POINT_1, n
         )
+        score = np.linalg.norm(
+            projection - self.LINE_POINT_1
+        ) / np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1)
         distance = np.linalg.norm(
-            np.cross(self.LINE_POINT_2 - self.LINE_POINT_1, color_point - self.LINE_POINT_1)
+            np.cross(
+                self.LINE_POINT_2 - self.LINE_POINT_1,
+                color_point - self.LINE_POINT_1,
+            )
         ) / np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1)
         point = np.sign(color_point[1] - projection[1])
         print(f"Old Score: {score}")
         score = score - point * (
-            0.6 * distance / np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1)
+            0.6
+            * distance
+            / np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1)
         )
         print(f"New Score: {score}")
         print(f"Old Coordinates: {color_list}")
@@ -299,13 +326,22 @@ class GrannyPeelColor(granny.GrannyBase):
                 l, a, b = self.get_green_yellow_values(img)
 
                 # calculate distance to the least-mean-square line
-                projection, score, orth_distance, point = self.calculate_score_distance([l, a, b])
+                (
+                    projection,
+                    score,
+                    orth_distance,
+                    point,
+                ) = self.calculate_score_distance([l, a, b])
 
                 # calculate distance to each bin
-                bin_num, distance = self.calculate_bin_distance([projection[0], projection[1]])
+                bin_num, distance = self.calculate_bin_distance(
+                    [projection[0], projection[1]]
+                )
 
                 # save the scores to results/rating.csv
-                with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w:
+                with open(
+                    self.BIN_COLOR + os.sep + "peel_colors.csv", "w"
+                ) as w:
                     w.writelines(
                         f"{self.clean_name(file_name.split(os.sep)[-1])},{bin_num},{score},{str(orth_distance)},{point},{l},{a},{b}"
                     )
@@ -314,7 +350,9 @@ class GrannyPeelColor(granny.GrannyBase):
                 print(f'\t- Done. Check "results/" for output. - \n')
 
             except FileNotFoundError:
-                print(f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values. -")
+                print(
+                    f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values. -"
+                )
 
         else:
             try:
@@ -323,7 +361,9 @@ class GrannyPeelColor(granny.GrannyBase):
 
                 # create "results" directory to save the results
                 for folder in folders:
-                    self.create_directories(folder.replace(self.FOLDER_NAME, self.BIN_COLOR))
+                    self.create_directories(
+                        folder.replace(self.FOLDER_NAME, self.BIN_COLOR)
+                    )
 
                 bin_nums = []
                 orth_distances = []
@@ -347,12 +387,17 @@ class GrannyPeelColor(granny.GrannyBase):
                     l, a, b = self.get_green_yellow_values(img)
 
                     # calculate distance to the least-mean-square line
-                    projection, score, orth_distance, point = self.calculate_score_distance(
-                        [l, a, b]
-                    )
+                    (
+                        projection,
+                        score,
+                        orth_distance,
+                        point,
+                    ) = self.calculate_score_distance([l, a, b])
 
                     # # calculate distance to each bin
-                    bin_num, distance = self.calculate_bin_distance([score], method="Score")
+                    bin_num, distance = self.calculate_bin_distance(
+                        [score], method="Score"
+                    )
 
                     # # calculate distance to each bin
                     # bin_num, distance = self.calculate_bin_distance([projection[0], projection[1]])
@@ -361,9 +406,13 @@ class GrannyPeelColor(granny.GrannyBase):
                     ratings.append(score)
                     points.append(point)
                     orth_distances.append(str(orth_distance))
-                    channels_values.append(str(l) + "," + str(a) + "," + str(b))
+                    channels_values.append(
+                        str(l) + "," + str(a) + "," + str(b)
+                    )
 
-                with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w:
+                with open(
+                    self.BIN_COLOR + os.sep + "peel_colors.csv", "w"
+                ) as w:
                     for i in range(len(bin_nums)):
                         w.writelines(
                             f"{self.clean_name(files[i].split(os.sep)[-1])},{bin_nums[i]},{ratings[i]},{orth_distances[i]},{points[i]},{channels_values[i]}"
@@ -371,4 +420,6 @@ class GrannyPeelColor(granny.GrannyBase):
                         w.writelines("\n")
                 print(f'\t- Done. Check "results/" for output. - \n')
             except FileNotFoundError:
-                print(f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values. -")
+                print(
+                    f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values. -"
+                )

@@ -13,7 +13,9 @@ class GrannySuperficialScald(granny.GrannyBase):
     def __init__(self, action: str, fname: str, num_instances: int, verbose):
         num_instances = 1 if num_instances == None else num_instances
         verbose = 0 if verbose == None else 1
-        super(GrannySuperficialScald, self).__init__(action, fname, num_instances, verbose)
+        super(GrannySuperficialScald, self).__init__(
+            action, fname, num_instances, verbose
+        )
 
     def remove_purple(self, img: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -36,15 +38,15 @@ class GrannySuperficialScald(granny.GrannyBase):
         channel3Max = 126 * bin
 
         # create threshold matrices for each for each channel
-        threshold_1 = np.greater_equal(ycc_img[:, :, 0], channel1Min) & np.less_equal(
-            ycc_img[:, :, 0], channel1Max
-        )
-        threshold_2 = np.greater_equal(ycc_img[:, :, 1], channel2Min) & np.less_equal(
-            ycc_img[:, :, 1], channel2Max
-        )
-        threshold_3 = np.greater_equal(ycc_img[:, :, 2], channel3Min) & np.less_equal(
-            ycc_img[:, :, 2], channel3Max
-        )
+        threshold_1 = np.greater_equal(
+            ycc_img[:, :, 0], channel1Min
+        ) & np.less_equal(ycc_img[:, :, 0], channel1Max)
+        threshold_2 = np.greater_equal(
+            ycc_img[:, :, 1], channel2Min
+        ) & np.less_equal(ycc_img[:, :, 1], channel2Max)
+        threshold_3 = np.greater_equal(
+            ycc_img[:, :, 2], channel3Min
+        ) & np.less_equal(ycc_img[:, :, 2], channel3Max)
         th123 = threshold_1 & threshold_2 & threshold_3
 
         # create new image using threshold matrices
@@ -52,7 +54,9 @@ class GrannySuperficialScald(granny.GrannyBase):
             new_img[:, :, i] = new_img[:, :, i] * th123
         return new_img
 
-    def smooth_binary_mask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
+    def smooth_binary_mask(
+        self, bin_mask: NDArray[np.uint8]
+    ) -> NDArray[np.uint8]:
         """
         Smooth scald region with basic morphological operations.
         By performing morphology, the binary mask will be smoothened to avoid discontinuity.
@@ -71,14 +75,20 @@ class GrannySuperficialScald(granny.GrannyBase):
 
         # using to structuring element to perform one close and one open operation on the binary mask
         bin_mask = cv2.dilate(
-            cv2.erode(bin_mask, kernel=strel, iterations=1), kernel=strel, iterations=1
+            cv2.erode(bin_mask, kernel=strel, iterations=1),
+            kernel=strel,
+            iterations=1,
         )
         bin_mask = cv2.erode(
-            cv2.dilate(bin_mask, kernel=strel, iterations=1), kernel=strel, iterations=1
+            cv2.dilate(bin_mask, kernel=strel, iterations=1),
+            kernel=strel,
+            iterations=1,
         )
         return bin_mask
 
-    def remove_scald(self, img: NDArray[np.uint8]) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
+    def remove_scald(
+        self, img: NDArray[np.uint8]
+    ) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
         """
         Remove the scald region from the individual apple images.
         Note that the stem could have potentially been removed during the process.
@@ -89,7 +99,9 @@ class GrannySuperficialScald(granny.GrannyBase):
 
         # create binary matrix (ones and zeros)
         bin = (cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) != 0).astype(np.uint8)
-        hist, bin_edges = np.histogram(lab_img[:, :, 1], bins=256, range=(0, 255))
+        hist, bin_edges = np.histogram(
+            lab_img[:, :, 1], bins=256, range=(0, 255)
+        )
         hist_range = 255 - (hist[::-1] != 0).argmax() - (hist != 0).argmax()
         threshold = np.max(np.argsort(hist)[-10:])
         threshold = int(threshold - 2 / 3 * hist_range)
@@ -105,15 +117,15 @@ class GrannySuperficialScald(granny.GrannyBase):
         # print(f"Anticipated score: {1 - np.count_nonzero(lab_img[:,:,1]<=threshold)/np.count_nonzero(img[:,:,0]!=0)}")
 
         # create threshold matrices for each for each channel
-        threshold_1 = np.greater_equal(lab_img[:, :, 0], channel1Min) & np.less_equal(
-            lab_img[:, :, 0], channel1Max
-        )
-        threshold_2 = np.greater_equal(lab_img[:, :, 1], channel2Min) & np.less_equal(
-            lab_img[:, :, 1], channel2Max
-        )
-        threshold_3 = np.greater_equal(lab_img[:, :, 2], channel3Min) & np.less_equal(
-            lab_img[:, :, 2], channel3Max
-        )
+        threshold_1 = np.greater_equal(
+            lab_img[:, :, 0], channel1Min
+        ) & np.less_equal(lab_img[:, :, 0], channel1Max)
+        threshold_2 = np.greater_equal(
+            lab_img[:, :, 1], channel2Min
+        ) & np.less_equal(lab_img[:, :, 1], channel2Max)
+        threshold_3 = np.greater_equal(
+            lab_img[:, :, 2], channel3Min
+        ) & np.less_equal(lab_img[:, :, 2], channel3Max)
         th123 = threshold_1 & threshold_2 & threshold_3
 
         # perform simple morphological operation to smooth the binary mask
@@ -143,7 +155,9 @@ class GrannySuperficialScald(granny.GrannyBase):
 
         return nopurple_img, img, bw
 
-    def calculate_scald(self, bw: NDArray[np.uint8], img: NDArray[np.uint8]) -> float:
+    def calculate_scald(
+        self, bw: NDArray[np.uint8], img: NDArray[np.uint8]
+    ) -> float:
         """
         Calculate scald region by counting all non zeros area
 
@@ -201,7 +215,10 @@ class GrannySuperficialScald(granny.GrannyBase):
 
                 print(f"\t- Score: {score}. -")
                 file_name = file_name.split(os.sep)[-1]
-                skimage.io.imsave(os.path.join(self.BINARIZED_IMAGE, file_name), binarized_image)
+                skimage.io.imsave(
+                    os.path.join(self.BINARIZED_IMAGE, file_name),
+                    binarized_image,
+                )
 
                 # save the scores to results/rating.csv
                 with open("results" + os.sep + "scald_ratings.csv", "w") as w:
@@ -209,7 +226,9 @@ class GrannySuperficialScald(granny.GrannyBase):
                     w.writelines("\n")
                 print(f'\t- Done. Check "results/" for output. - \n')
             except FileNotFoundError:
-                print(f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values. -")
+                print(
+                    f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values. -"
+                )
 
         # multi-images rating
         else:
@@ -219,7 +238,9 @@ class GrannySuperficialScald(granny.GrannyBase):
 
                 # create "results" directory to save the results
                 for folder in folders:
-                    self.create_directories(folder.replace(self.FOLDER_NAME, self.BINARIZED_IMAGE))
+                    self.create_directories(
+                        folder.replace(self.FOLDER_NAME, self.BINARIZED_IMAGE)
+                    )
 
                 # remove scald and rate each apple
                 scores: List[float] = []
@@ -238,14 +259,19 @@ class GrannySuperficialScald(granny.GrannyBase):
                     file_name = file_name.split(os.sep)[-1]
                     scores.append(score)
                     skimage.io.imsave(
-                        os.path.join(self.BINARIZED_IMAGE, file_name + ".png"), binarized_image
+                        os.path.join(self.BINARIZED_IMAGE, file_name + ".png"),
+                        binarized_image,
                     )
 
                 # save the scores to results/rating.csv
                 with open("results" + os.sep + "scald_ratings.csv", "w") as w:
                     for i, score in enumerate(scores):
-                        w.writelines(f"{self.clean_name(files[i])}:\t\t{score}")
+                        w.writelines(
+                            f"{self.clean_name(files[i])}:\t\t{score}"
+                        )
                         w.writelines("\n")
                     print(f'\t- Done. Check "results/" for output. - \n')
             except FileNotFoundError:
-                print(f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values.-")
+                print(
+                    f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values.-"
+                )
