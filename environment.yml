@@ -1,0 +1,16 @@
+channels:
+  - conda-forge
+  - anaconda
+dependencies:
+  - pandas==1.1.5
+  - ipython==7.34.0
+  - ipykernel==6.16.2
+  - numpy==1.21.6
+  - opencv==4.6.0.66
+  - matplotlib==3.5.3
+  - h5py==2.10.0
+  - scikit-image==0.16.2
+  - tensorflow<=1.15
+  - pillow==9.4.0
+  - protobuf==3.20.0
+  - keras==2.3.0
