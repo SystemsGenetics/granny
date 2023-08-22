@@ -47,38 +47,23 @@ def main():
         help="Optional, default is 18. The number of instances on each image.",
     )
 
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        dest="verbose",
-        type=int,
-        nargs="?",
-        default=0,
-        required=False,
-        help="Optional. Specify 1 to turn on model display.",
-    )
-
     args = parser.parse_args()
 
     if args.action == "extract":
         GRANNY_Segmentation.GrannySegmentation(
-            args.action, args.dir, args.num_instances, args.verbose
+            args.action, args.dir, args.num_instances
         ).extract_instances_with_MaskRCNN()
     elif args.action == "scald":
         GRANNY_SuperficialScald.GrannySuperficialScald(
-            args.action, args.dir, args.num_instances, args.verbose
+            args.action, args.dir, args.num_instances
         ).rate_GrannySmith_superficial_scald()
     elif args.action == "peel":
         GRANNY_PeelColor.GrannyPeelColor(
-            args.action, args.dir, args.num_instances, args.verbose
+            args.action, args.dir, args.num_instances
         ).extract_green_yellow_values()
     elif args.action == "starch":
-        GRANNY_StarchIndex.GrannyStarchIndex(
-            args.action, args.dir, args.num_instances, args.verbose
-        ).main()
+        GRANNY_StarchIndex.GrannyStarchIndex(args.action, args.dir, args.num_instances).main()
     elif args.action == "blush":
-        GRANNY_BlushColor.GrannyPearBlush(
-            args.action, args.dir, args.num_instances, args.verbose
-        ).main()
+        GRANNY_BlushColor.GrannyPearBlush(args.action, args.dir, args.num_instances).main()
     else:
         print("\t- Invalid Action. -")

@@ -2,27 +2,23 @@ import os
 from typing import Dict, List, Tuple
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import skimage
 from GRANNY import GRANNY_Base as granny
 from GRANNY import GRANNY_config as config
+from Mask_RCNN.model import MaskRCNN
+from numpy.typing import NDArray
 
 
 class GrannySegmentation(granny.GrannyBase):
-    def __init__(self, action: str, fname: str, num_instances: int, verbose):
+    def __init__(self, action: str, fname: str, num_instances: int):
         num_instances = 18 if num_instances == None else num_instances
-        verbose = 1 if verbose == 1 else 0
-        super(GrannySegmentation, self).__init__(action, fname, num_instances, verbose)
+        super(GrannySegmentation, self).__init__(action, fname, num_instances)
 
-    def load_model(self, verbose=0):
+    def load_model(self, verbose: int = 0) -> MaskRCNN:
         """
         Load pretrained model, download if the model does not exist
-
-        Args:
-                (int) verbose: specify 0 to turn off model display
-
-        Returns:
-                (Keras model) model: model with the weights loaded
         """
         # download the pretrained weights from GitHub if not exist
         if not os.path.exists(self.PRETRAINED_MODEL):
@@ -42,19 +38,11 @@ class GrannySegmentation(granny.GrannyBase):
         model.load_weights(self.PRETRAINED_MODEL, by_name=True)
         return model
 
-    def create_fullmask_image(self, model, im, fname=""):
+    def create_fullmask_image(
+        self, model: MaskRCNN, im: NDArray[np.uint8], fname: str
+    ) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
         """
         Identify individual apples using the model
-
-        Args:
-                (Keras model) model: Mask-RCNN model
-                (numpy.array) im: full image (tray of apples) to mask
-                (str) data_dir: directory to save the masked image
-                (str) fname: file (image) name
-
-        Returns:
-                (numpy.array) mask: [height, width, num_instances]
-                (numpy.array) box: [num_instance, (y1, x1, y2, x2, class_id)]
         """
         # detect image's instances using the model
         results = model.detect([im], verbose=0)
@@ -67,26 +55,22 @@ class GrannySegmentation(granny.GrannyBase):
         class_names = ["BG", ""]
 
         # display the image with the masks, box, and scores
-        config.MRCNN_visualize.display_instances(im, box, mask, r["class_ids"], class_names, score)
+        config.MRCNN_visualize.display_instances(
+            im, box, mask, r["class_ids"], class_names, score
+        )
 
         # save the figure
         plt.savefig(os.path.join(fname + ".png"), bbox_inches="tight")
 
         return mask, box
 
-    def label_instances_helper(self, df):
+    def label_instances_helper(self, df: pd.DataFrame):
         """
         Helper function to sort the 18-apple tray using their center coordinates
 
         This sorting algorithm follows the numbering convention in
         '01-input_data/GS-1-16_FilesForImageAnalysis/GS-1-16_ImageTutorial.pptx'.
         In an increasing order, sort by y-center coordinates then sort by x-center coordinates.
-
-        Args:
-        (DataFrame) df: panda DataFrame containing coordinate information
-
-        Returns:
-        (list) df_list: sorted coordinates of apples/pears
         """
         # sort df by y-center coordinates
         df = df.sort_values("ycenter", ascending=True, ignore_index=True)
@@ -97,7 +81,12 @@ class GrannySegmentation(granny.GrannyBase):
         count = 0
         for count in range(0, len(df) - 1):
             df["rows"].iloc[count] = rows
-            if not np.abs(df["ycenter"].iloc[count + 1] - df["ycenter"].iloc[count]) < 300:
+            if (
+                not np.abs(
+                    df["ycenter"].iloc[count + 1] - df["ycenter"].iloc[count]
+                )
+                < 300
+            ):
                 rows += 1
         df["rows"].iloc[-1] = rows
 
@@ -108,7 +97,10 @@ class GrannySegmentation(granny.GrannyBase):
             apple_id = self.NUM_INSTANCES
             for i in range(1, 5):
                 dfx = df[df["rows"] == i].sort_values(
-                    "xcenter", ascending=False, inplace=False, ignore_index=True
+                    "xcenter",
+                    ascending=False,
+                    inplace=False,
+                    ignore_index=True,
                 )
                 for id in range(0, len(dfx)):
                     dfx["apple_id"].iloc[id] = apple_id
@@ -120,7 +112,10 @@ class GrannySegmentation(granny.GrannyBase):
             apple_id = 1
             for i in range(1, 5):
                 dfx = df[df["rows"] == i].sort_values(
-                    "xcenter", ascending=False, inplace=False, ignore_index=True
+                    "xcenter",
+                    ascending=False,
+                    inplace=False,
+                    ignore_index=True,
                 )
                 for id in range(0, len(dfx)):
                     dfx["apple_id"].iloc[id] = apple_id
@@ -129,7 +124,7 @@ class GrannySegmentation(granny.GrannyBase):
 
         return df_list
 
-    def sort_instances(self, box):
+    def sort_instances(self, box: NDArray[np.uint8]):
         """
         Sort and identify apples
         This sorting algorithm follows the numbering convention in
@@ -190,7 +185,10 @@ class GrannySegmentation(granny.GrannyBase):
                 m = mask[:, :, ar[i][-1]]
 
                 # initialize a blank array for the image
-                new_im = np.zeros([ar[i][2] - ar[i][0], ar[i][3] - ar[i][1], 3], dtype=np.uint8)
+                new_im = np.zeros(
+                    [ar[i][2] - ar[i][0], ar[i][3] - ar[i][1], 3],
+                    dtype=np.uint8,
+                )
 
                 # extract individual image from the coordinates
                 for j in range(0, im.shape[2]):
@@ -233,16 +231,23 @@ class GrannySegmentation(granny.GrannyBase):
         """
         try:
             # load model
-            model = self.load_model(verbose=self.VERBOSE)
+            view_architecture = 0
+            model = self.load_model(verbose=view_architecture)
 
             # list all folders and files
             data_dirs, file_names = self.list_all(self.INPUT_FNAME)
 
             # check and create a new "results" directory to store the results
             for data_dir in data_dirs:
-                self.create_directories(data_dir.replace(self.OLD_DATA_DIR, self.FULLMASK_DIR))
-                self.create_directories(data_dir.replace(self.OLD_DATA_DIR, self.SEGMENTED_DIR))
-                self.create_directories(data_dir.replace(self.OLD_DATA_DIR, self.NEW_DATA_DIR))
+                self.create_directories(
+                    data_dir.replace(self.OLD_DATA_DIR, self.FULLMASK_DIR)
+                )
+                self.create_directories(
+                    data_dir.replace(self.OLD_DATA_DIR, self.SEGMENTED_DIR)
+                )
+                self.create_directories(
+                    data_dir.replace(self.OLD_DATA_DIR, self.NEW_DATA_DIR)
+                )
 
             # pass each image to the model
             for file_name in file_names:
@@ -254,7 +259,9 @@ class GrannySegmentation(granny.GrannyBase):
                 # check and rotate the image to landscape (4000x6000)
                 img = self.rotate_image(
                     old_im_dir=file_name,
-                    new_im_dir=file_name.replace(self.OLD_DATA_DIR, self.NEW_DATA_DIR),
+                    new_im_dir=file_name.replace(
+                        self.OLD_DATA_DIR, self.NEW_DATA_DIR
+                    ),
                 )
 
                 # remove file extension
@@ -264,7 +271,9 @@ class GrannySegmentation(granny.GrannyBase):
                 mask, box = self.create_fullmask_image(
                     model=model,
                     im=img,
-                    fname=file_name.replace(self.OLD_DATA_DIR, self.FULLMASK_DIR),
+                    fname=file_name.replace(
+                        self.OLD_DATA_DIR, self.FULLMASK_DIR
+                    ),
                 )
 
                 # if there are more instances than NUM_INSTANCES
@@ -284,7 +293,9 @@ class GrannySegmentation(granny.GrannyBase):
                     sorted_arr=sorted_ar,
                     mask=mask,
                     im=img,
-                    fname=file_name.replace(self.OLD_DATA_DIR, self.SEGMENTED_DIR),
+                    fname=file_name.replace(
+                        self.OLD_DATA_DIR, self.SEGMENTED_DIR
+                    ),
                 )
 
                 # for debugging purpose
