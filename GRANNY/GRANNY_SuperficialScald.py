@@ -10,10 +10,9 @@ from numpy.typing import NDArray
 
 
 class GrannySuperficialScald(granny.GrannyBase):
-    def __init__(self, action: str, fname: str, num_instances: int, verbose):
+    def __init__(self, action: str, fname: str, num_instances: int):
         num_instances = 1 if num_instances == None else num_instances
-        verbose = 0 if verbose == None else 1
-        super(GrannySuperficialScald, self).__init__(action, fname, num_instances, verbose)
+        super(GrannySuperficialScald, self).__init__(action, fname, num_instances)
 
     def remove_purple(self, img: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -56,12 +55,6 @@ class GrannySuperficialScald(granny.GrannyBase):
         """
         Smooth scald region with basic morphological operations.
         By performing morphology, the binary mask will be smoothened to avoid discontinuity.
-
-        Args:
-                (numpy.array) bin_mask: binary mask (zeros & ones matrix) of the apples
-
-        Returns:
-                (numpy.array) bin_mask: smoothed binary mask (zeros & ones matrix) of the apples
         """
         bin_mask = bin_mask
 
@@ -102,7 +95,6 @@ class GrannySuperficialScald(granny.GrannyBase):
         channel2Max = threshold * bin
         channel3Min = 1 * bin
         channel3Max = 255 * bin
-        # print(f"Anticipated score: {1 - np.count_nonzero(lab_img[:,:,1]<=threshold)/np.count_nonzero(img[:,:,0]!=0)}")
 
         # create threshold matrices for each for each channel
         threshold_1 = np.greater_equal(lab_img[:, :, 0], channel1Min) & np.less_equal(
@@ -173,7 +165,7 @@ class GrannySuperficialScald(granny.GrannyBase):
             return 0
         return fraction
 
-    def rate_GrannySmith_superficial_scald(self):
+    def rate_GrannySmith_superficial_scald(self) -> None:
         """
         (GS) Main method performing Image Binarization, i.e. rate and remove scald, on individual apple images
 
@@ -194,7 +186,7 @@ class GrannySuperficialScald(granny.GrannyBase):
                 print(f"\t- Rating {file_name}. -")
 
                 # remove the surroundings
-                nopurple_img, binarized_image, bw = self.score_image(img)
+                nopurple_img, binarized_image, _ = self.score_image(img)
 
                 # calculate the scald region and save image
                 score = self.calculate_scald(binarized_image, nopurple_img)
@@ -231,14 +223,15 @@ class GrannySuperficialScald(granny.GrannyBase):
                     file_name = self.clean_name(file_name)
 
                     # remove the surroundings
-                    nopurple_img, binarized_image, bw = self.score_image(img)
+                    nopurple_img, binarized_image, _ = self.score_image(img)
 
                     # calculate the scald region and save image
                     score = self.calculate_scald(binarized_image, nopurple_img)
                     file_name = file_name.split(os.sep)[-1]
                     scores.append(score)
                     skimage.io.imsave(
-                        os.path.join(self.BINARIZED_IMAGE, file_name + ".png"), binarized_image
+                        os.path.join(self.BINARIZED_IMAGE, file_name + ".png"),
+                        binarized_image,
                     )
 
                 # save the scores to results/rating.csv
