@@ -30,7 +30,6 @@ class GrannyBase(object):
         action: str = "",
         fname: str = "",
         num_instances: int = 1,
-        verbose: int = 0,
     ):
         # current directory
         self.ROOT_DIR = pathlib.Path(__file__).parent.resolve()
@@ -42,9 +41,7 @@ class GrannyBase(object):
         self.NEW_DATA_DIR = "input_data" + os.sep
 
         # directory of the pretrained we
-        self.PRETRAINED_MODEL = os.path.join(
-            self.ROOT_DIR, "mask_rcnn_starch_cross_section.h5"
-        )
+        self.PRETRAINED_MODEL = os.path.join(self.ROOT_DIR, "mask_rcnn_starch_cross_section.h5")
 
         # accepted file extensions
         self.IMAGE_EXTENSION = (
@@ -59,7 +56,6 @@ class GrannyBase(object):
         )
 
         # initialize default parameters
-        self.VERBOSE = verbose
         self.ACTION = action
         self.FILE_NAME = fname if fname.endswith(self.IMAGE_EXTENSION) else ""
         self.FOLDER_NAME = (
@@ -97,9 +93,7 @@ class GrannyBase(object):
             if not os.path.exists(directory):
                 os.makedirs(directory)
 
-    def list_all(
-        self, data_dir: str = os.path.curdir
-    ) -> Tuple[List[str], List[str]]:
+    def list_all(self, data_dir: str = os.path.curdir) -> Tuple[List[str], List[str]]:
         """
         Recursively list all the folder names and image file names in the
         directory
@@ -110,9 +104,7 @@ class GrannyBase(object):
         # if data_dir is a file
         if data_dir.endswith(self.IMAGE_EXTENSION):
             file_name.append(data_dir)
-            folder_name.append(
-                data_dir.replace(data_dir.split(os.sep)[-1], "")
-            )
+            folder_name.append(data_dir.replace(data_dir.split(os.sep)[-1], ""))
             return folder_name, file_name
 
         # list all folders and files in data_dir

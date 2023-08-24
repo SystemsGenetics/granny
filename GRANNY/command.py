@@ -64,6 +64,8 @@ def main():
     elif args.action == "starch":
         GRANNY_StarchIndex.GrannyStarchIndex(args.action, args.dir, args.num_instances).main()
     elif args.action == "blush":
-        GRANNY_BlushColor.GrannyPearBlush(args.action, args.dir, args.num_instances).main()
+        GRANNY_BlushColor.GrannyPearBlush(
+            args.action, args.dir, args.num_instances
+        ).calculate_blush_region()
     else:
         print("\t- Invalid Action. -")
