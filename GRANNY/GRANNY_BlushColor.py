@@ -14,10 +14,11 @@ class GrannyPearBlush(granny.GrannyBase):
         return
 
     def calibrate_blush_region(self) -> None:
-        cv2.namedWindow("Calibration")
-        cv2.createTrackbar("a*", "Calibration", 0, 255, self.trackbar_change)
-        cv2.setTrackbarMax("a*", "Calibration", 255)
-        cv2.setTrackbarMin("a*", "Calibration", 0)
+        # cv2.namedWindow("Calibration")
+        # cv2.createTrackbar("a*", "Calibration", 0, 255, self.trackbar_change)
+        # cv2.setTrackbarMax("a*", "Calibration", 255)
+        # cv2.setTrackbarMin("a*", "Calibration", 0)
+        pass
 
     def main(self):
         self.calibrate_blush_region()

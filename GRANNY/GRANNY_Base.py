@@ -3,12 +3,6 @@ import pathlib
 import re
 from typing import List, Tuple
 
-import tensorflow as tf
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-tf.autograph.set_verbosity(3)
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-
 
 class GrannyBase(object):
     """
@@ -40,7 +34,7 @@ class GrannyBase(object):
         # new directory of the rotated input images
         self.NEW_DATA_DIR = "input_data" + os.sep
 
-        # directory of the pretrained we
+        # directory to download the pretrained model
         self.PRETRAINED_MODEL = os.path.join(self.ROOT_DIR, "mask_rcnn_starch_cross_section.h5")
 
         # accepted file extensions

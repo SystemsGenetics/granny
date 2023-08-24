@@ -1,6 +1,7 @@
 import os
-from typing import Dict, List, Tuple
+from typing import Tuple
 
+import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -55,9 +56,7 @@ class GrannySegmentation(granny.GrannyBase):
         class_names = ["BG", ""]
 
         # display the image with the masks, box, and scores
-        config.MRCNN_visualize.display_instances(
-            im, box, mask, r["class_ids"], class_names, score
-        )
+        config.MRCNN_visualize.display_instances(im, box, mask, r["class_ids"], class_names, score)
 
         # save the figure
         plt.savefig(os.path.join(fname + ".png"), bbox_inches="tight")
@@ -81,12 +80,7 @@ class GrannySegmentation(granny.GrannyBase):
         count = 0
         for count in range(0, len(df) - 1):
             df["rows"].iloc[count] = rows
-            if (
-                not np.abs(
-                    df["ycenter"].iloc[count + 1] - df["ycenter"].iloc[count]
-                )
-                < 300
-            ):
+            if not np.abs(df["ycenter"].iloc[count + 1] - df["ycenter"].iloc[count]) < 300:
                 rows += 1
         df["rows"].iloc[-1] = rows
 
@@ -239,15 +233,9 @@ class GrannySegmentation(granny.GrannyBase):
 
             # check and create a new "results" directory to store the results
             for data_dir in data_dirs:
-                self.create_directories(
-                    data_dir.replace(self.OLD_DATA_DIR, self.FULLMASK_DIR)
-                )
-                self.create_directories(
-                    data_dir.replace(self.OLD_DATA_DIR, self.SEGMENTED_DIR)
-                )
-                self.create_directories(
-                    data_dir.replace(self.OLD_DATA_DIR, self.NEW_DATA_DIR)
-                )
+                self.create_directories(data_dir.replace(self.OLD_DATA_DIR, self.FULLMASK_DIR))
+                self.create_directories(data_dir.replace(self.OLD_DATA_DIR, self.SEGMENTED_DIR))
+                self.create_directories(data_dir.replace(self.OLD_DATA_DIR, self.NEW_DATA_DIR))
 
             # pass each image to the model
             for file_name in file_names:
@@ -259,9 +247,7 @@ class GrannySegmentation(granny.GrannyBase):
                 # check and rotate the image to landscape (4000x6000)
                 img = self.rotate_image(
                     old_im_dir=file_name,
-                    new_im_dir=file_name.replace(
-                        self.OLD_DATA_DIR, self.NEW_DATA_DIR
-                    ),
+                    new_im_dir=file_name.replace(self.OLD_DATA_DIR, self.NEW_DATA_DIR),
                 )
 
                 # remove file extension
@@ -271,9 +257,7 @@ class GrannySegmentation(granny.GrannyBase):
                 mask, box = self.create_fullmask_image(
                     model=model,
                     im=img,
-                    fname=file_name.replace(
-                        self.OLD_DATA_DIR, self.FULLMASK_DIR
-                    ),
+                    fname=file_name.replace(self.OLD_DATA_DIR, self.FULLMASK_DIR),
                 )
 
                 # if there are more instances than NUM_INSTANCES
@@ -293,9 +277,7 @@ class GrannySegmentation(granny.GrannyBase):
                     sorted_arr=sorted_ar,
                     mask=mask,
                     im=img,
-                    fname=file_name.replace(
-                        self.OLD_DATA_DIR, self.SEGMENTED_DIR
-                    ),
+                    fname=file_name.replace(self.OLD_DATA_DIR, self.SEGMENTED_DIR),
                 )
 
                 # for debugging purpose
