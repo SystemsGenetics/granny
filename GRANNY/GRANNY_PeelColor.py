@@ -245,9 +245,23 @@ class GrannyPeelColor(granny.GrannyBase):
             bin_num = np.argmin(dist) + 1
         return bin_num, dist
 
+    def calculate_intersection(self, line1, line2):
+        xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
+        ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
+
+        def det(a, b):
+            return a[0] * b[1] - a[1] * b[0]
+
+        div = det(xdiff, ydiff)
+
+        d = (det(*line1), det(*line2))
+        x = det(d, xdiff) / div
+        y = det(d, ydiff) / div
+        return x, y
+
     def calculate_score_distance(
         self, color_list: List[float]
-    ) -> Tuple[float,]:
+    ) -> Tuple[float, float, float, float]:
         """ """
         score = 0
         distance = 0
@@ -255,9 +269,11 @@ class GrannyPeelColor(granny.GrannyBase):
         color_point = np.array([color_list[1], color_list[2]])
         n = self.LINE_POINT_2 - self.LINE_POINT_1
         n /= np.linalg.norm(n)
-        projection = self.LINE_POINT_1 + n * np.dot(
-            color_point - self.LINE_POINT_1, n
-        )
+        A = (0, 0)
+        B = (color_list[1], color_list[2])
+        C = self.LINE_POINT_1
+        D = self.LINE_POINT_2
+        projection = self.calculate_intersection((A, B), (C, D))
         score = np.linalg.norm(
             projection - self.LINE_POINT_1
         ) / np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1)
@@ -269,11 +285,6 @@ class GrannyPeelColor(granny.GrannyBase):
         ) / np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1)
         point = np.sign(color_point[1] - projection[1])
         print(f"Old Score: {score}")
-        score = score - point * (
-            0.6
-            * distance
-            / np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1)
-        )
         print(f"New Score: {score}")
         print(f"Old Coordinates: {color_list}")
         print(f"New Coordinates: {projection}")
@@ -289,9 +300,11 @@ class GrannyPeelColor(granny.GrannyBase):
         """
         Main method performing rating for peel color
 
-        This is the main method being called by the Python argument parser from the command.py to set up CLI for
+        This is the main method being called by the Python argument parser
+        from the command.py to set up CLI for
         pear's peel color rating.
-        The results will be written to a .csv file, containing necessary information such as scores, file names,
+        The results will be written to a .csv file, containing necessary
+        information such as scores, file names,
         color card number, distances, and LAB mean pixels.
         The calculated scores will be written to a .csv file.
 

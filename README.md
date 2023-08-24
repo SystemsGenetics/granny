@@ -1,5 +1,8 @@
 ## "**Granny** is going to rate your apples"
 
+[![Documentation Status](https://readthedocs.org/projects/granny/badge/?version=latest)](https://granny.readthedocs.io/en/latest/?badge=latest)
+
+
 **Granny** is a program aiming to assist technicians in post-harvest fruit maturity index experiments.
 
 ---
