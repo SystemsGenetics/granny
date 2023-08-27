@@ -1,5 +1,5 @@
 import os
-from typing import Tuple
+from typing import Tuple, List
 
 import cv2
 import matplotlib.pyplot as plt
@@ -63,7 +63,7 @@ class GrannySegmentation(granny.GrannyBase):
 
         return mask, box
 
-    def label_instances_helper(self, df: pd.DataFrame):
+    def label_instances_helper(self, df: pd.DataFrame) -> List[pd.DataFrame]:
         """
         Helper function to sort the 18-apple tray using their center coordinates
 
@@ -223,64 +223,61 @@ class GrannySegmentation(granny.GrannyBase):
                 'full_masked_data/': contains masked images of apple trays
         Time: ~ 4-5 minutes per 4000 x 6000	full-tray image
         """
-        try:
-            # load model
-            view_architecture = 0
-            model = self.load_model(verbose=view_architecture)
+        # load model
+        view_architecture = 0
+        model = self.load_model(verbose=view_architecture)
 
-            # list all folders and files
-            data_dirs, file_names = self.list_all(self.INPUT_FNAME)
+        # list all folders and files
+        data_dirs, file_names = self.list_all(self.INPUT_FNAME)
 
-            # check and create a new "results" directory to store the results
-            for data_dir in data_dirs:
-                self.create_directories(data_dir.replace(self.OLD_DATA_DIR, self.FULLMASK_DIR))
-                self.create_directories(data_dir.replace(self.OLD_DATA_DIR, self.SEGMENTED_DIR))
-                self.create_directories(data_dir.replace(self.OLD_DATA_DIR, self.NEW_DATA_DIR))
+        # check and create a new "results" directory to store the results
+        for data_dir in data_dirs:
+            self.create_directories(data_dir.replace(self.OLD_DATA_DIR, self.FULLMASK_DIR))
+            self.create_directories(data_dir.replace(self.OLD_DATA_DIR, self.SEGMENTED_DIR))
+            self.create_directories(data_dir.replace(self.OLD_DATA_DIR, self.NEW_DATA_DIR))
 
-            # pass each image to the model
-            for file_name in file_names:
-                name = file_name.split(os.sep)[-1]
+        # pass each image to the model
+        for file_name in file_names:
+            name = file_name.split(os.sep)[-1]
 
-                # print, for debugging purpose
-                print(f"\t- Passing {name} into Mask R-CNN model. -")
+            # print, for debugging purpose
+            print(f"\t- Passing {name} into Mask R-CNN model. -")
 
-                # check and rotate the image to landscape (4000x6000)
-                img = self.rotate_image(
-                    old_im_dir=file_name,
-                    new_im_dir=file_name.replace(self.OLD_DATA_DIR, self.NEW_DATA_DIR),
-                )
+            # check and rotate the image to landscape (4000x6000)
+            img = self.rotate_image(
+                old_im_dir=file_name,
+                new_im_dir=file_name.replace(self.OLD_DATA_DIR, self.NEW_DATA_DIR),
+            )
 
-                # remove file extension
-                file_name = self.clean_name(file_name)
+            # remove file extension
+            file_name = self.clean_name(file_name)
 
-                # use the MRCNN model, identify individual apples/pear on trays
-                mask, box = self.create_fullmask_image(
-                    model=model,
-                    im=img,
-                    fname=file_name.replace(self.OLD_DATA_DIR, self.FULLMASK_DIR),
-                )
+            # use the MRCNN model, identify individual apples/pear on trays
+            mask, box = self.create_fullmask_image(
+                model=model,
+                im=img,
+                fname=file_name.replace(self.OLD_DATA_DIR, self.FULLMASK_DIR),
+            )
 
-                # if there are more instances than NUM_INSTANCES
-                if self.NUM_INSTANCES > len(box):
-                    print(f"Only {len(box)} instances is detected.")
-                    box = box
+            # if there are more instances than NUM_INSTANCES
+            if self.NUM_INSTANCES > len(box):
+                print(f"Only {len(box)} instances is detected.")
+                box = box
 
-                # if there are less instances than NUM_INSTANCES
-                else:
-                    box = box[0 : self.NUM_INSTANCES, :]
+            # if there are less instances than NUM_INSTANCES
+            else:
+                box = box[0 : self.NUM_INSTANCES, :]
 
-                # sort all instances using the convention in demo/18_apples_tray_convention.pdf
-                sorted_ar = self.sort_instances(box)
+            # sort all instances using the convention in demo/18_apples_tray_convention.pdf
+            sorted_ar = self.sort_instances(box)
 
-                # extract the images
-                self.extract_image(
-                    sorted_arr=sorted_ar,
-                    mask=mask,
-                    im=img,
-                    fname=file_name.replace(self.OLD_DATA_DIR, self.SEGMENTED_DIR),
-                )
+            # extract the images
+            self.extract_image(
+                sorted_arr=sorted_ar,
+                mask=mask,
+                im=img,
+                fname=file_name.replace(self.OLD_DATA_DIR, self.SEGMENTED_DIR),
+            )
 
-                # for debugging purpose
-                print(f'\t- {name} done. Check "results/" for output. - \n')
-        except FileNotFoundError:
-            print(f"\t- Folder/File Does Not Exist -")
+            # for debugging purpose
+            print(f'\t- {name} done. Check "results/" for output. - \n')

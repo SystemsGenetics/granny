@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 from typing import List, Tuple
 
 import cv2
@@ -20,40 +19,23 @@ class GrannySuperficialScald(granny.GrannyBase):
         This function helps remove the unwanted regions for more precise calculation of the scald area.
         """
         # convert RGB to YCrCb
-        new_img = img
+        new_img = img.copy()
         ycc_img = cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb)
 
-        # create binary matrix (ones and zeros)
-        bin = (cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) != 0).astype(np.uint8)
+        # create binary matrices
+        threshold_1 = (ycc_img[:, :, 0] >= 0) & (ycc_img[:, :, 0] <= 255)
+        threshold_2 = (ycc_img[:, :, 1] >= 0) & (ycc_img[:, :, 1] <= 255)
+        threshold_3 = (ycc_img[:, :, 2] >= 0) & (ycc_img[:, :, 2] <= 126)
 
-        # set max and min values for each channel
-        channel1Min = 0 * bin
-        channel1Max = 255 * bin
-        channel2Min = 0 * bin
-        channel2Max = 255 * bin
-        channel3Min = 0 * bin
-        channel3Max = 126 * bin
-
-        # create threshold matrices for each for each channel
-        threshold_1 = np.greater_equal(
-            ycc_img[:, :, 0], channel1Min
-        ) & np.less_equal(ycc_img[:, :, 0], channel1Max)
-        threshold_2 = np.greater_equal(
-            ycc_img[:, :, 1], channel2Min
-        ) & np.less_equal(ycc_img[:, :, 1], channel2Max)
-        threshold_3 = np.greater_equal(
-            ycc_img[:, :, 2], channel3Min
-        ) & np.less_equal(ycc_img[:, :, 2], channel3Max)
-        th123 = threshold_1 & threshold_2 & threshold_3
+        # combine to one matrix
+        th123 = (threshold_1 & threshold_2 & threshold_3).astype(np.uint8)
 
         # create new image using threshold matrices
         for i in range(3):
             new_img[:, :, i] = new_img[:, :, i] * th123
         return new_img
 
-    def smooth_binary_mask(
-        self, bin_mask: NDArray[np.uint8]
-    ) -> NDArray[np.uint8]:
+    def smooth_binary_mask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
         Smooth scald region with basic morphological operations.
         By performing morphology, the binary mask will be smoothened to avoid discontinuity.
@@ -77,46 +59,31 @@ class GrannySuperficialScald(granny.GrannyBase):
         )
         return bin_mask
 
-    def remove_scald(
-        self, img: NDArray[np.uint8]
-    ) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
+    def remove_scald(self, img: NDArray[np.uint8]) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
         """
         Remove the scald region from the individual apple images.
         Note that the stem could have potentially been removed during the process.
         """
         # convert from RGB to Lab color space
-        new_img: NDArray[np.uint8] = img
+        new_img = img.copy()
         lab_img = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)
 
-        # create binary matrix (ones and zeros)
-        bin = (cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) != 0).astype(np.uint8)
-        hist, bin_edges = np.histogram(
-            lab_img[:, :, 1], bins=256, range=(0, 255)
-        )
-        hist_range = 255 - (hist[::-1] != 0).argmax() - (hist != 0).argmax()
-        threshold = np.max(np.argsort(hist)[-10:])
-        threshold = int(threshold - 2 / 3 * hist_range)
-        threshold = 100 if threshold < 100 else int(threshold)
+        def calculate_threshold_from_hist(hist: NDArray[np.int8]) -> int:
+            hist_range = 255 - (hist[::-1] != 0).argmax() - (hist != 0).argmax()
+            threshold = np.max(np.argsort(hist)[-10:])
+            threshold = int(threshold - 3 / 5 * hist_range)
+            threshold = 100 if threshold < 100 else int(threshold)
+            return threshold
 
-        # set max and min values for each channel
-        channel1Min = 1 * bin
-        channel1Max = 255 * bin
-        channel2Min = 1 * bin
-        channel2Max = threshold * bin
-        channel3Min = 1 * bin
-        channel3Max = 255 * bin
+        # create binary matrices
+        hist, _ = np.histogram(lab_img[:, :, 1], bins=256, range=(0, 255))
+        threshold = calculate_threshold_from_hist(hist)
+        threshold_1 = (lab_img[:, :, 0] >= 1) & (lab_img[:, :, 0] <= 255)
+        threshold_2 = (lab_img[:, :, 1] >= 1) & (lab_img[:, :, 1] <= threshold)
+        threshold_3 = (lab_img[:, :, 2] >= 1) & (lab_img[:, :, 2] <= 255)
 
-        # create threshold matrices for each for each channel
-        threshold_1 = np.greater_equal(
-            lab_img[:, :, 0], channel1Min
-        ) & np.less_equal(lab_img[:, :, 0], channel1Max)
-        threshold_2 = np.greater_equal(
-            lab_img[:, :, 1], channel2Min
-        ) & np.less_equal(lab_img[:, :, 1], channel2Max)
-        threshold_3 = np.greater_equal(
-            lab_img[:, :, 2], channel3Min
-        ) & np.less_equal(lab_img[:, :, 2], channel3Max)
-        th123 = threshold_1 & threshold_2 & threshold_3
+        # combine to one matrix
+        th123 = (threshold_1 & threshold_2 & threshold_3).astype(np.uint8)
 
         # perform simple morphological operation to smooth the binary mask
         th123 = self.smooth_binary_mask(th123)
@@ -145,9 +112,7 @@ class GrannySuperficialScald(granny.GrannyBase):
 
         return nopurple_img, img, bw
 
-    def calculate_scald(
-        self, bw: NDArray[np.uint8], img: NDArray[np.uint8]
-    ) -> float:
+    def calculate_scald(self, bw: NDArray[np.uint8], img: NDArray[np.uint8]) -> float:
         """
         Calculate scald region by counting all non zeros area
 
@@ -189,79 +154,65 @@ class GrannySuperficialScald(granny.GrannyBase):
 
         # single-image rating
         if self.NUM_INSTANCES == 1:
-            try:
-                # read the image from file
-                file_name = self.FILE_NAME
+            # read the image from file
+            file_name = self.FILE_NAME
 
-                img = skimage.io.imread(file_name)
+            img = skimage.io.imread(file_name)
 
+            print(f"\t- Rating {file_name}. -")
+
+            # remove the surroundings
+            nopurple_img, binarized_image, _ = self.score_image(img)
+
+            # calculate the scald region and save image
+            score = self.calculate_scald(binarized_image, nopurple_img)
+
+            print(f"\t- Score: {score}. -")
+            file_name = file_name.split(os.sep)[-1]
+            skimage.io.imsave(
+                os.path.join(self.BINARIZED_IMAGE, file_name),
+                binarized_image,
+            )
+
+            # save the scores to results/rating.csv
+            with open("results" + os.sep + "scald_ratings.csv", "w") as w:
+                w.writelines(f"{self.clean_name(file_name)}:\t\t{score}")
+                w.writelines("\n")
+            print(f'\t- Done. Check "results/" for output. - \n')
+
+        # multi-images rating
+        else:
+            # list all files and folders in the folder
+            folders, files = self.list_all(self.FOLDER_NAME)
+
+            # create "results" directory to save the results
+            for folder in folders:
+                self.create_directories(folder.replace(self.FOLDER_NAME, self.BINARIZED_IMAGE))
+
+            # remove scald and rate each apple
+            scores: List[float] = []
+            for file_name in files:
                 print(f"\t- Rating {file_name}. -")
+
+                # read the image from file
+                img = skimage.io.imread(file_name)
+                file_name = self.clean_name(file_name)
 
                 # remove the surroundings
                 nopurple_img, binarized_image, _ = self.score_image(img)
 
                 # calculate the scald region and save image
                 score = self.calculate_scald(binarized_image, nopurple_img)
-
-                print(f"\t- Score: {score}. -")
                 file_name = file_name.split(os.sep)[-1]
+                scores.append(score)
                 skimage.io.imsave(
-                    os.path.join(self.BINARIZED_IMAGE, file_name),
+                    os.path.join(self.BINARIZED_IMAGE, file_name + ".png"),
                     binarized_image,
                 )
 
-                # save the scores to results/rating.csv
-                with open("results" + os.sep + "scald_ratings.csv", "w") as w:
-                    w.writelines(f"{self.clean_name(file_name)}:\t\t{score}")
+            # save the scores to results/rating.csv
+            with open(f"results{os.sep}scald_ratings.csv", "w") as w:
+                for i, score in enumerate(scores):
+                    w.writelines(f"{self.clean_name(files[i])}:\t\t{score}")
                     w.writelines("\n")
                 print(f'\t- Done. Check "results/" for output. - \n')
-            except FileNotFoundError:
-                print(
-                    f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values. -"
-                )
-
-        # multi-images rating
-        else:
-            try:
-                # list all files and folders in the folder
-                folders, files = self.list_all(self.FOLDER_NAME)
-
-                # create "results" directory to save the results
-                for folder in folders:
-                    self.create_directories(
-                        folder.replace(self.FOLDER_NAME, self.BINARIZED_IMAGE)
-                    )
-
-                # remove scald and rate each apple
-                scores: List[float] = []
-                for file_name in files:
-                    print(f"\t- Rating {file_name}. -")
-
-                    # read the image from file
-                    img = skimage.io.imread(file_name)
-                    file_name = self.clean_name(file_name)
-
-                    # remove the surroundings
-                    nopurple_img, binarized_image, _ = self.score_image(img)
-
-                    # calculate the scald region and save image
-                    score = self.calculate_scald(binarized_image, nopurple_img)
-                    file_name = file_name.split(os.sep)[-1]
-                    scores.append(score)
-                    skimage.io.imsave(
-                        os.path.join(self.BINARIZED_IMAGE, file_name + ".png"),
-                        binarized_image,
-                    )
-
-                # save the scores to results/rating.csv
-                with open("results" + os.sep + "scald_ratings.csv", "w") as w:
-                    for i, score in enumerate(scores):
-                        w.writelines(
-                            f"{self.clean_name(files[i])}:\t\t{score}"
-                        )
-                        w.writelines("\n")
-                    print(f'\t- Done. Check "results/" for output. - \n')
-            except FileNotFoundError:
-                print(
-                    f"\t- Folder/File Does Not Exist or Wrong NUM_INSTANCES Values.-"
-                )
