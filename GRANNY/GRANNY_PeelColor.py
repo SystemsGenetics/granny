@@ -1,5 +1,5 @@
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Any
 
 import cv2
 import numpy as np
@@ -79,7 +79,7 @@ class GrannyPeelColor(granny.GrannyBase):
         # self.LINE_POINT_1 = np.array([-86.97064, 0])
         # self.LINE_POINT_2 = np.array([0, 78.2607])
 
-        """ Scaled reference colors """
+        """ Normalized reference colors """
         # self.MEAN_VALUES_L = [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50]
         # self.MEAN_VALUES_A = [
         #     -37.46455193845067, -38.33945889256972, -35.856673734593976, -28.66620337913712, -20.153556829155015,
@@ -115,8 +115,8 @@ class GrannyPeelColor(granny.GrannyBase):
             90.92633324,
         ]
 
-        self.LINE_POINT_1 = np.array([-76.69774, 0])
-        self.LINE_POINT_2 = np.array([0, 110.0861])
+        self.LINE_POINT_1 = np.array([-76.69774, 0.0], dtype=float)
+        self.LINE_POINT_2 = np.array([0.0, 110.0861], dtype=float)
 
     def remove_purple(self, img: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -214,13 +214,17 @@ class GrannyPeelColor(granny.GrannyBase):
         self, color_list: List[float]
     ) -> Tuple[float, float, float, float]:
         """ """
-        def calculate_intersection(line1, line2):
+
+        def calculate_intersection(
+            line1: Tuple[Any, Any],
+            line2: Tuple[Any, Any],
+        ) -> Tuple[float, float]:
             """Calculates the intersection of two lines, each line is presented by 2 coordinates point."""
 
             xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
             ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
 
-            def det(a, b):
+            def det(a: Tuple[Any, Any], b: Tuple[Any, Any]):
                 return a[0] * b[1] - a[1] * b[0]
 
             div = det(xdiff, ydiff)
@@ -228,7 +232,7 @@ class GrannyPeelColor(granny.GrannyBase):
             d = (det(*line1), det(*line2))
             x = det(d, xdiff) / div
             y = det(d, ydiff) / div
-            return x, y
+            return (x, y)
 
         score = 0
         distance = 0
@@ -237,7 +241,7 @@ class GrannyPeelColor(granny.GrannyBase):
         n = self.LINE_POINT_2 - self.LINE_POINT_1
         n /= np.linalg.norm(n)
         projection = calculate_intersection(
-            ((0, 0), (color_list[1], color_list[2])), (self.LINE_POINT_1, self.LINE_POINT_2)
+            ((0.0, 0.0), (color_list[1], color_list[2])), (self.LINE_POINT_1, self.LINE_POINT_2)
         )
         score = np.linalg.norm(projection - self.LINE_POINT_1) / np.linalg.norm(
             self.LINE_POINT_2 - self.LINE_POINT_1

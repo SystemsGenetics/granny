@@ -154,7 +154,13 @@ class GrannySegmentation(granny.GrannyBase):
         apple_ar = np.asarray(apple_list, dtype=object)
         return apple_ar
 
-    def extract_image(self, sorted_arr: NDArray[Any], mask: NDArray[np.uint8], im: NDArray[np.uint8], fname: str=""):
+    def extract_image(
+        self,
+        sorted_arr: NDArray[Any],
+        mask: NDArray[np.uint8],
+        im: NDArray[np.uint8],
+        fname: str = "",
+    ):
         """
         Extract individual image from masks created by Mask-RCNN
 
@@ -194,7 +200,7 @@ class GrannySegmentation(granny.GrannyBase):
                 # save the image
                 plt.imsave(fname + "_" + str(ar[i][-2]) + ".png", new_im)
 
-    def rotate_image(self, old_im_dir: str, new_im_dir: str="") -> NDArray[np.uint8]:
+    def rotate_image(self, old_im_dir: str, new_im_dir: str = "") -> NDArray[np.uint8]:
         """
         Check and rotate image 90 degree if needed to get 4000 x 6000
 
