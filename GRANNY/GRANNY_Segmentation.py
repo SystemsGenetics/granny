@@ -1,5 +1,5 @@
 import os
-from typing import Tuple, List
+from typing import Tuple, List, Any
 
 import cv2
 import matplotlib.pyplot as plt
@@ -118,7 +118,7 @@ class GrannySegmentation(granny.GrannyBase):
 
         return df_list
 
-    def sort_instances(self, box: NDArray[np.uint8]):
+    def sort_instances(self, box: NDArray[np.uint8]) -> NDArray[Any]:
         """
         Sort and identify apples
         This sorting algorithm follows the numbering convention in
@@ -154,7 +154,7 @@ class GrannySegmentation(granny.GrannyBase):
         apple_ar = np.asarray(apple_list, dtype=object)
         return apple_ar
 
-    def extract_image(self, sorted_arr, mask, im, fname=""):
+    def extract_image(self, sorted_arr: NDArray[Any], mask: NDArray[np.uint8], im: NDArray[np.uint8], fname: str=""):
         """
         Extract individual image from masks created by Mask-RCNN
 
@@ -194,7 +194,7 @@ class GrannySegmentation(granny.GrannyBase):
                 # save the image
                 plt.imsave(fname + "_" + str(ar[i][-2]) + ".png", new_im)
 
-    def rotate_image(self, old_im_dir, new_im_dir=""):
+    def rotate_image(self, old_im_dir: str, new_im_dir: str="") -> NDArray[np.uint8]:
         """
         Check and rotate image 90 degree if needed to get 4000 x 6000
 
