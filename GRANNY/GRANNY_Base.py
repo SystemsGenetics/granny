@@ -58,14 +58,14 @@ class GrannyBase(object):
             else os.sep.join(fname.split(os.sep)[0:-1])
         )
         self.FOLDER_NAME = (
-            self.FOLDER_NAME + os.sep
+            pathlib.Path(self.FOLDER_NAME).as_posix()
             if not self.FOLDER_NAME.endswith(os.sep)
             else self.FOLDER_NAME
         )
         self.OLD_DATA_DIR = self.FOLDER_NAME
         self.INPUT_FNAME = fname
         self.NUM_INSTANCES = num_instances
-        self.RESULT_DIR = "results" + os.sep
+        self.RESULT_DIR = pathlib.Path("results").as_posix()
 
         # location where masked apple trays will be saved
         self.FULLMASK_DIR = self.RESULT_DIR + "full_masked_images" + os.sep
@@ -77,7 +77,7 @@ class GrannyBase(object):
         self.BINARIZED_IMAGE = self.RESULT_DIR + "binarized_images" + os.sep
 
         # results for pear color bining
-        self.BIN_COLOR = self.RESULT_DIR + "peel_color_results" + os.sep
+        self.BIN_COLOR = f"{self.RESULT_DIR}{os.sep}peel_color_results"
 
     def create_directories(self, *args: str) -> None:
         """

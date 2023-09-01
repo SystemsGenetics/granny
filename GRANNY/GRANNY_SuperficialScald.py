@@ -1,9 +1,9 @@
 import os
+from multiprocessing import Pool
 from typing import List, Tuple
 
 import cv2
 import numpy as np
-import skimage
 from GRANNY import GRANNY_Base as granny
 from numpy.typing import NDArray
 
@@ -23,12 +23,14 @@ class GrannySuperficialScald(granny.GrannyBase):
         ycc_img = cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb)
 
         # create binary matrices
-        threshold_1 = (ycc_img[:, :, 0] >= 0) & (ycc_img[:, :, 0] <= 255)
-        threshold_2 = (ycc_img[:, :, 1] >= 0) & (ycc_img[:, :, 1] <= 255)
-        threshold_3 = (ycc_img[:, :, 2] >= 0) & (ycc_img[:, :, 2] <= 126)
+        threshold_1 = np.logical_and((ycc_img[:, :, 0] >= 0), (ycc_img[:, :, 0] <= 255))
+        threshold_2 = np.logical_and((ycc_img[:, :, 1] >= 0), (ycc_img[:, :, 1] <= 255))
+        threshold_3 = np.logical_and((ycc_img[:, :, 2] >= 0), (ycc_img[:, :, 2] <= 126))
 
         # combine to one matrix
-        th123 = (threshold_1 & threshold_2 & threshold_3).astype(np.uint8)
+        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
+            np.uint8
+        )
 
         # create new image using threshold matrices
         for i in range(3):
@@ -66,7 +68,7 @@ class GrannySuperficialScald(granny.GrannyBase):
         """
         # convert from RGB to Lab color space
         new_img = img.copy()
-        lab_img = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)
+        lab_img = cv2.cvtColor(img, cv2.COLOR_RGB2Lab)
 
         def calculate_threshold_from_hist(hist: NDArray[np.int8]) -> int:
             hist_range = 255 - (hist[::-1] != 0).argmax() - (hist != 0).argmax()
@@ -78,7 +80,7 @@ class GrannySuperficialScald(granny.GrannyBase):
         # create binary matrices
         hist, _ = np.histogram(lab_img[:, :, 1], bins=256, range=(0, 255))
         threshold = calculate_threshold_from_hist(hist)
-        threshold_1 = (lab_img[:, :, 0] >= 1) & (lab_img[:, :, 0] <= 255)
+        threshold_1 = np.logical_and((lab_img[:, :, 0] >= 1), (lab_img[:, :, 0] <= 255))
         threshold_2 = (lab_img[:, :, 1] >= 1) & (lab_img[:, :, 1] <= threshold)
         threshold_3 = (lab_img[:, :, 2] >= 1) & (lab_img[:, :, 2] <= 255)
 
@@ -142,77 +144,125 @@ class GrannySuperficialScald(granny.GrannyBase):
             return 0
         return fraction
 
-    def rate_GrannySmith_superficial_scald(self) -> None:
-        """
-        (GS) Main method performing Image Binarization, i.e. rate and remove scald, on individual apple images
+    def rate_GrannySmith_superficial_scald(self, file_name: str) -> float:
+        img = cv2.cvtColor(cv2.imread(file_name, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
 
-        This is the main method being called by the Python argument parser from the command.py to set up CLI for
-        "Granny Smith" superficial scald calculation. The calculated scores will be written to a .csv file.
-        """
-        # create "results" directory to save the results
-        self.create_directories(self.BINARIZED_IMAGE)
+        print(f"\t- Rating {file_name}. -")
 
-        # single-image rating
-        if self.NUM_INSTANCES == 1:
-            # read the image from file
-            file_name = self.FILE_NAME
+        # remove the surroundings
+        nopurple_img, binarized_image, _ = self.score_image(img)
 
-            img = skimage.io.imread(file_name)
+        # calculate the scald region and save image
+        score = self.calculate_scald(binarized_image, nopurple_img)
 
-            print(f"\t- Rating {file_name}. -")
+        print(f"\t- Score: {score}. -")
+        cv2.imwrite(
+            os.path.join(self.BINARIZED_IMAGE, os.path.basename(file_name)),
+            cv2.cvtColor(binarized_image, cv2.COLOR_RGB2BGR),
+        )
+        return score
 
-            # remove the surroundings
-            nopurple_img, binarized_image, _ = self.score_image(img)
+    def rate_GrannySmith_superficial_scald_multiprocessing(self, args: str) -> float:
+        """Rates GrannySmith superficial scald using multiprocessing library"""
+        file_name = args
+        score = self.rate_GrannySmith_superficial_scald(os.path.join(self.FOLDER_NAME, file_name))
+        return score
 
-            # calculate the scald region and save image
-            score = self.calculate_scald(binarized_image, nopurple_img)
+    def GrannySuperficialScald(self) -> None:
+        self.create_directories(self.RESULT_DIR)
+        image_list = os.listdir(self.FOLDER_NAME)
+        cpu_count = os.cpu_count() or 1
+        with Pool(cpu_count) as pool:
+            results = pool.map(self.rate_GrannySmith_superficial_scald_multiprocessing, image_list)
 
-            print(f"\t- Score: {score}. -")
-            file_name = file_name.split(os.sep)[-1]
-            skimage.io.imsave(
-                os.path.join(self.BINARIZED_IMAGE, file_name),
-                binarized_image,
-            )
-
-            # save the scores to results/rating.csv
-            with open("results" + os.sep + "scald_ratings.csv", "w") as w:
-                w.writelines(f"{self.clean_name(file_name)}:\t\t{score}")
+        image_list = sorted(image_list)
+        with open(f"results{os.sep}scald_ratings.csv", "w") as w:
+            for i, file_name in enumerate(image_list):
+                w.writelines(f"{file_name}:\t\t{results[i]}")
                 w.writelines("\n")
             print(f'\t- Done. Check "results/" for output. - \n')
 
-        # multi-images rating
-        else:
-            # list all files and folders in the folder
-            folders, files = self.list_all(self.FOLDER_NAME)
+        # with Pool(cpu_count) as pool:
+        #     for _ in tqdm(
+        #         pool.imap_unordered(
+        #             self.rate_GrannySmith_superficial_scald_multiprocessing,
+        #             [image for image in image_list],
+        #         ),
+        #         total=len(image_list),
+        #     ):
+        #         pass
 
-            # create "results" directory to save the results
-            for folder in folders:
-                self.create_directories(folder.replace(self.FOLDER_NAME, self.BINARIZED_IMAGE))
+    # def rate_GrannySmith_superficial_scald(self) -> None:
+    #     """
+    #     (GS) Main method performing Image Binarization, i.e. rate and remove scald, on individual apple images
 
-            # remove scald and rate each apple
-            scores: List[float] = []
-            for file_name in files:
-                print(f"\t- Rating {file_name}. -")
+    #     This is the main method being called by the Python argument parser from the command.py to set up CLI for
+    #     "Granny Smith" superficial scald calculation. The calculated scores will be written to a .csv file.
+    #     """
+    #     # create "results" directory to save the results
+    #     self.create_directories(self.BINARIZED_IMAGE)
 
-                # read the image from file
-                img = skimage.io.imread(file_name)
-                file_name = self.clean_name(file_name)
+    #     # single-image rating
+    #     if self.NUM_INSTANCES == 1:
+    #         # read the image from file
+    #         file_name = self.FILE_NAME
 
-                # remove the surroundings
-                nopurple_img, binarized_image, _ = self.score_image(img)
+    # img = skimage.io.imread(file_name)
 
-                # calculate the scald region and save image
-                score = self.calculate_scald(binarized_image, nopurple_img)
-                file_name = file_name.split(os.sep)[-1]
-                scores.append(score)
-                skimage.io.imsave(
-                    os.path.join(self.BINARIZED_IMAGE, file_name + ".png"),
-                    binarized_image,
-                )
+    # print(f"\t- Rating {file_name}. -")
 
-            # save the scores to results/rating.csv
-            with open(f"results{os.sep}scald_ratings.csv", "w") as w:
-                for i, score in enumerate(scores):
-                    w.writelines(f"{self.clean_name(files[i])}:\t\t{score}")
-                    w.writelines("\n")
-                print(f'\t- Done. Check "results/" for output. - \n')
+    # # remove the surroundings
+    # nopurple_img, binarized_image, _ = self.score_image(img)
+
+    # # calculate the scald region and save image
+    # score = self.calculate_scald(binarized_image, nopurple_img)
+
+    # print(f"\t- Score: {score}. -")
+    # file_name = file_name.split(os.sep)[-1]
+    # skimage.io.imsave(
+    #     os.path.join(self.BINARIZED_IMAGE, file_name),
+    #     binarized_image,
+    # )
+
+    #         # save the scores to results/rating.csv
+    #         with open("results" + os.sep + "scald_ratings.csv", "w") as w:
+    #             w.writelines(f"{self.clean_name(file_name)}:\t\t{score}")
+    #             w.writelines("\n")
+    #         print(f'\t- Done. Check "results/" for output. - \n')
+
+    #     # multi-images rating
+    #     else:
+    #         # list all files and folders in the folder
+    #         folders, files = self.list_all(self.FOLDER_NAME)
+
+    #         # create "results" directory to save the results
+    #         for folder in folders:
+    #             self.create_directories(folder.replace(self.FOLDER_NAME, self.BINARIZED_IMAGE))
+
+    #         # remove scald and rate each apple
+    #         scores: List[float] = []
+    #         for file_name in files:
+    #             print(f"\t- Rating {file_name}. -")
+
+    #             # read the image from file
+    #             img = skimage.io.imread(file_name)
+    #             file_name = self.clean_name(file_name)
+
+    #             # remove the surroundings
+    #             nopurple_img, binarized_image, _ = self.score_image(img)
+
+    #             # calculate the scald region and save image
+    #             score = self.calculate_scald(binarized_image, nopurple_img)
+    #             file_name = file_name.split(os.sep)[-1]
+    #             scores.append(score)
+    #             skimage.io.imsave(
+    #                 os.path.join(self.BINARIZED_IMAGE, file_name + ".png"),
+    #                 binarized_image,
+    #             )
+
+    #         # save the scores to results/rating.csv
+    #         with open(f"results{os.sep}scald_ratings.csv", "w") as w:
+    #             for i, score in enumerate(scores):
+    #                 w.writelines(f"{self.clean_name(files[i])}:\t\t{score}")
+    #                 w.writelines("\n")
+    #             print(f'\t- Done. Check "results/" for output. - \n')

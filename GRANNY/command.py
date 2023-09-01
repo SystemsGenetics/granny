@@ -56,11 +56,11 @@ def main():
     elif args.action == "scald":
         GRANNY_SuperficialScald.GrannySuperficialScald(
             args.action, args.dir, args.num_instances
-        ).rate_GrannySmith_superficial_scald()
+        ).GrannySuperficialScald()
     elif args.action == "peel":
         GRANNY_PeelColor.GrannyPeelColor(
             args.action, args.dir, args.num_instances
-        ).extract_green_yellow_values()
+        ).GrannyPeelColor()
     elif args.action == "starch":
         GRANNY_StarchIndex.GrannyStarchIndex(args.action, args.dir, args.num_instances).main()
     elif args.action == "blush":

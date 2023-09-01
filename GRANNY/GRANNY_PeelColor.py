@@ -1,9 +1,9 @@
 import os
-from typing import List, Tuple, Any
+from multiprocessing import Pool
+from typing import Any, List, Tuple
 
 import cv2
 import numpy as np
-import skimage
 from GRANNY import GRANNY_Base as granny
 from numpy.typing import NDArray
 
@@ -128,12 +128,14 @@ class GrannyPeelColor(granny.GrannyBase):
         ycc_img = cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb)
 
         # create binary matrices
-        threshold_1 = (ycc_img[:, :, 0] >= 0) & (ycc_img[:, :, 0] <= 255)
-        threshold_2 = (ycc_img[:, :, 1] >= 0) & (ycc_img[:, :, 1] <= 255)
-        threshold_3 = (ycc_img[:, :, 2] >= 0) & (ycc_img[:, :, 2] <= 126)
+        threshold_1 = np.logical_and((ycc_img[:, :, 0] >= 0), (ycc_img[:, :, 0] <= 255))
+        threshold_2 = np.logical_and((ycc_img[:, :, 1] >= 0), (ycc_img[:, :, 1] <= 255))
+        threshold_3 = np.logical_and((ycc_img[:, :, 2] >= 0), (ycc_img[:, :, 2] <= 126))
 
         # combine to one matrix
-        th123 = (threshold_1 & threshold_2 & threshold_3).astype(np.uint8)
+        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
+            np.uint8
+        )
 
         # create new image using threshold matrices
         for i in range(3):
@@ -147,15 +149,17 @@ class GrannyPeelColor(granny.GrannyBase):
         """
         # convert from RGB to Lab color space
         new_img = img.copy()
-        lab_img = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)
+        lab_img = cv2.cvtColor(img, cv2.COLOR_RGB2Lab)
 
         # create binary matrices
-        threshold_1 = (lab_img[:, :, 0] >= 0) & (lab_img[:, :, 0] <= 255)
-        threshold_2 = (lab_img[:, :, 1] >= 0) & (lab_img[:, :, 1] <= 128)
-        threshold_3 = (lab_img[:, :, 2] >= 128) & (lab_img[:, :, 2] <= 255)
+        threshold_1 = np.logical_and((lab_img[:, :, 0] >= 0), (lab_img[:, :, 0] <= 255))
+        threshold_2 = np.logical_and((lab_img[:, :, 1] >= 0), (lab_img[:, :, 1] <= 128))
+        threshold_3 = np.logical_and((lab_img[:, :, 2] >= 128), (lab_img[:, :, 2] <= 255))
 
         # combine to one matrix
-        th123 = (threshold_1 & threshold_2 & threshold_3).astype(np.uint8)
+        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
+            np.uint8
+        )
 
         # apply the binary mask on the image
         for i in range(3):
@@ -264,9 +268,41 @@ class GrannyPeelColor(granny.GrannyBase):
             score = np.float16(1.0)
         return projection, score, distance, point
 
-    def extract_green_yellow_values(self):
-        """
-        Main method performing rating for peel color
+    def extract_green_yellow_values(
+        self, file_name: str
+    ) -> Tuple[int, float, float, float, float, float, float]:
+        img = cv2.cvtColor(cv2.imread(file_name, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+
+        # remove surrounding purple
+        img = self.remove_purple(img)
+        nopurple_img = img
+
+        # image smoothing
+        img = cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0)
+
+        # get image values
+        l, a, b = self.get_green_yellow_values(img)
+
+        # calculate distance to the least-mean-square line
+        (
+            projection,
+            score,
+            orth_distance,
+            point,
+        ) = self.calculate_score_distance([l, a, b])
+
+        # calculate distance to each bin
+        bin_num, distance = self.calculate_bin_distance([projection[0], projection[1]])
+
+        return (bin_num, score, orth_distance, point, l, a, b)
+
+    def extract_green_yellow_values_multiprocessing(self, args: str) -> Any:
+        file_name = args
+        results = self.extract_green_yellow_values(os.path.join(self.FOLDER_NAME, file_name))
+        return results
+
+    def GrannyPeelColor(self) -> None:
+        """Main method performing rating for peel color
 
         This is the main method being called by the Python argument parser
         from the command.py to set up CLI for
@@ -275,101 +311,122 @@ class GrannyPeelColor(granny.GrannyBase):
         information such as scores, file names,
         color card number, distances, and LAB mean pixels.
         The calculated scores will be written to a .csv file.
-
         """
-        # create "results" directory to save the results
-        self.create_directories(self.BIN_COLOR)
+        self.create_directories(self.RESULT_DIR)
+        image_list = os.listdir(self.FOLDER_NAME)
+        cpu_count = os.cpu_count() or 1
+        with Pool(cpu_count) as pool:
+            results = pool.map(self.extract_green_yellow_values_multiprocessing, image_list)
 
-        if self.NUM_INSTANCES == 1:
-            # create "results" directory to save the results
-            self.create_directories(self.RESULT_DIR)
-
-            # read image
-            file_name = self.FILE_NAME
-            img = skimage.io.imread(file_name)
-
-            # remove surrounding purple
-            img = self.remove_purple(img)
-            nopurple_img = img
-
-            # image smoothing
-            img = cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0)
-
-            # get image values
-            l, a, b = self.get_green_yellow_values(img)
-
-            # calculate distance to the least-mean-square line
-            (
-                projection,
-                score,
-                orth_distance,
-                point,
-            ) = self.calculate_score_distance([l, a, b])
-
-            # calculate distance to each bin
-            bin_num, distance = self.calculate_bin_distance([projection[0], projection[1]])
-
-            # save the scores to results/rating.csv
-            with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w:
+        image_list = sorted(image_list)
+        with open(f"{self.BIN_COLOR}{os.sep}peel_colors.csv", "w") as w:
+            for i, file_name in enumerate(image_list):
+                bin_num, score, orth_distance, point, l, a, b = results[i]
                 w.writelines(
-                    f"{self.clean_name(file_name.split(os.sep)[-1])},{bin_num},{score},{str(orth_distance)},{point},{l},{a},{b}"
+                    f"{self.clean_name(file_name)},{bin_num},{score},{str(orth_distance)},{point},{l},{a},{b}"
                 )
                 w.writelines("\n")
-
             print(f'\t- Done. Check "results/" for output. - \n')
-        else:
-            # list all files and folders in the folder
-            folders, files = self.list_all(self.FOLDER_NAME)
 
-            # create "results" directory to save the results
-            for folder in folders:
-                self.create_directories(folder.replace(self.FOLDER_NAME, self.BIN_COLOR))
+    # def extract_green_yellow_values(self):
+    #     """
 
-            bin_nums = []
-            orth_distances = []
-            channels_values = []
-            points = []
-            ratings = []
+    #     # create "results" directory to save the results
+    #     self.create_directories(self.BIN_COLOR)
 
-            for file_name in files:
-                print(f"\t- Rating {file_name}. -")
+    #     if self.NUM_INSTANCES == 1:
+    #         # create "results" directory to save the results
+    #         self.create_directories(self.RESULT_DIR)
 
-                img = skimage.io.imread(file_name)
+    #         # read image
+    #         file_name = self.FILE_NAME
 
-                # remove surrounding purple
-                img = self.remove_purple(img)
-                nopurple_img = img
+    #         img = cv2.imread(file_name, cv2.IMREAD_COLOR)
+    #         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-                # image smoothing
-                img = cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0)
+    #         # remove surrounding purple
+    #         img = self.remove_purple(img)
+    #         nopurple_img = img
 
-                # get image values
-                l, a, b = self.get_green_yellow_values(img)
+    #         # image smoothing
+    #         img = cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0)
 
-                # calculate distance to the least-mean-square line
-                (
-                    projection,
-                    score,
-                    orth_distance,
-                    point,
-                ) = self.calculate_score_distance([l, a, b])
+    #         # get image values
+    #         l, a, b = self.get_green_yellow_values(img)
 
-                # # calculate distance to each bin
-                bin_num, distance = self.calculate_bin_distance([score], method="Score")
+    #         # calculate distance to the least-mean-square line
+    #         (
+    #             projection,
+    #             score,
+    #             orth_distance,
+    #             point,
+    #         ) = self.calculate_score_distance([l, a, b])
 
-                # # calculate distance to each bin
-                # bin_num, distance = self.calculate_bin_distance([projection[0], projection[1]])
+    #         # calculate distance to each bin
+    #         bin_num, distance = self.calculate_bin_distance([projection[0], projection[1]])
 
-                bin_nums.append(bin_num)
-                ratings.append(score)
-                points.append(point)
-                orth_distances.append(str(orth_distance))
-                channels_values.append(str(l) + "," + str(a) + "," + str(b))
+    #         # save the scores to results/rating.csv
+    #         with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w:
+    #             w.writelines(
+    #                 f"{self.clean_name(file_name.split(os.sep)[-1])},{bin_num},{score},{str(orth_distance)},{point},{l},{a},{b}"
+    #             )
+    #             w.writelines("\n")
 
-            with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w:
-                for i in range(len(bin_nums)):
-                    w.writelines(
-                        f"{self.clean_name(files[i].split(os.sep)[-1])},{bin_nums[i]},{ratings[i]},{orth_distances[i]},{points[i]},{channels_values[i]}"
-                    )
-                    w.writelines("\n")
-            print(f'\t- Done. Check "results/" for output. - \n')
+    #         print(f'\t- Done. Check "results/" for output. - \n')
+    #     else:
+    #         # list all files and folders in the folder
+    #         folders, files = self.list_all(self.FOLDER_NAME)
+
+    #         # create "results" directory to save the results
+    #         for folder in folders:
+    #             self.create_directories(folder.replace(self.FOLDER_NAME, self.BIN_COLOR))
+
+    #         bin_nums = []
+    #         orth_distances = []
+    #         channels_values = []
+    #         points = []
+    #         ratings = []
+
+    #         for file_name in files:
+    #             print(f"\t- Rating {file_name}. -")
+
+    #             img = cv2.imread(file_name, cv2.IMREAD_COLOR)
+    #             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    #             # remove surrounding purple
+    #             img = self.remove_purple(img)
+    #             nopurple_img = img
+
+    #             # image smoothing
+    #             img = cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0)
+
+    #             # get image values
+    #             l, a, b = self.get_green_yellow_values(img)
+
+    #             # calculate distance to the least-mean-square line
+    #             (
+    #                 projection,
+    #                 score,
+    #                 orth_distance,
+    #                 point,
+    #             ) = self.calculate_score_distance([l, a, b])
+
+    #             # # calculate distance to each bin
+    #             bin_num, distance = self.calculate_bin_distance([score], method="Score")
+
+    #             # # calculate distance to each bin
+    #             # bin_num, distance = self.calculate_bin_distance([projection[0], projection[1]])
+
+    #             bin_nums.append(bin_num)
+    #             ratings.append(score)
+    #             points.append(point)
+    #             orth_distances.append(str(orth_distance))
+    #             channels_values.append(str(l) + "," + str(a) + "," + str(b))
+
+    #         with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w:
+    #             for i in range(len(bin_nums)):
+    #                 w.writelines(
+    #                     f"{self.clean_name(files[i].split(os.sep)[-1])},{bin_nums[i]},{ratings[i]},{orth_distances[i]},{points[i]},{channels_values[i]}"
+    #                 )
+    #                 w.writelines("\n")
+    #         print(f'\t- Done. Check "results/" for output. - \n')
