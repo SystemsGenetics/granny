@@ -74,7 +74,7 @@ class GrannyBase(object):
         self.SEGMENTED_DIR = self.RESULT_DIR + "segmented_images" + os.sep
 
         # location where apples with the scald removed will be saved
-        self.BINARIZED_IMAGE = self.RESULT_DIR + "binarized_images" + os.sep
+        self.BINARIZED_IMAGE = f"{self.RESULT_DIR}{os.sep}binarized_images"
 
         # results for pear color bining
         self.BIN_COLOR = f"{self.RESULT_DIR}{os.sep}peel_color_results"

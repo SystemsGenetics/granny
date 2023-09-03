@@ -73,7 +73,7 @@ class GrannySuperficialScald(granny.GrannyBase):
         def calculate_threshold_from_hist(hist: NDArray[np.int8]) -> int:
             hist_range = 255 - (hist[::-1] != 0).argmax() - (hist != 0).argmax()
             threshold = np.max(np.argsort(hist)[-10:])
-            threshold = int(threshold - 3 / 5 * hist_range)
+            threshold = int(threshold - 1 / 3 * hist_range)
             threshold = 100 if threshold < 100 else int(threshold)
             return threshold
 
@@ -81,11 +81,13 @@ class GrannySuperficialScald(granny.GrannyBase):
         hist, _ = np.histogram(lab_img[:, :, 1], bins=256, range=(0, 255))
         threshold = calculate_threshold_from_hist(hist)
         threshold_1 = np.logical_and((lab_img[:, :, 0] >= 1), (lab_img[:, :, 0] <= 255))
-        threshold_2 = (lab_img[:, :, 1] >= 1) & (lab_img[:, :, 1] <= threshold)
-        threshold_3 = (lab_img[:, :, 2] >= 1) & (lab_img[:, :, 2] <= 255)
+        threshold_2 = np.logical_and((lab_img[:, :, 1] >= 1), (lab_img[:, :, 1] <= threshold))
+        threshold_3 = np.logical_and((lab_img[:, :, 2] >= 1), (lab_img[:, :, 2] <= 255))
 
         # combine to one matrix
-        th123 = (threshold_1 & threshold_2 & threshold_3).astype(np.uint8)
+        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
+            np.uint8
+        )
 
         # perform simple morphological operation to smooth the binary mask
         th123 = self.smooth_binary_mask(th123)
@@ -104,7 +106,7 @@ class GrannySuperficialScald(granny.GrannyBase):
 
         # Remove surrounding purple
         img = self.remove_purple(img)
-        nopurple_img = img
+        nopurple_img = img.copy()
 
         # Image smoothing
         img = cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0)
@@ -150,7 +152,7 @@ class GrannySuperficialScald(granny.GrannyBase):
         print(f"\t- Rating {file_name}. -")
 
         # remove the surroundings
-        nopurple_img, binarized_image, _ = self.score_image(img)
+        nopurple_img, binarized_image, bw = self.score_image(img)
 
         # calculate the scald region and save image
         score = self.calculate_scald(binarized_image, nopurple_img)
@@ -169,16 +171,16 @@ class GrannySuperficialScald(granny.GrannyBase):
         return score
 
     def GrannySuperficialScald(self) -> None:
-        self.create_directories(self.RESULT_DIR)
+        self.create_directories(self.RESULT_DIR, self.BINARIZED_IMAGE)
         image_list = os.listdir(self.FOLDER_NAME)
-        cpu_count = os.cpu_count() or 1
+        cpu_count = int(os.cpu_count()*0.8) or 1
         with Pool(cpu_count) as pool:
             results = pool.map(self.rate_GrannySmith_superficial_scald_multiprocessing, image_list)
 
         image_list = sorted(image_list)
         with open(f"results{os.sep}scald_ratings.csv", "w") as w:
             for i, file_name in enumerate(image_list):
-                w.writelines(f"{file_name}:\t\t{results[i]}")
+                w.writelines(f"{self.FOLDER_NAME}/{file_name}\t\t{results[i]}")
                 w.writelines("\n")
             print(f'\t- Done. Check "results/" for output. - \n')
 

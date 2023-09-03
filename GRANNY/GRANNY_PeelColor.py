@@ -272,7 +272,6 @@ class GrannyPeelColor(granny.GrannyBase):
         self, file_name: str
     ) -> Tuple[int, float, float, float, float, float, float]:
         img = cv2.cvtColor(cv2.imread(file_name, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
-
         # remove surrounding purple
         img = self.remove_purple(img)
         nopurple_img = img
