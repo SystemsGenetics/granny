@@ -23,7 +23,6 @@ class GrannyBase(object):
         self,
         action: str = "",
         fname: str = "",
-        num_instances: int = 1,
     ):
         # current directory
         self.ROOT_DIR = pathlib.Path(__file__).parent.resolve()
@@ -64,7 +63,6 @@ class GrannyBase(object):
         )
         self.OLD_DATA_DIR = self.FOLDER_NAME
         self.INPUT_FNAME = fname
-        self.NUM_INSTANCES = num_instances
         self.RESULT_DIR = pathlib.Path("results").as_posix()
 
         # location where masked apple trays will be saved

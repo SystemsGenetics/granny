@@ -1,6 +1,6 @@
 import os
 from multiprocessing import Pool
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import cv2
 import numpy as np
@@ -9,9 +9,8 @@ from numpy.typing import NDArray
 
 
 class GrannySuperficialScald(granny.GrannyBase):
-    def __init__(self, action: str, fname: str, num_instances: int):
-        num_instances = 1 if num_instances == None else num_instances
-        super(GrannySuperficialScald, self).__init__(action, fname, num_instances)
+    def __init__(self, action: str, fname: str):
+        super(GrannySuperficialScald, self).__init__(action, fname)
 
     def remove_purple(self, img: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -68,7 +67,7 @@ class GrannySuperficialScald(granny.GrannyBase):
         """
         # convert from RGB to Lab color space
         new_img = img.copy()
-        lab_img = cv2.cvtColor(img, cv2.COLOR_RGB2Lab)
+        lab_img = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
 
         def calculate_threshold_from_hist(hist: NDArray[np.int8]) -> int:
             hist_range = 255 - (hist[::-1] != 0).argmax() - (hist != 0).argmax()
@@ -157,30 +156,28 @@ class GrannySuperficialScald(granny.GrannyBase):
         # calculate the scald region and save image
         score = self.calculate_scald(binarized_image, nopurple_img)
 
-        print(f"\t- Score: {score}. -")
         cv2.imwrite(
             os.path.join(self.BINARIZED_IMAGE, os.path.basename(file_name)),
             cv2.cvtColor(binarized_image, cv2.COLOR_RGB2BGR),
         )
         return score
 
-    def rate_GrannySmith_superficial_scald_multiprocessing(self, args: str) -> float:
+    def rate_GrannySmith_superficial_scald_multiprocessing(self, file_name: str) -> float:
         """Rates GrannySmith superficial scald using multiprocessing library"""
-        file_name = args
         score = self.rate_GrannySmith_superficial_scald(os.path.join(self.FOLDER_NAME, file_name))
         return score
 
     def GrannySuperficialScald(self) -> None:
         self.create_directories(self.RESULT_DIR, self.BINARIZED_IMAGE)
         image_list = os.listdir(self.FOLDER_NAME)
-        cpu_count = int(os.cpu_count()*0.8) or 1
-        with Pool(cpu_count) as pool:
-            results = pool.map(self.rate_GrannySmith_superficial_scald_multiprocessing, image_list)
-
+        cpu_count = int(os.cpu_count() * 0.8) or 1
         image_list = sorted(image_list)
+        with Pool(cpu_count) as pool:
+            scores = pool.map(self.rate_GrannySmith_superficial_scald_multiprocessing, image_list)
+
         with open(f"results{os.sep}scald_ratings.csv", "w") as w:
             for i, file_name in enumerate(image_list):
-                w.writelines(f"{self.FOLDER_NAME}/{file_name}\t\t{results[i]}")
+                w.writelines(f"{self.FOLDER_NAME}/{file_name}\t\t{scores[i]}")
                 w.writelines("\n")
             print(f'\t- Done. Check "results/" for output. - \n')
 

@@ -55,7 +55,7 @@ def main():
         ).extract_instances_with_MaskRCNN()
     elif args.action == "scald":
         GRANNY_SuperficialScald.GrannySuperficialScald(
-            args.action, args.dir, args.num_instances
+            args.action, args.dir
         ).GrannySuperficialScald()
     elif args.action == "peel":
         GRANNY_PeelColor.GrannyPeelColor(

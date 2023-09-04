@@ -291,7 +291,7 @@ class GrannyPeelColor(granny.GrannyBase):
         ) = self.calculate_score_distance([l, a, b])
 
         # calculate distance to each bin
-        bin_num, distance = self.calculate_bin_distance([projection[0], projection[1]])
+        bin_num, _ = self.calculate_bin_distance([projection[0], projection[1]])
 
         return (bin_num, score, orth_distance, point, l, a, b)
 
@@ -313,7 +313,7 @@ class GrannyPeelColor(granny.GrannyBase):
         """
         self.create_directories(self.RESULT_DIR)
         image_list = os.listdir(self.FOLDER_NAME)
-        cpu_count = os.cpu_count() or 1
+        cpu_count = int(os.cpu_count()*0.8) or 1
         with Pool(cpu_count) as pool:
             results = pool.map(self.extract_green_yellow_values_multiprocessing, image_list)
 
