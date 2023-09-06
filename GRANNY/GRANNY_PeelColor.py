@@ -9,9 +9,8 @@ from numpy.typing import NDArray
 
 
 class GrannyPeelColor(granny.GrannyBase):
-    def __init__(self, action: str, fname: str, num_instances: int):
-        num_instances = 1 if num_instances == None else num_instances
-        super(GrannyPeelColor, self).__init__(action, fname, num_instances)
+    def __init__(self, action: str, fname: str):
+        super(GrannyPeelColor, self).__init__(action, fname)
 
         """ Raw reference colors """
         # self.MEAN_VALUES_L = [
@@ -149,12 +148,12 @@ class GrannyPeelColor(granny.GrannyBase):
         """
         # convert from RGB to Lab color space
         new_img = img.copy()
-        lab_img = cv2.cvtColor(img, cv2.COLOR_RGB2Lab)
+        lab_img = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
 
         # create binary matrices
-        threshold_1 = np.logical_and((lab_img[:, :, 0] >= 0), (lab_img[:, :, 0] <= 255))
-        threshold_2 = np.logical_and((lab_img[:, :, 1] >= 0), (lab_img[:, :, 1] <= 128))
-        threshold_3 = np.logical_and((lab_img[:, :, 2] >= 128), (lab_img[:, :, 2] <= 255))
+        threshold_1 = np.logical_and((lab_img[:, :, 0] > 0), (lab_img[:, :, 0] < 255))
+        threshold_2 = np.logical_and((lab_img[:, :, 1] > 0), (lab_img[:, :, 1] < 128))
+        threshold_3 = np.logical_and((lab_img[:, :, 2] > 128), (lab_img[:, :, 2] < 255))
 
         # combine to one matrix
         th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
@@ -163,12 +162,12 @@ class GrannyPeelColor(granny.GrannyBase):
 
         # apply the binary mask on the image
         for i in range(3):
-            new_img[:, :, i] = new_img[:, :, i] * th123
+            lab_img[:, :, i] = lab_img[:, :, i] * th123
 
         # get mean values from each channel
-        mean_l = np.sum(lab_img[:, :, 0]) / np.count_nonzero(threshold_1) * 100 / 255
-        mean_a = np.sum(lab_img[:, :, 1] * threshold_2) / np.count_nonzero(threshold_2) - 128
-        mean_b = np.sum(lab_img[:, :, 2] * threshold_3) / np.count_nonzero(threshold_3) - 128
+        mean_l = np.sum(lab_img[:, :, 0]) / np.count_nonzero(lab_img[:, :, 0]) * 100 / 255
+        mean_a = np.sum(lab_img[:, :, 1]) / np.count_nonzero(lab_img[:, :, 1]) - 128
+        mean_b = np.sum(lab_img[:, :, 2]) / np.count_nonzero(lab_img[:, :, 2]) - 128
 
         # normalize by shifting point in the spherical coordinates
         radius = np.sqrt(mean_l**2 + mean_a**2 + mean_b**2)
@@ -313,11 +312,11 @@ class GrannyPeelColor(granny.GrannyBase):
         """
         self.create_directories(self.RESULT_DIR)
         image_list = os.listdir(self.FOLDER_NAME)
-        cpu_count = int(os.cpu_count()*0.8) or 1
+        cpu_count = int(os.cpu_count() * 0.8) or 1
+        image_list = sorted(image_list)
         with Pool(cpu_count) as pool:
             results = pool.map(self.extract_green_yellow_values_multiprocessing, image_list)
 
-        image_list = sorted(image_list)
         with open(f"{self.BIN_COLOR}{os.sep}peel_colors.csv", "w") as w:
             for i, file_name in enumerate(image_list):
                 bin_num, score, orth_distance, point, l, a, b = results[i]

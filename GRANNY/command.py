@@ -58,14 +58,10 @@ def main():
             args.action, args.dir
         ).GrannySuperficialScald()
     elif args.action == "peel":
-        GRANNY_PeelColor.GrannyPeelColor(
-            args.action, args.dir, args.num_instances
-        ).GrannyPeelColor()
+        GRANNY_PeelColor.GrannyPeelColor(args.action, args.dir).GrannyPeelColor()
     elif args.action == "starch":
-        GRANNY_StarchIndex.GrannyStarchIndex(args.action, args.dir, args.num_instances).main()
+        GRANNY_StarchIndex.GrannyStarchIndex(args.action, args.dir).main()
     elif args.action == "blush":
-        GRANNY_BlushColor.GrannyPearBlush(
-            args.action, args.dir, args.num_instances
-        ).calculate_blush_region()
+        GRANNY_BlushColor.GrannyPearBlush(args.action, args.dir).calculate_blush_region()
     else:
         print("\t- Invalid Action. -")

@@ -15,7 +15,7 @@ from numpy.typing import NDArray
 class GrannySegmentation(granny.GrannyBase):
     def __init__(self, action: str, fname: str, num_instances: int):
         num_instances = 18 if num_instances == None else num_instances
-        super(GrannySegmentation, self).__init__(action, fname, num_instances)
+        super(GrannySegmentation, self).__init__(action, fname)
 
     def load_model(self, verbose: int = 0) -> MaskRCNN:
         """

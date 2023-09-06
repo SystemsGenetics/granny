@@ -3,7 +3,7 @@ from GRANNY import GRANNY_Base as granny
 
 
 class GrannyPearBlush(granny.GrannyBase):
-    def __init__(self, action: str, fname: str, num_instances: int):
+    def __init__(self, action: str, fname: str):
         super().__init__(action, fname)
         self.threshold = 0
 
@@ -24,4 +24,4 @@ class GrannyPearBlush(granny.GrannyBase):
         self.calibrate_blush_region()
 
 
-GrannyPearBlush("", "", 1).main()
+GrannyPearBlush("", "").main()
