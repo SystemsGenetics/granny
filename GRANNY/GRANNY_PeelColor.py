@@ -1,6 +1,6 @@
 import os
 from multiprocessing import Pool
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, cast
 
 import cv2
 import numpy as np
@@ -215,7 +215,7 @@ class GrannyPeelColor(granny.GrannyBase):
 
     def calculate_score_distance(
         self, color_list: List[float]
-    ) -> Tuple[float, float, float, float]:
+    ) -> Tuple[Tuple[float, float], float, float, float]:
         """ """
 
         def calculate_intersection(
@@ -246,15 +246,21 @@ class GrannyPeelColor(granny.GrannyBase):
         projection = calculate_intersection(
             ((0.0, 0.0), (color_list[1], color_list[2])), (self.LINE_POINT_1, self.LINE_POINT_2)
         )
-        score = np.linalg.norm(projection - self.LINE_POINT_1) / np.linalg.norm(
-            self.LINE_POINT_2 - self.LINE_POINT_1
+        score = cast(
+            float,
+            np.linalg.norm(projection - self.LINE_POINT_1)
+            / np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1),
         )
-        distance = np.linalg.norm(
-            np.cross(
-                self.LINE_POINT_2 - self.LINE_POINT_1,
-                color_point - self.LINE_POINT_1,
+        distance = cast(
+            float,
+            np.linalg.norm(
+                np.cross(
+                    self.LINE_POINT_2 - self.LINE_POINT_1,
+                    color_point - self.LINE_POINT_1,
+                )
             )
-        ) / np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1)
+            / np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1),
+        )
         point = np.sign(color_point[1] - projection[1])
         print(f"New Score: {score}")
         print(f"Old Coordinates: {color_list}")
@@ -262,9 +268,9 @@ class GrannyPeelColor(granny.GrannyBase):
         print(f"Distance from line: {distance}")
         print(f"Above/Under: {point}")
         if score < 0:
-            score = np.float16(0)
+            score = float(0)
         elif score > 1:
-            score = np.float16(1.0)
+            score = float(1.0)
         return projection, score, distance, point
 
     def extract_green_yellow_values(
@@ -325,106 +331,3 @@ class GrannyPeelColor(granny.GrannyBase):
                 )
                 w.writelines("\n")
             print(f'\t- Done. Check "results/" for output. - \n')
-
-    # def extract_green_yellow_values(self):
-    #     """
-
-    #     # create "results" directory to save the results
-    #     self.create_directories(self.BIN_COLOR)
-
-    #     if self.NUM_INSTANCES == 1:
-    #         # create "results" directory to save the results
-    #         self.create_directories(self.RESULT_DIR)
-
-    #         # read image
-    #         file_name = self.FILE_NAME
-
-    #         img = cv2.imread(file_name, cv2.IMREAD_COLOR)
-    #         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-    #         # remove surrounding purple
-    #         img = self.remove_purple(img)
-    #         nopurple_img = img
-
-    #         # image smoothing
-    #         img = cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0)
-
-    #         # get image values
-    #         l, a, b = self.get_green_yellow_values(img)
-
-    #         # calculate distance to the least-mean-square line
-    #         (
-    #             projection,
-    #             score,
-    #             orth_distance,
-    #             point,
-    #         ) = self.calculate_score_distance([l, a, b])
-
-    #         # calculate distance to each bin
-    #         bin_num, distance = self.calculate_bin_distance([projection[0], projection[1]])
-
-    #         # save the scores to results/rating.csv
-    #         with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w:
-    #             w.writelines(
-    #                 f"{self.clean_name(file_name.split(os.sep)[-1])},{bin_num},{score},{str(orth_distance)},{point},{l},{a},{b}"
-    #             )
-    #             w.writelines("\n")
-
-    #         print(f'\t- Done. Check "results/" for output. - \n')
-    #     else:
-    #         # list all files and folders in the folder
-    #         folders, files = self.list_all(self.FOLDER_NAME)
-
-    #         # create "results" directory to save the results
-    #         for folder in folders:
-    #             self.create_directories(folder.replace(self.FOLDER_NAME, self.BIN_COLOR))
-
-    #         bin_nums = []
-    #         orth_distances = []
-    #         channels_values = []
-    #         points = []
-    #         ratings = []
-
-    #         for file_name in files:
-    #             print(f"\t- Rating {file_name}. -")
-
-    #             img = cv2.imread(file_name, cv2.IMREAD_COLOR)
-    #             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-    #             # remove surrounding purple
-    #             img = self.remove_purple(img)
-    #             nopurple_img = img
-
-    #             # image smoothing
-    #             img = cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0)
-
-    #             # get image values
-    #             l, a, b = self.get_green_yellow_values(img)
-
-    #             # calculate distance to the least-mean-square line
-    #             (
-    #                 projection,
-    #                 score,
-    #                 orth_distance,
-    #                 point,
-    #             ) = self.calculate_score_distance([l, a, b])
-
-    #             # # calculate distance to each bin
-    #             bin_num, distance = self.calculate_bin_distance([score], method="Score")
-
-    #             # # calculate distance to each bin
-    #             # bin_num, distance = self.calculate_bin_distance([projection[0], projection[1]])
-
-    #             bin_nums.append(bin_num)
-    #             ratings.append(score)
-    #             points.append(point)
-    #             orth_distances.append(str(orth_distance))
-    #             channels_values.append(str(l) + "," + str(a) + "," + str(b))
-
-    #         with open(self.BIN_COLOR + os.sep + "peel_colors.csv", "w") as w:
-    #             for i in range(len(bin_nums)):
-    #                 w.writelines(
-    #                     f"{self.clean_name(files[i].split(os.sep)[-1])},{bin_nums[i]},{ratings[i]},{orth_distances[i]},{points[i]},{channels_values[i]}"
-    #                 )
-    #                 w.writelines("\n")
-    #         print(f'\t- Done. Check "results/" for output. - \n')
