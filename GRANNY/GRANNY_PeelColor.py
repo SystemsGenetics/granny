@@ -124,7 +124,7 @@ class GrannyPeelColor(granny.GrannyBase):
         """
         # convert RGB to YCrCb
         new_img = img.copy()
-        ycc_img = cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb)
+        ycc_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb))
 
         # create binary matrices
         threshold_1 = np.logical_and((ycc_img[:, :, 0] >= 0), (ycc_img[:, :, 0] <= 255))
@@ -147,8 +147,7 @@ class GrannyPeelColor(granny.GrannyBase):
         green and yellow in the CIELAB color space. Then, normalize the values to L = 50.
         """
         # convert from RGB to Lab color space
-        new_img = img.copy()
-        lab_img = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+        lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_RGB2LAB))
 
         # create binary matrices
         threshold_1 = np.logical_and((lab_img[:, :, 0] > 0), (lab_img[:, :, 0] < 255))
@@ -177,7 +176,7 @@ class GrannyPeelColor(granny.GrannyBase):
         )
         scaled_b = np.sign(mean_b) * mean_b / mean_a * scaled_a
 
-        return scaled_l, scaled_a, scaled_b
+        return (scaled_l, scaled_a, scaled_b)
 
     def calculate_bin_distance(
         self, color_list: List[int], method: str = "Euclidean"
@@ -276,13 +275,15 @@ class GrannyPeelColor(granny.GrannyBase):
     def extract_green_yellow_values(
         self, file_name: str
     ) -> Tuple[int, float, float, float, float, float, float]:
-        img = cv2.cvtColor(cv2.imread(file_name, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+        img = cast(
+            NDArray[np.uint8],
+            cv2.cvtColor(cv2.imread(file_name, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB),
+        )
         # remove surrounding purple
         img = self.remove_purple(img)
-        nopurple_img = img
 
         # image smoothing
-        img = cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0)
+        img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0))
 
         # get image values
         l, a, b = self.get_green_yellow_values(img)
@@ -308,13 +309,10 @@ class GrannyPeelColor(granny.GrannyBase):
     def GrannyPeelColor(self) -> None:
         """Main method performing rating for peel color
 
-        This is the main method being called by the Python argument parser
-        from the command.py to set up CLI for
-        pear's peel color rating.
-        The results will be written to a .csv file, containing necessary
-        information such as scores, file names,
-        color card number, distances, and LAB mean pixels.
-        The calculated scores will be written to a .csv file.
+        This is the main method being called by the Python argument parser from the command.py
+        to set up CLI for pear's peel color rating. The results will be written to a .csv file,
+        containing necessary information such as scores, file names, color card number, distances,
+        and LAB mean pixels. The calculated scores will be written to a .csv file.
         """
         self.create_directories(self.RESULT_DIR)
         image_list = os.listdir(self.FOLDER_NAME)
