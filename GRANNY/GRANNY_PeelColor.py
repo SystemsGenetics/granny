@@ -89,7 +89,7 @@ class GrannyPeelColor(granny.GrannyBase):
         #     81.7513027496333, 84.36038598038662, 86.95338287223824, 92.37148315325989, 91.21422051166374
         # ]
 
-        self.MEAN_VALUES_A = [
+        self.MEAN_VALUES_A: List[float] = [
             -36.64082458,
             -35.82390694,
             -29.47956688,
@@ -101,7 +101,7 @@ class GrannyPeelColor(granny.GrannyBase):
             -13.70076143,
             -13.34873991,
         ]
-        self.MEAN_VALUES_B = [
+        self.MEAN_VALUES_B: List[float] = [
             57.4946451,
             58.6671866,
             67.77337014,
@@ -114,8 +114,8 @@ class GrannyPeelColor(granny.GrannyBase):
             90.92633324,
         ]
 
-        self.LINE_POINT_1 = np.array([-76.69774, 0.0], dtype=float)
-        self.LINE_POINT_2 = np.array([0.0, 110.0861], dtype=float)
+        self.LINE_POINT_1: NDArray[np.float16] = np.array([-76.69774, 0.0], dtype=np.float16)
+        self.LINE_POINT_2: NDArray[np.float16] = np.array([0.0, 110.0861], dtype=np.float16)
 
     def remove_purple(self, img: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -261,11 +261,6 @@ class GrannyPeelColor(granny.GrannyBase):
             / np.linalg.norm(self.LINE_POINT_2 - self.LINE_POINT_1),
         )
         point = np.sign(color_point[1] - projection[1])
-        print(f"New Score: {score}")
-        print(f"Old Coordinates: {color_list}")
-        print(f"New Coordinates: {projection}")
-        print(f"Distance from line: {distance}")
-        print(f"Above/Under: {point}")
         if score < 0:
             score = float(0)
         elif score > 1:
