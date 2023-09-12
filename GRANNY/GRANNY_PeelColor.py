@@ -179,7 +179,7 @@ class GrannyPeelColor(granny.GrannyBase):
         return (scaled_l, scaled_a, scaled_b)
 
     def calculate_bin_distance(
-        self, color_list: List[int], method: str = "Euclidean"
+        self, color_list: List[float], method: str = "Euclidean"
     ) -> Tuple[int, NDArray[np.float16]]:
         """
         Calculate the Euclidean distance from normalized image's LAB to each
@@ -274,6 +274,9 @@ class GrannyPeelColor(granny.GrannyBase):
             NDArray[np.uint8],
             cv2.cvtColor(cv2.imread(file_name, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB),
         )
+
+        print(f"\t- Rating {file_name}. -")
+
         # remove surrounding purple
         img = self.remove_purple(img)
 
@@ -292,7 +295,8 @@ class GrannyPeelColor(granny.GrannyBase):
         ) = self.calculate_score_distance([l, a, b])
 
         # calculate distance to each bin
-        bin_num, _ = self.calculate_bin_distance([projection[0], projection[1]])
+        # bin_num, _ = self.calculate_bin_distance([projection[0], projection[1]], method = "Score")
+        bin_num, _ = self.calculate_bin_distance([score], method="Score")
 
         return (bin_num, score, orth_distance, point, l, a, b)
 
