@@ -31,5 +31,5 @@ def add_ratings(meta_data: pd.DataFrame, ratings: pd.DataFrame):
 pear_meta_data = add_ratings(meta_data, ratings)
 
 pear_meta_data.to_csv(
-    "../results/peel_color_results/Nhan's_Rating_Mat-1-22_PearColorData_SubsetForNhan.xlsx - Sheet1.csv"
+    "../results/peel_color_results/GrannyPredictionToTechnicianRating.csv"
 )
