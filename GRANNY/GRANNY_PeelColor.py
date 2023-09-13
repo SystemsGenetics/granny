@@ -89,6 +89,7 @@ class GrannyPeelColor(granny.GrannyBase):
         #     81.7513027496333, 84.36038598038662, 86.95338287223824, 92.37148315325989, 91.21422051166374
         # ]
 
+        # values of the color cards normalized to the LMS line
         self.MEAN_VALUES_A: List[float] = [
             -36.64082458,
             -35.82390694,
