@@ -5,6 +5,7 @@ ratings = pd.read_csv("../results/peel_color_results/peel_colors.csv", header=No
 
 ratings = ratings.sort_values(0, axis="index")
 
+
 def add_ratings(meta_data: pd.DataFrame, ratings: pd.DataFrame):
     meta_data_with_ratings = pd.DataFrame(
         columns=list(meta_data.columns).append(["Ratings", "Scores"])
@@ -16,11 +17,11 @@ def add_ratings(meta_data: pd.DataFrame, ratings: pd.DataFrame):
         score = each_pear[2]
         file_name = "_".join(split_file_name[0:2]) + ".JPG"
         try:
-            pear_data = meta_data[meta_data["ShadeSide_ImageFile"] == file_name].iloc[
-                int(split_file_name[2]) - 1
-            ]
+            pear_number = int(split_file_name[2]) - 1
+            pear_data = meta_data[meta_data["ShadeSide_ImageFile"] == file_name].iloc[pear_number]
             pear_data["Ratings"] = rating / 2
             pear_data["Scores"] = score
+            pear_data["PearNumber"] = int(pear_number) + 1
             meta_data_with_ratings = meta_data_with_ratings.append(pear_data)
         except IndexError:
             pass
@@ -30,6 +31,4 @@ def add_ratings(meta_data: pd.DataFrame, ratings: pd.DataFrame):
 
 pear_meta_data = add_ratings(meta_data, ratings)
 
-pear_meta_data.to_csv(
-    "../results/peel_color_results/GrannyPredictionToTechnicianRating.csv"
-)
+pear_meta_data.to_csv("../results/peel_color_results/GrannyPredictionToTechnicianRating.csv")
