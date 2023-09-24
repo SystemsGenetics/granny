@@ -1,6 +1,6 @@
 import os
 from multiprocessing import Pool
-from typing import Dict, List, Tuple
+from typing import Tuple, cast
 
 import cv2
 import numpy as np
@@ -19,7 +19,7 @@ class GrannySuperficialScald(granny.GrannyBase):
         """
         # convert RGB to YCrCb
         new_img = img.copy()
-        ycc_img = cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb)
+        ycc_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb))
 
         # create binary matrices
         threshold_1 = np.logical_and((ycc_img[:, :, 0] >= 0), (ycc_img[:, :, 0] <= 255))
@@ -67,7 +67,7 @@ class GrannySuperficialScald(granny.GrannyBase):
         """
         # convert from RGB to Lab color space
         new_img = img.copy()
-        lab_img = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+        lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_RGB2LAB))
 
         def calculate_threshold_from_hist(hist: NDArray[np.int8]) -> int:
             hist_range = 255 - (hist[::-1] != 0).argmax() - (hist != 0).argmax()
@@ -146,7 +146,10 @@ class GrannySuperficialScald(granny.GrannyBase):
         return fraction
 
     def rate_GrannySmith_superficial_scald(self, file_name: str) -> float:
-        img = cv2.cvtColor(cv2.imread(file_name, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+        img = cast(
+            NDArray[np.uint8],
+            cv2.cvtColor(cv2.imread(file_name, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB),
+        )
 
         print(f"\t- Rating {file_name}. -")
 

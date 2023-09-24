@@ -80,6 +80,9 @@ class GrannyBase(object):
         # results for pear color bining
         self.BIN_COLOR = f"{self.RESULT_DIR}{os.sep}peel_color_results"
 
+        # results for cross-section starch area
+        self.STARCH_AREA = f"{self.RESULT_DIR}{os.sep}starch_results"
+
     def create_directories(self, *args: str) -> None:
         """
         Create directories from args

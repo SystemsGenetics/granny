@@ -61,7 +61,7 @@ def main():
     elif args.action == "peel":
         GRANNY_PeelColor.GrannyPeelColor(args.action, args.dir).GrannyPeelColor()
     elif args.action == "starch":
-        GRANNY_StarchArea.GrannyStarchIndex(args.action, args.dir).main()
+        GRANNY_StarchArea.GrannyStarchArea(args.action, args.dir).GrannyStarchArea()
     elif args.action == "blush":
         GRANNY_BlushColor.GrannyPearBlush(args.action, args.dir).GrannyPearBlush()
     else:
