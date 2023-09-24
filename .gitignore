@@ -31,3 +31,5 @@ output.out
 *.zip
 test_perf.py
 *.csv
+*.onnx
+*.pth
