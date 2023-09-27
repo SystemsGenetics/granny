@@ -19,23 +19,7 @@ class GrannyStarchArea(granny.GrannyBase):
 
         print(f"\t- Rating {file_name}. -")
 
-        # Apply thresholding
-        _, thresh = cv2.threshold(gray_img, 5, 255, cv2.THRESH_BINARY)
-
-        # Draw a division line
-        cv2.line(thresh, (196, 0), (196, 500), 255, 1)
-
-        # Find contours
-        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        # Calculate total starch area
-        total_starch_area = 0
-
-        # Process individual contours
-        for i, contour in enumerate(contours):
-            area = cv2.contourArea(contour)
-            total_starch_area += area
-            cv2.fillPoly(thresh, [contour], 0)
+        thresh = np.logical_and(gray_img > 5, gray_img < 128).astype(np.uint8) * 255
 
         img = gray_img * thresh
 
@@ -43,7 +27,7 @@ class GrannyStarchArea(granny.GrannyBase):
             os.path.join(self.STARCH_AREA, os.path.basename(file_name)),
             img,
         )
-        return total_starch_area / np.count_nonzero(gray_img)
+        return np.count_nonzero(thresh) / np.count_nonzero(gray_img)
 
     def calculate_starch_multiprocessing(self, args: str) -> Any:
         file_name = args
