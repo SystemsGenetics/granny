@@ -12,9 +12,11 @@ def add_ratings(meta_data: pd.DataFrame, ratings: pd.DataFrame):
     )
 
     for each_pear in ratings.iloc:
+        each_pear = list(each_pear)
         split_file_name = each_pear[0].split("_")
         rating = each_pear[1]
         score = each_pear[2]
+        rgb = [each_pear[-3], each_pear[-2], each_pear[-1]]
         file_name = "_".join(split_file_name[0:2]) + ".JPG"
         try:
             pear_number = int(split_file_name[2]) - 1
@@ -22,6 +24,7 @@ def add_ratings(meta_data: pd.DataFrame, ratings: pd.DataFrame):
             pear_data["Ratings"] = rating / 2
             pear_data["Scores"] = score
             pear_data["PearNumber"] = int(pear_number) + 1
+            pear_data["Color"] = rgb
             meta_data_with_ratings = meta_data_with_ratings.append(pear_data)
         except IndexError:
             pass
