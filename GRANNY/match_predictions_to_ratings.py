@@ -24,7 +24,7 @@ def add_ratings(meta_data: pd.DataFrame, ratings: pd.DataFrame):
             pear_data["Ratings"] = rating / 2
             pear_data["Scores"] = score
             pear_data["PearNumber"] = int(pear_number) + 1
-            pear_data["Color"] = rgb
+            pear_data["RGB"] = rgb
             meta_data_with_ratings = meta_data_with_ratings.append(pear_data)
         except IndexError:
             pass
