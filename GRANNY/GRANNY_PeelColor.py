@@ -142,18 +142,11 @@ class GrannyPeelColor(granny.GrannyBase):
             new_img[:, :, i] = new_img[:, :, i] * th123
         return new_img
 
-    def get_green_yellow_values(
-        self, img: NDArray[np.uint8]
-    ) -> Tuple[float, float, float, int, int, int]:
+    def get_green_yellow_values(self, img: NDArray[np.uint8]) -> Tuple[float, float, float]:
         """
         Get the mean pixel values from the images representing the amount of
         green and yellow in the CIELAB color space. Then, normalize the values to L = 50.
         """
-        # gets mean r, g, b values from image
-        mean_red = np.sum(img[:, :, 0]) / np.count_nonzero(img[:, :, 0])
-        mean_green = np.sum(img[:, :, 1]) / np.count_nonzero(img[:, :, 1])
-        mean_blue = np.sum(img[:, :, 2]) / np.count_nonzero(img[:, :, 2])
-
         # convert from RGB to Lab color space
         lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_RGB2LAB))
 
@@ -184,7 +177,7 @@ class GrannyPeelColor(granny.GrannyBase):
         )
         scaled_b = np.sign(mean_b) * mean_b / mean_a * scaled_a
 
-        return (scaled_l, scaled_a, scaled_b, int(mean_red), int(mean_green), int(mean_blue))
+        return (scaled_l, scaled_a, scaled_b)
 
     def calculate_bin_distance(
         self, color_list: List[float], method: str = "Euclidean"
@@ -277,7 +270,7 @@ class GrannyPeelColor(granny.GrannyBase):
 
     def extract_green_yellow_values(
         self, file_name: str
-    ) -> Tuple[int, float, float, float, float, float, float, int, int, int]:
+    ) -> Tuple[int, float, float, float, float, float, float]:
         img = cast(
             NDArray[np.uint8],
             cv2.cvtColor(cv2.imread(file_name, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB),
@@ -292,7 +285,7 @@ class GrannyPeelColor(granny.GrannyBase):
         img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0))
 
         # get image values
-        l, a, b, red, green, blue = self.get_green_yellow_values(img)
+        l, a, b = self.get_green_yellow_values(img)
 
         # calculate distance to the least-mean-square line
         (
@@ -306,7 +299,7 @@ class GrannyPeelColor(granny.GrannyBase):
         # bin_num, _ = self.calculate_bin_distance([projection[0], projection[1]], method = "Score")
         bin_num, _ = self.calculate_bin_distance([score], method="Score")
 
-        return (bin_num, score, orth_distance, point, l, a, b, red, green, blue)
+        return (bin_num, score, orth_distance, point, l, a, b)
 
     def extract_green_yellow_values_multiprocessing(self, args: str) -> Any:
         file_name = args
@@ -330,10 +323,12 @@ class GrannyPeelColor(granny.GrannyBase):
 
         with open(f"{self.BIN_COLOR}{os.sep}peel_colors.csv", "w") as w:
             for i, file_name in enumerate(image_list):
-                bin_num, score, orth_distance, point, l, a, b, red, green, blue = results[i]
+                bin_num, score, orth_distance, point, l, a, b = results[i]
                 w.writelines(
-                    (f"{self.clean_name(file_name)},{bin_num},{score},{str(orth_distance)},"
-                    f"{point},{l},{a},{b},{red},{green},{blue}")
+                    (
+                        f"{self.clean_name(file_name)},{bin_num},{score},{str(orth_distance)},"
+                        f"{point},{l},{a},{b}"
+                    )
                 )
                 w.writelines("\n")
             print(f'\t- Done. Check "results/" for output. - \n')
