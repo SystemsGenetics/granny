@@ -66,10 +66,10 @@ class GrannyBase(object):
         self.RESULT_DIR = pathlib.Path("results").as_posix()
 
         # location where masked apple trays will be saved
-        self.FULLMASK_DIR = self.RESULT_DIR + "full_masked_images" + os.sep
+        self.FULLMASK_DIR = f"{self.RESULT_DIR}{os.sep}full_masked_images"
 
         # location where segmented/individual instances will be saved
-        self.SEGMENTED_DIR = self.RESULT_DIR + "segmented_images" + os.sep
+        self.SEGMENTED_DIR = f"{self.RESULT_DIR}{os.sep}segmented_images"
 
         # location where apples with the scald removed will be saved
         self.BINARIZED_IMAGES = f"{self.RESULT_DIR}{os.sep}binarized_images"
