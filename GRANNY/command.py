@@ -2,7 +2,6 @@ import os
 
 from . import GRANNY_StarchArea
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import argparse
 
 from GRANNY import (
@@ -11,6 +10,8 @@ from GRANNY import (
     GRANNY_Segmentation,
     GRANNY_SuperficialScald,
 )
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 
 def main():
@@ -59,10 +60,16 @@ def main():
             args.action, args.dir
         ).GrannySuperficialScald()
     elif args.action == "peel":
-        GRANNY_PeelColor.GrannyPeelColor(args.action, args.dir).GrannyPeelColor()
+        GRANNY_PeelColor.GrannyPeelColor(
+            args.action, args.dir
+        ).GrannyPeelColor()
     elif args.action == "starch":
-        GRANNY_StarchArea.GrannyStarchArea(args.action, args.dir).GrannyStarchArea()
+        GRANNY_StarchArea.GrannyStarchArea(
+            args.action, args.dir
+        ).GrannyStarchArea()
     elif args.action == "blush":
-        GRANNY_BlushColor.GrannyPearBlush(args.action, args.dir).GrannyPearBlush()
+        GRANNY_BlushColor.GrannyPearBlush(
+            args.action, args.dir
+        ).GrannyPearBlush()
     else:
         print("\t- Invalid Action. -")

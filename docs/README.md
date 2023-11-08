@@ -1,9 +1,3 @@
-## Quick start
-
-This is just a boring documentation page explaining and providing instructions to the user, you can check our [demo](https://github.com/SystemsGenetics/granny/tree/master/demo) page for specific usage of each command.
-
----
-
 ## Content
 
 1. [Command Line Interface](#cli)
@@ -28,7 +22,7 @@ where:
 | --------- | ---- | ------ |
 | `<ACTION>` | Required | **"extract"**: do [Extraction of Fruits](https://github.com/SystemsGenetics/granny/tree/master/demo#extract) <br /> **"scald"**: do [Superficial Scald](https://github.com/SystemsGenetics/granny/tree/master/demo#scald) <br /> **"starch"**: do [Cross-section Starch](https://github.com/SystemsGenetics/granny/tree/master/demo#starch) <br /> **"pear"**: do [Pear Color Sorting](https://github.com/SystemsGenetics/granny/tree/master/demo#pear)|
 | `<PATH>` | Required | Specify either an image directory containing multiple images or a single image file. |
-| `<NUM_INSTANCES>` | Optional | Default to 18. Specify 2 for multiple images processing in `--action scald`. |
+| `<NUM_INSTANCES>` | Optional | Default to 18 instances. |
 | `<VERBOSE>` | Optional | Default to 1. Specify 0 to turn off model display. |
 
 ---

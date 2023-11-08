@@ -34,7 +34,9 @@ class GrannyBase(object):
         self.NEW_DATA_DIR = "input_data" + os.sep
 
         # directory to download the pretrained model
-        self.PRETRAINED_MODEL = os.path.join(self.ROOT_DIR, "mask_rcnn_starch_cross_section.h5")
+        self.PRETRAINED_MODEL = os.path.join(
+            self.ROOT_DIR, "mask_rcnn_starch_cross_section.h5"
+        )
 
         # accepted file extensions
         self.IMAGE_EXTENSION = (
@@ -66,10 +68,14 @@ class GrannyBase(object):
         self.RESULT_DIR = pathlib.Path("results").as_posix()
 
         # location where masked apple trays will be saved
-        self.FULLMASK_DIR = f"{self.RESULT_DIR}{os.sep}full_masked_images"
+        self.FULLMASK_DIR = (
+            f"{self.RESULT_DIR}{os.sep}full_masked_images{os.sep}"
+        )
 
         # location where segmented/individual instances will be saved
-        self.SEGMENTED_DIR = f"{self.RESULT_DIR}{os.sep}segmented_images"
+        self.SEGMENTED_DIR = (
+            f"{self.RESULT_DIR}{os.sep}segmented_images{os.sep}"
+        )
 
         # location where apples with the scald removed will be saved
         self.BINARIZED_IMAGES = f"{self.RESULT_DIR}{os.sep}binarized_images"
@@ -91,7 +97,9 @@ class GrannyBase(object):
             if not os.path.exists(directory):
                 os.makedirs(directory)
 
-    def list_all(self, data_dir: str = os.path.curdir) -> Tuple[List[str], List[str]]:
+    def list_all(
+        self, data_dir: str = os.path.curdir
+    ) -> Tuple[List[str], List[str]]:
         """
         Recursively list all the folder names and image file names in the
         directory
@@ -102,7 +110,9 @@ class GrannyBase(object):
         # if data_dir is a file
         if data_dir.endswith(self.IMAGE_EXTENSION):
             file_name.append(data_dir)
-            folder_name.append(data_dir.replace(data_dir.split(os.sep)[-1], ""))
+            folder_name.append(
+                data_dir.replace(data_dir.split(os.sep)[-1], "")
+            )
             return folder_name, file_name
 
         # list all folders and files in data_dir

@@ -1,6 +1,6 @@
 import os
 from multiprocessing import Pool
-from typing import Any, List, Tuple, cast
+from typing import Any, cast
 
 import cv2
 import numpy as np
@@ -19,7 +19,9 @@ class GrannyStarchArea(granny.GrannyBase):
 
         print(f"\t- Rating {file_name}. -")
 
-        thresh = np.logical_and(gray_img > 5, gray_img < 128).astype(np.uint8) * 255
+        thresh = (
+            np.logical_and(gray_img > 5, gray_img < 128).astype(np.uint8) * 255
+        )
 
         img = gray_img * thresh
 
@@ -31,7 +33,9 @@ class GrannyStarchArea(granny.GrannyBase):
 
     def calculate_starch_multiprocessing(self, args: str) -> Any:
         file_name = args
-        results = self.calculate_starch(os.path.join(self.FOLDER_NAME, file_name))
+        results = self.calculate_starch(
+            os.path.join(self.FOLDER_NAME, file_name)
+        )
         return results
 
     def GrannyStarchArea(self) -> None:
@@ -40,10 +44,12 @@ class GrannyStarchArea(granny.GrannyBase):
         cpu_count = int(os.cpu_count() * 0.8) or 1
         image_list = sorted(image_list)
         with Pool(cpu_count) as pool:
-            results = pool.map(self.calculate_starch_multiprocessing, image_list)
+            results = pool.map(
+                self.calculate_starch_multiprocessing, image_list
+            )
 
         with open(f"{self.RESULT_DIR}{os.sep}starch_area.csv", "w") as w:
             for i, file_name in enumerate(image_list):
                 w.writelines(f"{self.FOLDER_NAME}/{file_name}\t\t{results[i]}")
                 w.writelines("\n")
-            print(f'\t- Done. Check "results/" for output. - \n')
+            print('\t- Done. Check "results/" for output. - \n')
