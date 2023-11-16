@@ -78,9 +78,9 @@ class GrannySuperficialScald(granny.GrannyBase):
 
         # create binary matrices
         hist, _ = np.histogram(lab_img[:, :, 1], bins=256, range=(0, 255))
-        threshold = calculate_threshold_from_hist(hist)
+        threshold_value = calculate_threshold_from_hist(hist)
         threshold_1 = np.logical_and((lab_img[:, :, 0] >= 1), (lab_img[:, :, 0] <= 255))
-        threshold_2 = np.logical_and((lab_img[:, :, 1] >= 1), (lab_img[:, :, 1] <= threshold))
+        threshold_2 = np.logical_and((lab_img[:, :, 1] >= 1), (lab_img[:, :, 1] <= threshold_value))
         threshold_3 = np.logical_and((lab_img[:, :, 2] >= 1), (lab_img[:, :, 2] <= 255))
 
         # combine to one matrix
@@ -126,9 +126,6 @@ class GrannySuperficialScald(granny.GrannyBase):
         Returns:
                 (float) fraction: the scald region, i.e. fraction of the original image that was removed
         """
-        # convert to uint8
-        img = img
-
         # count non zeros of binarized image
         ground_area = 1 / 3 * np.count_nonzero(img[:, :, 0:2])
 

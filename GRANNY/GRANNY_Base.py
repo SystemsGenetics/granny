@@ -73,9 +73,7 @@ class GrannyBase(object):
         )
 
         # location where segmented/individual instances will be saved
-        self.SEGMENTED_DIR = (
-            f"{self.RESULT_DIR}{os.sep}segmented_images{os.sep}"
-        )
+        self.SEGMENTED_DIR = f"{self.RESULT_DIR}{os.sep}segmented_images{os.sep}"
 
         # location where apples with the scald removed will be saved
         self.BINARIZED_IMAGES = f"{self.RESULT_DIR}{os.sep}binarized_images"
