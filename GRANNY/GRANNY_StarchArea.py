@@ -28,10 +28,6 @@ class GrannyStarchArea(granny.GrannyBase):
                 right_sum = histogram_sum - left_sum
 
                 if left_sum > right_sum:
-                    print(left_sum)
-                    print(right_sum)
-                    print(i)
-                    print("\n")
                     if i < 160:
                         return 160
                     return i
