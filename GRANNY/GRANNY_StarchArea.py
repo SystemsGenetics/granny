@@ -27,7 +27,7 @@ class GrannyStarchArea(granny.GrannyBase):
                 left_sum += bin_value
                 right_sum = histogram_sum - left_sum
 
-                if left_sum > right_sum:
+                if left_sum - right_sum > 0.1*histogram_sum:
                     if i < 160:
                         return 160
                     return i
@@ -46,8 +46,8 @@ class GrannyStarchArea(granny.GrannyBase):
             np.uint8
         )
 
-        # # perform a simple morphological operation to smooth the binary mask
-        # th123 = self.smooth_binary_mask(th123)
+        # perform a simple morphological operation to smooth the binary mask
+        th123 = self.smooth_binary_mask(th123)
 
         # create new image using threshold matrices
         new_img = self.draw_binary_mask(new_img, th123)
