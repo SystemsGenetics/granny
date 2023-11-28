@@ -16,40 +16,45 @@ class GrannyStarchArea(granny.GrannyBase):
         # Load the image
         img = cast(NDArray[np.uint8], cv2.imread(file_name, cv2.IMREAD_COLOR))
         new_img = img.copy()
-        ycc_img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+        img = cv2.GaussianBlur(img, (11,11), 0)
+        lab_img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
 
         def calculate_threshold_from_hist(hist: NDArray[np.int8]) -> int:
             histogram_sum = np.sum(hist)
             left_sum = 0
-            right_sum = histogram_sum - left_sum
 
             for i, bin_value in enumerate(hist):
                 left_sum += bin_value
                 right_sum = histogram_sum - left_sum
 
                 if left_sum > right_sum:
+                    print(left_sum)
+                    print(right_sum)
+                    print(i)
+                    print("\n")
+                    if i < 160:
+                        return 160
                     return i
             return -1
 
         # create thresholded matrices
-        hist, _ = np.histogram(ycc_img[:, :, 2], bins=256, range=(0, 255))
+        hist, _ = np.histogram(lab_img[:, :, 2], bins=256, range=(0, 255))
         threshold_value = calculate_threshold_from_hist(hist)
 
-        threshold_1 = np.logical_and((ycc_img[:, :, 0] > 0), (ycc_img[:, :, 0] <= 205))
-        threshold_2 = np.logical_and((ycc_img[:, :, 1] > 0), (ycc_img[:, :, 1] <= 255))
-        threshold_3 = np.logical_and((ycc_img[:, :, 2] > 0), (ycc_img[:, :, 2] <= threshold_value))
+        threshold_1 = np.logical_and((lab_img[:, :, 0] > 0), (lab_img[:, :, 0] <= 205))
+        threshold_2 = np.logical_and((lab_img[:, :, 1] > 0), (lab_img[:, :, 1] <= 255))
+        threshold_3 = np.logical_and((lab_img[:, :, 2] > 0), (lab_img[:, :, 2] <= threshold_value))
 
         # combine to one matrix
         th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
             np.uint8
         )
 
-        # perform simple morphological operation to smooth the binary mask
-        th123 = self.smooth_binary_mask(th123)
+        # # perform a simple morphological operation to smooth the binary mask
+        # th123 = self.smooth_binary_mask(th123)
 
         # create new image using threshold matrices
-        for i in range(3):
-            new_img[:, :, i] = new_img[:, :, i] * th123
+        new_img = self.draw_binary_mask(new_img, th123)
 
         cv2.imwrite(
             os.path.join(self.STARCH_AREA, os.path.basename(file_name)),
@@ -60,6 +65,22 @@ class GrannyStarchArea(granny.GrannyBase):
         starch = np.count_nonzero(th123)
 
         return starch / ground_truth
+
+
+    def draw_binary_mask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
+        """
+        Overlays a binary mask on an image.
+
+        Args:
+            - img: The input image where the mask will be applied.
+            - mask: The binary mask to be overlied on the image ().
+        """
+        result = img.copy()
+        color = (0, 0, 0)
+        alpha = 0.6
+        for c in range(3):
+            result[:, :, c] = np.where(mask == 0, result[:, :, c] * (1 - alpha) + alpha * color[c], result[:, :, c])
+        return result
 
 
     def smooth_binary_mask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
