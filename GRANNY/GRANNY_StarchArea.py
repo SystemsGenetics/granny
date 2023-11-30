@@ -85,7 +85,7 @@ class GrannyStarchArea(granny.GrannyBase):
             )
         return result
 
-    wdef smooth_binary_mask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
+    def smooth_binary_mask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
         Smooth binary mask with basic morphological operations.
         By performing morphology, the binary mask will be smoothened to avoid discontinuity.
