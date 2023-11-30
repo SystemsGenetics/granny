@@ -27,9 +27,9 @@ class GrannySuperficialScald(granny.GrannyBase):
         threshold_3 = np.logical_and((ycc_img[:, :, 2] >= 0), (ycc_img[:, :, 2] <= 126))
 
         # combine to one matrix
-        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
-            np.uint8
-        )
+        th123 = np.logical_and(
+            np.logical_and(threshold_1, threshold_2), threshold_3
+        ).astype(np.uint8)
 
         # create new image using threshold matrices
         for i in range(3):
@@ -60,7 +60,9 @@ class GrannySuperficialScald(granny.GrannyBase):
         )
         return bin_mask
 
-    def remove_scald(self, img: NDArray[np.uint8]) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
+    def remove_scald(
+        self, img: NDArray[np.uint8]
+    ) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
         """
         Remove the scald region from the individual apple images.
         Note that the stem could have potentially been removed during the process.
@@ -80,13 +82,15 @@ class GrannySuperficialScald(granny.GrannyBase):
         hist, _ = np.histogram(lab_img[:, :, 1], bins=256, range=(0, 255))
         threshold_value = calculate_threshold_from_hist(hist)
         threshold_1 = np.logical_and((lab_img[:, :, 0] >= 1), (lab_img[:, :, 0] <= 255))
-        threshold_2 = np.logical_and((lab_img[:, :, 1] >= 1), (lab_img[:, :, 1] <= threshold_value))
+        threshold_2 = np.logical_and(
+            (lab_img[:, :, 1] >= 1), (lab_img[:, :, 1] <= threshold_value)
+        )
         threshold_3 = np.logical_and((lab_img[:, :, 2] >= 1), (lab_img[:, :, 2] <= 255))
 
         # combine to one matrix
-        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
-            np.uint8
-        )
+        th123 = np.logical_and(
+            np.logical_and(threshold_1, threshold_2), threshold_3
+        ).astype(np.uint8)
 
         # perform simple morphological operation to smooth the binary mask
         th123 = self.smooth_binary_mask(th123)
@@ -162,9 +166,13 @@ class GrannySuperficialScald(granny.GrannyBase):
         )
         return score
 
-    def rate_GrannySmith_superficial_scald_multiprocessing(self, file_name: str) -> float:
+    def rate_GrannySmith_superficial_scald_multiprocessing(
+        self, file_name: str
+    ) -> float:
         """Rates GrannySmith superficial scald using multiprocessing library"""
-        score = self.rate_GrannySmith_superficial_scald(os.path.join(self.FOLDER_NAME, file_name))
+        score = self.rate_GrannySmith_superficial_scald(
+            os.path.join(self.FOLDER_NAME, file_name)
+        )
         return score
 
     def GrannySuperficialScald(self) -> None:
@@ -173,7 +181,9 @@ class GrannySuperficialScald(granny.GrannyBase):
         cpu_count = int(os.cpu_count() * 0.8) or 1
         image_list = sorted(image_list)
         with Pool(cpu_count) as pool:
-            results = pool.map(self.rate_GrannySmith_superficial_scald_multiprocessing, image_list)
+            results = pool.map(
+                self.rate_GrannySmith_superficial_scald_multiprocessing, image_list
+            )
 
         with open(f"{self.RESULT_DIR}{os.sep}scald_ratings.csv", "w") as w:
             for i, file_name in enumerate(image_list):

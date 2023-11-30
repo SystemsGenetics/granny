@@ -88,7 +88,7 @@ class GrannyStarchArea(granny.GrannyBase):
     def smooth_binary_mask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
         Smooth binary mask with basic morphological operations.
-        By performing morphology, the binary mask will be smoothened to avoid discontinuity.
+        By performing morphology, the binary mask will be smoothened.
         """
         bin_mask = bin_mask
 
