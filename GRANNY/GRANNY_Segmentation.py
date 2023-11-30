@@ -10,12 +10,13 @@ from GRANNY import GRANNY_Base as granny
 from GRANNY import GRANNY_config as config
 from Mask_RCNN.model import MaskRCNN
 from numpy.typing import NDArray
+
 pd.options.mode.chained_assignment = None
 
 
 class GrannySegmentation(granny.GrannyBase):
     def __init__(self, action: str, fname: str, num_instances: int):
-        num_instances = 18 if num_instances == None else num_instances
+        num_instances = 18 if num_instances is None else num_instances
         self.NUM_INSTANCES = num_instances
         super(GrannySegmentation, self).__init__(action, fname)
 
@@ -58,7 +59,9 @@ class GrannySegmentation(granny.GrannyBase):
         class_names = ["BG", ""]
 
         # display the image with the masks, box, and scores
-        config.MRCNN_visualize.display_instances(im, box, mask, r["class_ids"], class_names, score)
+        config.MRCNN_visualize.display_instances(
+            im, box, mask, r["class_ids"], class_names, score
+        )
 
         # save the figure
         plt.savefig(os.path.join(fname + ".png"), bbox_inches="tight")
@@ -82,7 +85,10 @@ class GrannySegmentation(granny.GrannyBase):
         count = 0
         for count in range(0, len(df) - 1):
             df["rows"].iloc[count] = rows
-            if not np.abs(df["ycenter"].iloc[count + 1] - df["ycenter"].iloc[count]) < 300:
+            if (
+                not np.abs(df["ycenter"].iloc[count + 1] - df["ycenter"].iloc[count])
+                < 300
+            ):
                 rows += 1
         df["rows"].iloc[-1] = rows
 
@@ -240,9 +246,15 @@ class GrannySegmentation(granny.GrannyBase):
 
         # check and create a new "results" directory to store the results
         for data_dir in data_dirs:
-            self.create_directories(data_dir.replace(self.OLD_DATA_DIR, self.FULLMASK_DIR))
-            self.create_directories(data_dir.replace(self.OLD_DATA_DIR, self.SEGMENTED_DIR))
-            self.create_directories(data_dir.replace(self.OLD_DATA_DIR, self.NEW_DATA_DIR))
+            self.create_directories(
+                data_dir.replace(self.OLD_DATA_DIR, self.FULLMASK_DIR)
+            )
+            self.create_directories(
+                data_dir.replace(self.OLD_DATA_DIR, self.SEGMENTED_DIR)
+            )
+            self.create_directories(
+                data_dir.replace(self.OLD_DATA_DIR, self.NEW_DATA_DIR)
+            )
 
         # pass each image to the model
         for file_name in file_names:

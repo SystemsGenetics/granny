@@ -16,7 +16,7 @@ class GrannyStarchArea(granny.GrannyBase):
         # Load the image
         img = cast(NDArray[np.uint8], cv2.imread(file_name, cv2.IMREAD_COLOR))
         new_img = img.copy()
-        img = cv2.GaussianBlur(img, (11,11), 0)
+        img = cv2.GaussianBlur(img, (11, 11), 0)
         lab_img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
 
         def calculate_threshold_from_hist(hist: NDArray[np.int8]) -> int:
@@ -27,7 +27,7 @@ class GrannyStarchArea(granny.GrannyBase):
                 left_sum += bin_value
                 right_sum = histogram_sum - left_sum
 
-                if left_sum - right_sum > 0.1*histogram_sum:
+                if left_sum - right_sum > 0.1 * histogram_sum:
                     if i < 160:
                         return 160
                     return i
@@ -39,12 +39,14 @@ class GrannyStarchArea(granny.GrannyBase):
 
         threshold_1 = np.logical_and((lab_img[:, :, 0] > 0), (lab_img[:, :, 0] <= 205))
         threshold_2 = np.logical_and((lab_img[:, :, 1] > 0), (lab_img[:, :, 1] <= 255))
-        threshold_3 = np.logical_and((lab_img[:, :, 2] > 0), (lab_img[:, :, 2] <= threshold_value))
+        threshold_3 = np.logical_and(
+            (lab_img[:, :, 2] > 0), (lab_img[:, :, 2] <= threshold_value)
+        )
 
         # combine to one matrix
-        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
-            np.uint8
-        )
+        th123 = np.logical_and(
+            np.logical_and(threshold_1, threshold_2), threshold_3
+        ).astype(np.uint8)
 
         # perform a simple morphological operation to smooth the binary mask
         th123 = self.smooth_binary_mask(th123)
@@ -62,8 +64,9 @@ class GrannyStarchArea(granny.GrannyBase):
 
         return starch / ground_truth
 
-
-    def draw_binary_mask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
+    def draw_binary_mask(
+        self, img: NDArray[np.uint8], mask: NDArray[np.uint8]
+    ) -> NDArray[np.uint8]:
         """
         Overlays a binary mask on an image.
 
@@ -75,11 +78,14 @@ class GrannyStarchArea(granny.GrannyBase):
         color = (0, 0, 0)
         alpha = 0.6
         for c in range(3):
-            result[:, :, c] = np.where(mask == 0, result[:, :, c] * (1 - alpha) + alpha * color[c], result[:, :, c])
+            result[:, :, c] = np.where(
+                mask == 0,
+                result[:, :, c] * (1 - alpha) + alpha * color[c],
+                result[:, :, c],
+            )
         return result
 
-
-    def smooth_binary_mask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
+    wdef smooth_binary_mask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
         Smooth binary mask with basic morphological operations.
         By performing morphology, the binary mask will be smoothened to avoid discontinuity.
@@ -90,7 +96,8 @@ class GrannyStarchArea(granny.GrannyBase):
         ksize = (10, 10)
         strel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, ksize=ksize)
 
-        # using to structuring element to perform one close and one open operation on the binary mask
+        # using to structuring element to perform one close and one open
+        # operation on the binary mask
         bin_mask = cv2.dilate(
             cv2.erode(bin_mask, kernel=strel, iterations=1),
             kernel=strel,
@@ -103,12 +110,9 @@ class GrannyStarchArea(granny.GrannyBase):
         )
         return bin_mask
 
-
     def calculate_starch_multiprocessing(self, args: str) -> Any:
         file_name = args
-        results = self.calculate_starch(
-            os.path.join(self.FOLDER_NAME, file_name)
-        )
+        results = self.calculate_starch(os.path.join(self.FOLDER_NAME, file_name))
         return results
 
     def GrannyStarchArea(self) -> None:
@@ -117,9 +121,7 @@ class GrannyStarchArea(granny.GrannyBase):
         cpu_count = int(os.cpu_count() * 0.8) or 1
         image_list = sorted(image_list)
         with Pool(cpu_count) as pool:
-            results = pool.map(
-                self.calculate_starch_multiprocessing, image_list
-            )
+            results = pool.map(self.calculate_starch_multiprocessing, image_list)
 
         with open(f"{self.RESULT_DIR}{os.sep}starch_area.csv", "w") as w:
             for i, file_name in enumerate(image_list):

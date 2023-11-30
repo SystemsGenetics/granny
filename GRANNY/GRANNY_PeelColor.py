@@ -115,8 +115,12 @@ class GrannyPeelColor(granny.GrannyBase):
             90.92633324,
         ]
 
-        self.LINE_POINT_1: NDArray[np.float16] = np.array([-76.69774, 0.0], dtype=np.float16)
-        self.LINE_POINT_2: NDArray[np.float16] = np.array([0.0, 110.0861], dtype=np.float16)
+        self.LINE_POINT_1: NDArray[np.float16] = np.array(
+            [-76.69774, 0.0], dtype=np.float16
+        )
+        self.LINE_POINT_2: NDArray[np.float16] = np.array(
+            [0.0, 110.0861], dtype=np.float16
+        )
 
     def remove_purple(self, img: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -133,16 +137,18 @@ class GrannyPeelColor(granny.GrannyBase):
         threshold_3 = np.logical_and((ycc_img[:, :, 2] >= 0), (ycc_img[:, :, 2] <= 126))
 
         # combine to one matrix
-        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
-            np.uint8
-        )
+        th123 = np.logical_and(
+            np.logical_and(threshold_1, threshold_2), threshold_3
+        ).astype(np.uint8)
 
         # create new image using threshold matrices
         for i in range(3):
             new_img[:, :, i] = new_img[:, :, i] * th123
         return new_img
 
-    def get_green_yellow_values(self, img: NDArray[np.uint8]) -> Tuple[float, float, float]:
+    def get_green_yellow_values(
+        self, img: NDArray[np.uint8]
+    ) -> Tuple[float, float, float]:
         """
         Get the mean pixel values from the images representing the amount of
         green and yellow in the CIELAB color space. Then, normalize the values to L = 50.
@@ -156,16 +162,18 @@ class GrannyPeelColor(granny.GrannyBase):
         threshold_3 = np.logical_and((lab_img[:, :, 2] > 128), (lab_img[:, :, 2] < 255))
 
         # combine to one matrix
-        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
-            np.uint8
-        )
+        th123 = np.logical_and(
+            np.logical_and(threshold_1, threshold_2), threshold_3
+        ).astype(np.uint8)
 
         # apply the binary mask on the image
         for i in range(3):
             lab_img[:, :, i] = lab_img[:, :, i] * th123
 
         # get mean values from each channel
-        mean_l = np.sum(lab_img[:, :, 0]) / np.count_nonzero(lab_img[:, :, 0]) * 100 / 255
+        mean_l = (
+            np.sum(lab_img[:, :, 0]) / np.count_nonzero(lab_img[:, :, 0]) * 100 / 255
+        )
         mean_a = np.sum(lab_img[:, :, 1]) / np.count_nonzero(lab_img[:, :, 1]) - 128
         mean_b = np.sum(lab_img[:, :, 2]) / np.count_nonzero(lab_img[:, :, 2]) - 128
 
@@ -194,7 +202,8 @@ class GrannyPeelColor(granny.GrannyBase):
             dist_a = color_list[0] - np.array(self.MEAN_VALUES_A)
             dist_b = color_list[1] - np.array(self.MEAN_VALUES_B)
             dist = np.sqrt(
-                (dist_a / np.linalg.norm(dist_a)) ** 2 + (dist_b / np.linalg.norm(dist_b)) ** 2
+                (dist_a / np.linalg.norm(dist_a)) ** 2
+                + (dist_b / np.linalg.norm(dist_b)) ** 2
             )
             bin_num = np.argmin(dist) + 1
         if method == "X-component":
@@ -244,7 +253,8 @@ class GrannyPeelColor(granny.GrannyBase):
         n = self.LINE_POINT_2 - self.LINE_POINT_1
         n /= np.linalg.norm(n)
         projection = calculate_intersection(
-            ((0.0, 0.0), (color_list[1], color_list[2])), (self.LINE_POINT_1, self.LINE_POINT_2)
+            ((0.0, 0.0), (color_list[1], color_list[2])),
+            (self.LINE_POINT_1, self.LINE_POINT_2),
         )
         score = cast(
             float,
@@ -303,7 +313,9 @@ class GrannyPeelColor(granny.GrannyBase):
 
     def extract_green_yellow_values_multiprocessing(self, args: str) -> Any:
         file_name = args
-        results = self.extract_green_yellow_values(os.path.join(self.FOLDER_NAME, file_name))
+        results = self.extract_green_yellow_values(
+            os.path.join(self.FOLDER_NAME, file_name)
+        )
         return results
 
     def GrannyPeelColor(self) -> None:
@@ -319,7 +331,9 @@ class GrannyPeelColor(granny.GrannyBase):
         cpu_count = int(os.cpu_count() * 0.8) or 1
         image_list = sorted(image_list)
         with Pool(cpu_count) as pool:
-            results = pool.map(self.extract_green_yellow_values_multiprocessing, image_list)
+            results = pool.map(
+                self.extract_green_yellow_values_multiprocessing, image_list
+            )
 
         with open(f"{self.BIN_COLOR}{os.sep}peel_colors.csv", "w") as w:
             for i, file_name in enumerate(image_list):
