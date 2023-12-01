@@ -47,7 +47,6 @@ class GrannyPearBlush(granny.GrannyBase):
         cv2.createTrackbar("a*", "Calibration", 0, 255, self.trackbar_change)
         cv2.setTrackbarMax("a*", "Calibration", 255)
         cv2.setTrackbarMin("a*", "Calibration", 0)
-
         return 0
 
     def calculate_blush_region_multiprocessing(self, args: str) -> float:
