@@ -4,8 +4,8 @@ Usage
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
-   usage/scald_rating
-   usage/pear_color_rating
-   usage/blush_rating
-   usage/starch_rating
+   segmentation
+   assessment/scald_rating
+   assessment/pear_color_rating
+   assessment/blush_rating
+   assessment/starch_rating

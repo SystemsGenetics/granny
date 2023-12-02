@@ -1,11 +1,19 @@
 Rating Superficial Scald in "Granny Smith" Apples
 =================================================
 
-With individual apples extracted to your "results", run Granny with a "scald" action::
+With individual apples extracted to your ``results``, run Granny with a ``scald`` action::
 
-    granny --action scald --image_dir ./results/segmented_images/
+    granny --action scald --image_dir <your_image_dir> ./results/segmented_images/
     
 to get the following images, and a `ratings.csv` file containing scald rating for each instance.
+
+.. raw:: html
+
+    <div align="center">
+      <img src="../../demo/granny_smith_images/full_masked_images/apple_demo_image.png" width="500px" />
+      <p> </p>
+    </div>
+
 
 1st row:
 
@@ -20,6 +28,7 @@ to get the following images, and a `ratings.csv` file containing scald rating fo
 
 .. figure:: ../../demo/granny_smith_images/binarized_images/apple_demo_image_1.png
     :width: 100
+
 
 2nd row:
 
