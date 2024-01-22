@@ -1,16 +1,16 @@
 import numpy as np
+from abc import ABC
 
 from numpy.typing import NDArray
 
 
-class Image(object):
+class Image(ABC):
     __attrs__ = ["image", "metadata", "name"]
 
     def __init__(self, image: NDArray[np.uint8]) -> None:
         self.image: NDArray[np.uint8] = None
         self.metadata = None
         self.name: str = None
-        pass
 
     def loadImage(self):
         pass
