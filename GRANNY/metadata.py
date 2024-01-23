@@ -1,5 +1,3 @@
-import numpy as np
-
 from abc import ABC
 from numpy.typing import NDArray
 
