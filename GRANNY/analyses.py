@@ -4,6 +4,8 @@ from abc import ABC
 from typing import OrderedDict, Any, List
 from numpy.typing import NDArray
 
+from model import YoloModel
+
 
 class Analysis(ABC):
     __attrs__ = ["images", "params", "param_values", "trial_num"]
@@ -43,4 +45,18 @@ class Analysis(ABC):
         pass
 
     def performAnalysis() -> None:
+        pass
+
+
+class Segmentation(Analysis):
+    def __init__(self, model_dir: str):
+        super(self, Segmentation).__init__()
+        self.yolo_model = None
+        self.model_dir: str = model_dir
+
+    def performAnalysis(self) -> None:
+        # something like this
+        model = YoloModel(model_dir=self.model_dir)
+        self.yolo_model = model.loadModel()
+        model.segmentInstances()
         pass

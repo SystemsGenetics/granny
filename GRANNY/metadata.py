@@ -1,4 +1,10 @@
-class MetaData(object):
+import numpy as np
+
+from abc import ABC
+from numpy.typing import NDArray
+
+
+class MetaData(ABC):
     def __init__(self):
         None
 
@@ -9,10 +15,10 @@ class MetaDataIO(object):
 
 
 class MetaDataFile(MetaDataIO):
-    def __init__(self):
+    def __init__(self, filepath: str):
         super(MetaDataIO, self).__init__()
-        self.filepath: str = None
-        self.metadata = None
+        self.filepath: str = filepath
+        self.metadata: NDArray = None
 
     def load():
         pass
