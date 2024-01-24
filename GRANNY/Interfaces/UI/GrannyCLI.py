@@ -1,11 +1,3 @@
-from abc import ABC
-
-
-class GrannyUI(ABC):
-    def __init__(self):
-        pass
-
-
 class GrannyCLI(GrannyUI):
     def __init__(self):
         super(self, GrannyUI).__init__()
@@ -24,10 +16,3 @@ class GrannyCLI(GrannyUI):
 
     def run(self):
         pass
-
-
-class GrannyBase(object):
-    # move this later
-    def __init__(self):
-        self.granny_version: str = None
-        self.interface = None

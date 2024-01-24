@@ -1,4 +1,4 @@
-class YoloModel(object):
+class SegmentationYOLO(object):
     def __init__(self, model_dir: str):
         self.model_dir: str = model_dir
         self.model = None
