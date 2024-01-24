@@ -1,15 +1,15 @@
-from abc import ABC
 from typing import Any, List, OrderedDict
 
 import numpy as np
-from Analysis import Analysis
-from model import YoloModel
+from Analyses.Analysis import Analysis
 from numpy.typing import NDArray
 
 
 class Segmentation(Analysis):
-    def __init__(self, model_dir: str):
-        super(self, Segmentation).__init__()
+
+   def __init__(self, images: NDArray[np.uint8], **kargs):
+        Analysis.__init__(self, images, kargs);
+
         self.yolo_model = None
         self.model_dir: str = model_dir
 

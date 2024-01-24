@@ -9,7 +9,7 @@ from numpy.typing import NDArray
 class Analysis(ABC):
     __attrs__ = ["images", "params", "param_values", "trial_num"]
 
-    def __init__(self, images: NDArray[np.uint8]):
+    def __init__(self, images: NDArray[np.uint8], **kargs):
         self.images: NDArray[np.uint8] = images
         self.params: OrderedDict = {
             "param_name": {
