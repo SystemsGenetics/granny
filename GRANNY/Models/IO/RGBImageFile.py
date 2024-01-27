@@ -1,7 +1,7 @@
-from abc import ABC
-
 import numpy as np
+
 from numpy.typing import NDArray
+from Models.IO.ImageIO import ImageIO
 
 
 class RGBImageFile(ImageIO):

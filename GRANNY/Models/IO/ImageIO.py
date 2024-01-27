@@ -1,7 +1,4 @@
-from abc import ABC
-
-import numpy as np
-from numpy.typing import NDArray
+from Images.Image import Image
 
 
 class ImageIO(object):
