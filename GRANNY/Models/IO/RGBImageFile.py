@@ -1,18 +1,23 @@
-import numpy as np
+from typing import cast
 
-from numpy.typing import NDArray
+import cv2
+import numpy as np
 from Models.IO.ImageIO import ImageIO
+from numpy.typing import NDArray
 
 
 class RGBImageFile(ImageIO):
     __attrs__ = ["filepath"]
 
-    def __init__(self):
-        super(RGBImageFile, self).__init__()
-        self.filepath: str = None
+    def __init__(self, filepath: str):
+        ImageIO.__init__(self, filepath)
 
-    def load() -> NDArray[np.uint8]:
-        return None
+    def loadImage(self) -> NDArray[np.uint8]:
+        return cast(NDArray[np.uint8], cv2.imread(self.filepath))
 
-    def save() -> None:
-        pass
+    def saveImage(self, image: NDArray[np.uint8], format: str) -> None:
+        cv2.imwrite(self.filepath, image)
+
+    def getType(self):
+        return super().getType()
+    
