@@ -20,4 +20,3 @@ class RGBImageFile(ImageIO):
 
     def getType(self):
         return super().getType()
-    
