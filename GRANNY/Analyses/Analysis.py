@@ -1,17 +1,15 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Any, List, OrderedDict
 
-import numpy as np
-from model import YoloModel
-from numpy.typing import NDArray
+from GRANNY.Models.Images.Image import Image
 
 
 class Analysis(ABC):
     __attrs__ = ["images", "params", "param_values", "trial_num"]
 
-    def __init__(self, images: NDArray[np.uint8], **kargs):
-        self.images: NDArray[np.uint8] = images
-        self.params: OrderedDict = {
+    def __init__(self, images: List[Image]):
+        self.images: List[Image] = images
+        self.params: OrderedDict[str, str] = {
             "param_name": {
                 "type": None,
                 "default": None,
@@ -22,26 +20,33 @@ class Analysis(ABC):
                 "help": None,
             }
         }
-        self.param_values: OrderedDict = None
-        self.trial_num: int = None
+        self.param_values: OrderedDict[str, str] = {"": ""}
+        self.trial_num: int = 0
 
+    @abstractmethod
     def getParams(self):
         pass
 
+    @abstractmethod
     def setResults(self, index: int, key: str, value: Any):
         pass
 
+    @abstractmethod
     def checkParams(self):
         pass
 
-    def setParamValue(key: str, value: str) -> None:
+    @abstractmethod
+    def setParamValue(self, key: str, value: str) -> None:
         pass
 
-    def getParamValue(key: str):
+    @abstractmethod
+    def getParamValue(self, key: str):
         pass
 
-    def getParamKeys() -> None:
+    @abstractmethod
+    def getParamKeys(self) -> None:
         pass
 
-    def performAnalysis() -> None:
+    @abstractmethod
+    def performAnalysis(self) -> None:
         pass

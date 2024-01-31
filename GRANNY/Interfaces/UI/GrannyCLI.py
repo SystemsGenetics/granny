@@ -1,10 +1,13 @@
+from GRANNY.Interfaces.UI.GrannyUI import GrannyUI
+
+
 class GrannyCLI(GrannyUI):
     def __init__(self):
-        super(self, GrannyUI).__init__()
-        self.image_dir: str = None
-        self.metadata_dir: str = None
-        self.result_dir: str = None
-        self.analysis: str = None
+        GrannyUI.__init__(self)
+        self.image_dir: str = ""
+        self.metadata_dir: str = ""
+        self.result_dir: str = ""
+        self.analysis: str = ""
 
     def checkArgs(self):
         # from params in analyses

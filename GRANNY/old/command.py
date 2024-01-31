@@ -4,7 +4,7 @@ from . import GRANNY_StarchArea
 
 import argparse
 
-from GRANNY import (
+from GRANNY.old import (
     GRANNY_BlushColor,
     GRANNY_PeelColor,
     GRANNY_Segmentation,

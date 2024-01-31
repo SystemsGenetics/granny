@@ -1,18 +1,21 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 import numpy as np
 from numpy.typing import NDArray
 
 
-class ImageIO(object):
-    def __init__(self):
+class ImageIO(ABC):
+    def __init__(self, filepath: str):
+        self.filepath: str = filepath
+
+    @abstractmethod
+    def saveImage(self, image: NDArray[np.uint8], format: str):
         pass
 
-    def saveImage(image: Image, format: str):
+    @abstractmethod
+    def loadImage(self) -> NDArray[np.uint8]:
         pass
 
-    def loadImage(format: str):
-        pass
-
-    def getType():
+    @abstractmethod
+    def getType(self):
         pass
