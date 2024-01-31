@@ -24,7 +24,7 @@ setuptools.setup(
     ],
     entry_points={
         "console_scripts": [
-            "granny = GRANNY.GrannyBase.GrannyBase.cli()",
+            "granny = GRANNY.GrannyBase:execute",
         ]
     },
 )

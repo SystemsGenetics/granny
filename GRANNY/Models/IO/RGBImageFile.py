@@ -2,7 +2,7 @@ from typing import cast
 
 import cv2
 import numpy as np
-from Models.IO.ImageIO import ImageIO
+from GRANNY.Models.IO.ImageIO import ImageIO
 from numpy.typing import NDArray
 
 

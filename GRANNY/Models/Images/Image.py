@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
-from IO.ImageIO import ImageIO
-from IO.RGBImageFile import RGBImageFile
-from Models.Images.MetaData import MetaData
+from GRANNY.Models.Images.MetaData import MetaData
+from GRANNY.Models.IO.ImageIO import ImageIO
+from GRANNY.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
 
 

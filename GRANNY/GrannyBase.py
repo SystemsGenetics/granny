@@ -78,5 +78,5 @@ class GrannyBase(object):
         return parser.parse_args()
 
 
-if __name__ == "__main__":
+def execute():
     GrannyBase().run()
