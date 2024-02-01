@@ -1,3 +1,7 @@
+import argparse
+import os
+
+# from GRANNY.Analyses.Segmentation import Segmentation
 from GRANNY.Interfaces.UI.GrannyUI import GrannyUI
 
 
@@ -9,13 +13,75 @@ class GrannyCLI(GrannyUI):
         self.result_dir: str = ""
         self.analysis: str = ""
 
+    def printHelp(self):
+        os.system("granny-cli --help")
+
     def checkArgs(self):
         # from params in analyses
         pass
 
-    def printHelp(self):
-        # from params in analyses
-        pass
-
     def run(self):
-        pass
+        self.cli()
+        if self.analysis == "segmentation":
+            print("this is segmentation analysis")
+            # Segmentation()
+        elif self.analysis == "scald":
+            print("this is superficial scald analysis")
+            # SuperficialScald()
+        elif self.analysis == "peel":
+            print("this is peel color analysis")
+            # PeelColor()
+        elif self.analysis == "starch":
+            print("this is starch percentage analysis")
+            # StarchArea()
+        elif self.analysis == "blush":
+            print("this is blush color analysis")
+            # BlushColor()
+        else:
+            print("\t- Invalid Action. -")
+
+    def cli(self):
+        parser = argparse.ArgumentParser(description="Welcome to Granny v1.0")
+
+        parser.add_argument(
+            "-d",
+            "--image_dir",
+            dest="dir",
+            type=str,
+            nargs="?",
+            required=True,
+            help="Required. Specify a folder for input images.",
+        )
+        parser.add_argument(
+            "-m",
+            "--metadata",
+            dest="metadata",
+            type=str,
+            nargs="?",
+            required=True,
+            help="Required. Specify a path for metadata file.",
+        )
+        parser.add_argument(
+            "-a",
+            "--analysis",
+            dest="analysis",
+            type=int,
+            nargs="?",
+            required=True,
+            help="Required. Specify an analysis you want to perform.",
+        )
+        parser.add_argument(
+            "-r",
+            "--result_dir",
+            dest="result",
+            type=str,
+            nargs="?",
+            required=False,
+            help="Optional. Specify a folder to save results. Default directory is 'results/'.",
+        )
+
+        args = parser.parse_args()
+        self.image_dir = args.dir
+        self.result_dir = args.result
+        self.metadata_dir = args.metadata
+        self.analysis = args.analysis

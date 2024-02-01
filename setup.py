@@ -1,5 +1,4 @@
 import setuptools
-from GRANNY.GrannyBase import GrannyBase
 
 requirements = """
 ultralytics
@@ -12,7 +11,7 @@ setuptools.setup(
     name="granny",
     packages=setuptools.find_packages(),
     url="https://github.com/SystemsGenetics/granny",
-    version="1.4.0",
+    version="1.0",
     description="GRANNY is an implementation of Mask-RCNN and image processing\
     techniques, developed by the Ficklin Research Program, to rate disorder\
     severity in pome fruits.",
@@ -24,7 +23,8 @@ setuptools.setup(
     ],
     entry_points={
         "console_scripts": [
-            "granny = GRANNY.GrannyBase:execute",
+            "granny-cli = GRANNY.GrannyBase:cli",
+            "granny-gui = GRANNY.GrannyBase:gui",
         ]
     },
 )
