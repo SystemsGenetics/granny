@@ -1,14 +1,15 @@
-from numpy.typing import NDArray
+from GRANNY.Models.Images.MetaData import MetaData
+from GRANNY.Models.IO.MetaDataIO import MetaDataIO
 
 
 class MetaDataFile(MetaDataIO):
     def __init__(self, filepath: str):
         super(MetaDataIO, self).__init__()
         self.filepath: str = filepath
-        self.metadata: NDArray = None
+        self.metadata: MetaData
 
-    def load():
+    def load(self):
         pass
 
-    def save(metadata: MetaData):
+    def save(self, metadata: MetaData):
         pass
