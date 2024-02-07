@@ -23,7 +23,7 @@ setuptools.setup(
     ],
     entry_points={
         "console_scripts": [
-            "granny-cli = GRANNY.GrannyBase:cli",
+            "granny = GRANNY.GrannyBase:cli",
             "granny-gui = GRANNY.GrannyBase:gui",
         ]
     },

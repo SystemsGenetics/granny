@@ -7,12 +7,10 @@ from numpy.typing import NDArray
 
 
 class Image(ABC):
-    __attrs__ = ["image", "metadata", "name"]
-
-    def __init__(self, image: NDArray[np.uint8]) -> None:
-        self.image: NDArray[np.uint8] = image
-        self.name: str = ""
-        self.image_io: ImageIO = RGBImageFile(self.name)
+    def __init__(self, image_name: str):
+        self.image: NDArray[np.uint8]
+        self.image_name: str = image_name
+        self.image_io: ImageIO = RGBImageFile(self.image_name)
 
     @abstractmethod
     def loadImage(self):

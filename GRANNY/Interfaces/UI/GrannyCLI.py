@@ -1,8 +1,10 @@
 import argparse
 import os
 
-# from GRANNY.Analyses.Segmentation import Segmentation
+from GRANNY.Analyses.StarchArea import StarchArea
 from GRANNY.Interfaces.UI.GrannyUI import GrannyUI
+from GRANNY.Models.Images.RGBImage import RGBImage
+from GRANNY.Models.IO.RGBImageFile import RGBImageFile
 
 
 class GrannyCLI(GrannyUI):
@@ -22,6 +24,7 @@ class GrannyCLI(GrannyUI):
 
     def run(self):
         self.cli()
+        image = RGBImage(self.image_dir)
         if self.analysis == "segmentation":
             print("this is segmentation analysis")
             # Segmentation()
@@ -32,8 +35,7 @@ class GrannyCLI(GrannyUI):
             print("this is peel color analysis")
             # PeelColor()
         elif self.analysis == "starch":
-            print("this is starch percentage analysis")
-            # StarchArea()
+            StarchArea(image).performAnalysis()
         elif self.analysis == "blush":
             print("this is blush color analysis")
             # BlushColor()
@@ -42,7 +44,15 @@ class GrannyCLI(GrannyUI):
 
     def cli(self):
         parser = argparse.ArgumentParser(description="Welcome to Granny v1.0")
-
+        parser.add_argument(
+            "-a",
+            "--analysis",
+            dest="analysis",
+            type=str,
+            nargs="?",
+            required=True,
+            help="Required. Specify an analysis you want to perform.",
+        )
         parser.add_argument(
             "-d",
             "--image_dir",
@@ -52,24 +62,15 @@ class GrannyCLI(GrannyUI):
             required=True,
             help="Required. Specify a folder for input images.",
         )
-        parser.add_argument(
-            "-m",
-            "--metadata",
-            dest="metadata",
-            type=str,
-            nargs="?",
-            required=True,
-            help="Required. Specify a path for metadata file.",
-        )
-        parser.add_argument(
-            "-a",
-            "--analysis",
-            dest="analysis",
-            type=int,
-            nargs="?",
-            required=True,
-            help="Required. Specify an analysis you want to perform.",
-        )
+        # parser.add_argument(
+        #     "-m",
+        #     "--metadata",
+        #     dest="metadata",
+        #     type=str,
+        #     nargs="?",
+        #     required=True,
+        #     help="Required. Specify a path for metadata file.",
+        # )
         parser.add_argument(
             "-r",
             "--result_dir",
@@ -83,5 +84,5 @@ class GrannyCLI(GrannyUI):
         args = parser.parse_args()
         self.image_dir = args.dir
         self.result_dir = args.result
-        self.metadata_dir = args.metadata
+        # self.metadata_dir = args.metadata
         self.analysis = args.analysis

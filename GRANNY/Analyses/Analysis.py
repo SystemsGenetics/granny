@@ -5,10 +5,8 @@ from GRANNY.Models.Images.Image import Image
 
 
 class Analysis(ABC):
-    __attrs__ = ["images", "params", "param_values", "trial_num"]
-
-    def __init__(self, images: List[Image]):
-        self.images: List[Image] = images
+    def __init__(self, image: Image):
+        self.image: Image = image
         self.params: OrderedDict[str, str] = {
             "param_name": {
                 "type": None,
