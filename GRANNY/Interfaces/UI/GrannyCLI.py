@@ -2,9 +2,9 @@ import argparse
 import os
 
 from GRANNY.Analyses.StarchArea import StarchArea
+from GRANNY.Analyses.SuperficialScald import SuperficialScald
 from GRANNY.Interfaces.UI.GrannyUI import GrannyUI
 from GRANNY.Models.Images.RGBImage import RGBImage
-from GRANNY.Models.IO.RGBImageFile import RGBImageFile
 
 
 class GrannyCLI(GrannyUI):
@@ -29,8 +29,7 @@ class GrannyCLI(GrannyUI):
             print("this is segmentation analysis")
             # Segmentation()
         elif self.analysis == "scald":
-            print("this is superficial scald analysis")
-            # SuperficialScald()
+            SuperficialScald(image).performAnalysis()
         elif self.analysis == "peel":
             print("this is peel color analysis")
             # PeelColor()

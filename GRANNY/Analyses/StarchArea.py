@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 import cv2
 import numpy as np
@@ -80,7 +80,7 @@ class StarchArea(Analysis):
     def calculateStarch(self, img: NDArray[np.uint8]) -> float:
         new_img = img.copy()
         img = cv2.GaussianBlur(img, (11, 11), 0)
-        lab_img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+        lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2LAB))
 
         def calculate_threshold_from_hist(hist: NDArray[np.int8]) -> int:
             histogram_sum = np.sum(hist)
@@ -117,8 +117,7 @@ class StarchArea(Analysis):
         # create new image using threshold matrices
         new_img = self.drawMask(new_img, th123)
 
-
-        ground_truth = np.count_nonzero(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) > 0)
+        ground_truth = np.count_nonzero(cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)) > 0)
         starch = np.count_nonzero(th123)
 
         return starch / ground_truth
@@ -131,4 +130,3 @@ class StarchArea(Analysis):
         img = self.image.getImage()
         # performs starch percentage calculation
         result = self.calculateStarch(img)
-        pass
