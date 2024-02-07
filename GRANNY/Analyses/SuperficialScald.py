@@ -8,6 +8,9 @@ from numpy.typing import NDArray
 
 
 class SuperficialScald(Analysis):
+
+    __anlaysis_name__ = "scald"
+
     def __init__(self, image: Image):
         Analysis.__init__(self, image)
 
@@ -91,7 +94,6 @@ class SuperficialScald(Analysis):
             new_img[:, :, i] = new_img[:, :, i] * th123
         return th123, new_img
 
-
     def removeTrayResidue(self, img: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
         Remove the surrounding purple from the individual apples using YCrCb color space.
@@ -161,7 +163,6 @@ class SuperficialScald(Analysis):
         if fraction < 0:
             return 0
         return fraction
-
 
     def rateSuperficialScald(self, img: NDArray[np.uint8]) -> float:
         # returns apple image with no scald
