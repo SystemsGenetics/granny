@@ -1,12 +1,9 @@
-import os
-from multiprocessing import Pool
-from typing import Any, List, cast
+from typing import Any
 
 import cv2
 import numpy as np
 from GRANNY.Analyses.Analysis import Analysis
 from GRANNY.Models.Images.Image import Image
-from GRANNY.Models.Images.RGBImage import RGBImage
 from numpy.typing import NDArray
 
 
@@ -134,5 +131,4 @@ class StarchArea(Analysis):
         img = self.image.getImage()
         # performs starch percentage calculation
         result = self.calculateStarch(img)
-        print(result)
         pass
