@@ -12,31 +12,30 @@ class GrannyCLI(GrannyUI):
         GrannyUI.__init__(self)
         self.image_dir: str = ""
         self.metadata_dir: str = ""
-        self.result_dir: str = ""
+        self.result_dir: str = "results/"
         self.analysis: str = ""
 
     def printHelp(self):
         os.system("granny-cli --help")
 
     def checkArgs(self):
-        # from params in analyses
         pass
 
     def run(self):
         self.cli()
         image = RGBImage(self.image_dir)
         if self.analysis == "segmentation":
-            print("this is segmentation analysis")
+            print("segmentation")
             # Segmentation()
         elif self.analysis == "scald":
             SuperficialScald(image).performAnalysis()
         elif self.analysis == "peel":
-            print("this is peel color analysis")
+            print("peel color")
             # PeelColor()
         elif self.analysis == "starch":
             StarchArea(image).performAnalysis()
         elif self.analysis == "blush":
-            print("this is blush color analysis")
+            print("blush color")
             # BlushColor()
         else:
             print("\t- Invalid Action. -")

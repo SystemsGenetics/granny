@@ -1,4 +1,4 @@
-from typing import Any, cast
+from typing import Any, Tuple, cast
 
 import cv2
 import numpy as np
@@ -77,7 +77,7 @@ class StarchArea(Analysis):
         return bin_mask
 
 
-    def calculateStarch(self, img: NDArray[np.uint8]) -> float:
+    def calculateStarch(self, img: NDArray[np.uint8]) -> Tuple[NDArray[np.uint8], float]:
         new_img = img.copy()
         img = cv2.GaussianBlur(img, (11, 11), 0)
         lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2LAB))
@@ -111,22 +111,28 @@ class StarchArea(Analysis):
             np.logical_and(threshold_1, threshold_2), threshold_3
         ).astype(np.uint8)
 
-        # perform a simple morphological operation to smooth the binary mask
+        # performs a simple morphological operation to smooth the binary mask
         th123 = self.smoothMask(th123)
 
-        # create new image using threshold matrices
+        # creates new image using threshold matrices
         new_img = self.drawMask(new_img, th123)
 
+        # calculates starch percentage
         ground_truth = np.count_nonzero(cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)) > 0)
         starch = np.count_nonzero(th123)
 
-        return starch / ground_truth
+        return new_img, starch / ground_truth
 
 
     def performAnalysis(self) -> None:
         # loads image from file system with RGBImageFile(ImageIO)
         self.image.loadImage()
+
         # gets array image
         img = self.image.getImage()
+
         # performs starch percentage calculation
-        result = self.calculateStarch(img)
+        new_img, result = self.calculateStarch(img)
+
+        # saves image to a results file
+        self.image.saveImage(new_img)

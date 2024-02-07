@@ -17,7 +17,7 @@ class Image(ABC):
         pass
 
     @abstractmethod
-    def saveImage(self):
+    def saveImage(self, image: NDArray[np.uint8]):
         pass
 
     @abstractmethod
