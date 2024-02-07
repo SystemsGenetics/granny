@@ -4,8 +4,8 @@ from typing import Any, cast
 
 import cv2
 import numpy as np
-from GRANNY import GRANNY_Base as granny
 from numpy.typing import NDArray
+from old import GRANNY_Base as granny
 
 
 class GrannyStarchArea(granny.GrannyBase):

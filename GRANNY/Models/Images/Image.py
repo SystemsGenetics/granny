@@ -1,10 +1,7 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
-from GRANNY.Models.Images.MetaData import MetaData
 from GRANNY.Models.IO.ImageIO import ImageIO
-from GRANNY.Models.IO.MetaDataFile import MetaDataFile
-from GRANNY.Models.IO.MetaDataIO import MetaDataIO
 from GRANNY.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
 
@@ -14,7 +11,6 @@ class Image(ABC):
 
     def __init__(self, image: NDArray[np.uint8]) -> None:
         self.image: NDArray[np.uint8] = image
-        self.metadata: MetaData
         self.name: str = ""
         self.image_io: ImageIO = RGBImageFile(self.name)
 
@@ -35,7 +31,7 @@ class Image(ABC):
         pass
 
     @abstractmethod
-    def getImage(self):
+    def getImage(self) -> NDArray[np.uint8]:
         pass
 
     @abstractmethod
@@ -67,5 +63,5 @@ class Image(ABC):
         pass
 
     @abstractmethod
-    def extractFeature(self):
+    def extractFeature(self, mask: NDArray[np.float16]):
         pass
