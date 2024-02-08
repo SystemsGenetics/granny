@@ -5,7 +5,17 @@ from GRANNY.Models.Images.Image import Image
 
 
 class Analysis(ABC):
+
+    __anlaysis_name__ = "analysis"
+
     def __init__(self, image: Image):
+        """
+        Intializes an instance of an Analysis object,
+
+        @param GRANNY.Models.Images.Image An instance of an Image object
+
+        @return GRANNY.Analyses.Analysis.Analysis object.
+        """
         self.image: Image = image
         self.params: OrderedDict[str, str] = {
             "param_name": {
@@ -47,4 +57,12 @@ class Analysis(ABC):
 
     @abstractmethod
     def performAnalysis(self) -> None:
+        """
+        Performs the analysis.
+
+        Once all required paramterers have been set, this function is used
+        to perform the analysis.
+
+        @throws Exception
+        """
         pass

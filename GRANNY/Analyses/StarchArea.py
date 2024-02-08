@@ -9,6 +9,8 @@ from numpy.typing import NDArray
 
 class StarchArea(Analysis):
 
+    __anlaysis_name__ = "starch"
+
     def __init__(self, image: Image):
         Analysis.__init__(self, image)
 
@@ -30,9 +32,7 @@ class StarchArea(Analysis):
     def getParamKeys(self) -> None:
         pass
 
-    def drawMask(
-        self, img: NDArray[np.uint8], mask: NDArray[np.uint8]
-    ) -> NDArray[np.uint8]:
+    def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
         Overlays a binary mask on an image.
 
@@ -76,8 +76,7 @@ class StarchArea(Analysis):
         )
         return bin_mask
 
-
-    def calculateStarch(self, img: NDArray[np.uint8]) -> Tuple[NDArray[np.uint8], float]:
+    def calculateStarch(self, img: NDArray[np.uint8]) -> float:
         new_img = img.copy()
         img = cv2.GaussianBlur(img, (11, 11), 0)
         lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2LAB))
@@ -102,14 +101,12 @@ class StarchArea(Analysis):
 
         threshold_1 = np.logical_and((lab_img[:, :, 0] > 0), (lab_img[:, :, 0] <= 205))
         threshold_2 = np.logical_and((lab_img[:, :, 1] > 0), (lab_img[:, :, 1] <= 255))
-        threshold_3 = np.logical_and(
-            (lab_img[:, :, 2] > 0), (lab_img[:, :, 2] <= threshold_value)
-        )
+        threshold_3 = np.logical_and((lab_img[:, :, 2] > 0), (lab_img[:, :, 2] <= threshold_value))
 
         # combine to one matrix
-        th123 = np.logical_and(
-            np.logical_and(threshold_1, threshold_2), threshold_3
-        ).astype(np.uint8)
+        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
+            np.uint8
+        )
 
         # performs a simple morphological operation to smooth the binary mask
         th123 = self.smoothMask(th123)
@@ -117,12 +114,12 @@ class StarchArea(Analysis):
         # creates new image using threshold matrices
         new_img = self.drawMask(new_img, th123)
 
-        # calculates starch percentage
-        ground_truth = np.count_nonzero(cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)) > 0)
+        ground_truth = np.count_nonzero(
+            cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)) > 0
+        )
         starch = np.count_nonzero(th123)
 
-        return new_img, starch / ground_truth
-
+        return starch / ground_truth
 
     def performAnalysis(self) -> None:
         # loads image from file system with RGBImageFile(ImageIO)

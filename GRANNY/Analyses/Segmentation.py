@@ -5,7 +5,7 @@ from GRANNY.Models.Images.Image import Image
 
 
 class Segmentation(Analysis):
-    __name__ = "segmentation"
+    __anlaysis_name__ = "segmentation"
 
     def __init__(self, images: List[Image], model_dir: str):
         Analysis.__init__(self, images)
