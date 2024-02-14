@@ -9,7 +9,7 @@ class ImageIO(ABC):
         self.filepath: str = filepath
 
     @abstractmethod
-    def saveImage(self, image: NDArray[np.uint8]):
+    def saveImage(self, image: NDArray[np.uint8], analysis: str):
         pass
 
     @abstractmethod

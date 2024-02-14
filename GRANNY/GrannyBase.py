@@ -23,17 +23,10 @@ def run():
         choices=["cli", "gui"],
         help="Indicates the user interface to use, either the command-line (cli) or the graphical interface (gui).",
     )
-    namespace, extra = parser.parse_known_args()
+    namespace, _ = parser.parse_known_args()
+    interface = namespace.interface[0]
 
-    # The parse_known_args function sometimes reurns a list for the
-    # the argument and sometimes a scalar. This is just to check both.
-    interface = ""
-    if isinstance(namespace.interface, list):
-        interface = namespace.interface[0]
-    else:
-        interface = namespace.interface
-
-    # Now call the proper interface class.
+    # Now calls the proper interface class.
     if interface == "cli":
         GrannyCLI(parser).run()
     elif interface == "gui":

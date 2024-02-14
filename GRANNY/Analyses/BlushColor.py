@@ -9,7 +9,7 @@ from numpy.typing import NDArray
 
 class BlushColor(Analysis):
 
-    __anlaysis_name__ = "blush"
+    __analysis_name__ = "blush"
 
     def __init__(self, image: Image):
         Analysis.__init__(self, image)

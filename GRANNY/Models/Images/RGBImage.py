@@ -15,8 +15,8 @@ class RGBImage(Image):
     def loadImage(self):
         self.image = self.image_io.loadImage()
 
-    def saveImage(self, image: NDArray[np.uint8]):
-        self.image_io.saveImage(image)
+    def saveImage(self, image: NDArray[np.uint8], analysis: str):
+        self.image_io.saveImage(image, analysis)
 
     def extractFeature(self, mask: NDArray[np.float16]):
         pass

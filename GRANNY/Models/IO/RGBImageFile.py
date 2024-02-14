@@ -18,8 +18,8 @@ class RGBImageFile(ImageIO):
     def loadImage(self) -> NDArray[np.uint8]:
         return cast(NDArray[np.uint8], cv2.imread(self.filepath))
 
-    def saveImage(self, image: NDArray[np.uint8]) -> None:
-        cv2.imwrite(os.path.join(self.image_dir, "results/", self.image_name), image)
+    def saveImage(self, image: NDArray[np.uint8], analysis: str) -> None:
+        cv2.imwrite(os.path.join(self.image_dir, analysis, self.image_name), image)
 
     def getType(self):
         return super().getType()

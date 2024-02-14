@@ -9,7 +9,7 @@ from numpy.typing import NDArray
 
 class StarchArea(Analysis):
 
-    __anlaysis_name__ = "starch"
+    __analysis_name__ = "starch"
 
     def __init__(self, image: Image):
         Analysis.__init__(self, image)

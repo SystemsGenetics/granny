@@ -1,4 +1,6 @@
-from typing import Any, Tuple, cast
+import os
+from multiprocessing import Pool
+from typing import Any, List, Tuple, cast
 
 import cv2
 import numpy as np
@@ -9,28 +11,52 @@ from numpy.typing import NDArray
 
 class SuperficialScald(Analysis):
 
-    __anlaysis_name__ = "scald"
+    __analysis_name__ = "scald"
 
-    def __init__(self, image: Image):
-        Analysis.__init__(self, image)
+    def __init__(self, images: List[Image]):
+        Analysis.__init__(self, images)
+        self.params["param_name"]["type"] = self.__analysis_name__
+        self.params["param_name"]["label"] = ""
+        self.params["param_name"]["help"] = ""
 
-    def getParams(self):
-        pass
+    def getParams(self) -> List[Any]:
+        """
+        {@inheritdoc}
+        """
+        return list(self.params["param_name"].values())
 
     def setResults(self, index: int, key: str, value: Any):
+        """
+        {@inheritdoc}
+        """
         pass
 
     def checkParams(self):
+        """
+        {@inheritdoc}
+        """
         pass
 
     def setParamValue(self, key: str, value: str) -> None:
+        """
+        {@inheritdoc}
+        """
         pass
 
-    def getParamValue(self, key: str):
+    def getParamValue(self, key: str) -> Any:
+        """
+        {@inheritdoc}
+        """
         pass
 
     def getParamKeys(self) -> None:
+        """
+        {@inheritdoc}
+        """
         pass
+
+    def resetTrialNum(self) -> None:
+        self.trial_num = 0
 
     def smoothMask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -122,9 +148,10 @@ class SuperficialScald(Analysis):
         self, img: NDArray[np.uint8]
     ) -> Tuple[NDArray[np.uint8], NDArray[np.uint8], NDArray[np.uint8]]:
         """
+        @param img: array representation of the image
+
         Clean up individual image (remove purple area of the tray), and remove scald
         """
-
         # removes the residue tray background
         img = self.removeTrayResidue(img)
         nopurple_img = img.copy()
@@ -141,12 +168,10 @@ class SuperficialScald(Analysis):
         """
         Calculate scald region by counting all non zeros area
 
-        Args:
-                (numpy.array) bw: binarized image
-                (numpy.array) img: original image to be used as ground truth
+        @param bw: black white binarized image with only non-scald region
+        @param img: original image to be used as ground truth for scald calculation
 
-        Returns:
-                (float) fraction: the scald region, i.e. fraction of the original image that was removed
+        @return fraction: the scald region, i.e. fraction of the original image that was removed
         """
         # count non zeros of binarized image
         ground_area = 1 / 3 * np.count_nonzero(img[:, :, 0:2])
@@ -164,19 +189,49 @@ class SuperficialScald(Analysis):
             return 0
         return fraction
 
-    def rateSuperficialScald(self, img: NDArray[np.uint8]) -> float:
+    def rateSuperficialScald(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
+        """
+        Calls self.calculateScald function to calculate the scald portion of the image array.
+        """
         # returns apple image with no scald
-        nopurple_img, binarized_image, bw = self.score_image(img)
+        nopurple_img, binarized_image, _ = self.score_image(img)
 
         # calculate the scald region and save image
         score = self.calculateScald(binarized_image, nopurple_img)
-        return score
+        return score, binarized_image
 
-    def performAnalysis(self) -> None:
+    def rateImageInstance(self, image_instance: Image) -> Tuple[str, float]:
+        """
+        @param image_instance: An GRANNY.Models.Images.Image instance
+
+        1. Loads and performs analysis on the provided Image instance.
+        2. Saves the instance to result directory
+        """
         # loads image from file system with RGBImageFile(ImageIO)
-        self.image.loadImage()
+        image_instance.loadImage()
+
         # gets array image
-        img = self.image.getImage()
+        img = image_instance.getImage()
+
         # performs starch percentage calculation
-        result = self.rateSuperficialScald(img)
-        print(result)
+        score, binarized_image = self.rateSuperficialScald(img)
+
+        # saves the image
+        image_instance.saveImage(binarized_image, self.__analysis_name__)
+
+        return image_instance.image_name, score
+
+    def performAnalysis_multiprocessing(self, image_instance: Image):
+        """
+        {@inheritdoc}
+        """
+        self.rateImageInstance(image_instance)
+
+    def performAnalysis(self):
+        """
+        {@inheritdoc}
+        """
+        num_cpu = os.cpu_count()
+        cpu_count = int(num_cpu * 0.8) or 1
+        with Pool(cpu_count) as pool:
+            pool.map(self.performAnalysis_multiprocessing, self.images)

@@ -6,33 +6,34 @@ from GRANNY.Models.Images.Image import Image
 
 class Analysis(ABC):
 
-    __anlaysis_name__ = "analysis"
+    __analysis_name__ = "analysis"
 
-    def __init__(self, image: Image):
+    def __init__(self, images: List[Image]):
         """
-        Intializes an instance of an Analysis object,
+        Intializes an instance of an Analysis object
 
         @param GRANNY.Models.Images.Image An instance of an Image object
 
         @return GRANNY.Analyses.Analysis.Analysis object.
         """
-        self.image: Image = image
-        self.params: OrderedDict[str, str] = {
+        self.images: List[Image] = images
+        self.params: OrderedDict[str, OrderedDict[str, Any]] = {
             "param_name": {
-                "type": None,
-                "default": None,
-                "upper": None,
-                "lower": None,
-                "valid_values": List,
-                "label": None,
-                "help": None,
+                "type": "",
+                "default": 18,
+                "upper": 1000,
+                "lower": -1,
+                "valid_values": [],
+                "label": "",
+                "help": "",
             }
         }
         self.param_values: OrderedDict[str, str] = {"": ""}
         self.trial_num: int = 0
 
     @abstractmethod
-    def getParams(self):
+    def getParams(self) -> List[Any]:
+        """Returns to the GUI/CLI all the default parameters in self.params"""
         pass
 
     @abstractmethod
@@ -56,9 +57,16 @@ class Analysis(ABC):
         pass
 
     @abstractmethod
+    def resetTrialNum(self) -> None:
+        """
+        Resets 
+        """
+        pass
+
+    @abstractmethod
     def performAnalysis(self) -> None:
         """
-        Performs the analysis.
+        Calls multiple CPUs to perform the analysis in parallel
 
         Once all required paramterers have been set, this function is used
         to perform the analysis.
@@ -66,3 +74,12 @@ class Analysis(ABC):
         @throws Exception
         """
         pass
+
+    @abstractmethod
+    def performAnalysis_multiprocessing(self, image_instance: Image) -> None:
+        """
+
+        @param image_instance An instance of a GRANNY.Models.Images.Image object
+        """
+        pass
+
