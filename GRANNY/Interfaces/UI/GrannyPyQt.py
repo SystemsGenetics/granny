@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-from GRANNY.Interfaces.UI.GrannyUI import GrannyUI
+from Granny.Interfaces.UI.GrannyUI import GrannyUI
 
 
 class GrannyPyQt(GrannyUI):

@@ -1,9 +1,11 @@
-from typing import Any, Tuple, cast
+import os
+from multiprocessing import Pool
+from typing import Any, List, Tuple, cast
 
 import cv2
 import numpy as np
-from GRANNY.Analyses.Analysis import Analysis
-from GRANNY.Models.Images.Image import Image
+from Granny.Analyses.Analysis import Analysis
+from Granny.Models.Images.Image import Image
 from numpy.typing import NDArray
 
 
@@ -11,11 +13,19 @@ class StarchArea(Analysis):
 
     __analysis_name__ = "starch"
 
-    def __init__(self, image: Image):
-        Analysis.__init__(self, image)
+    def __init__(self, images: List[Image]):
+        Analysis.__init__(self, images)
+        self.params["param_name"]["type"] = self.__analysis_name__
+        self.params["param_name"]["label"] = ""
+        self.params["param_name"]["help"] = ""
 
-    def getParams(self):
-        pass
+
+    def getParams(self) -> List[Any]:
+        """
+        {@inheritdoc}
+        """
+        return list(self.params["param_name"].values())
+
 
     def setResults(self, index: int, key: str, value: Any):
         pass
@@ -30,6 +40,12 @@ class StarchArea(Analysis):
         pass
 
     def getParamKeys(self) -> None:
+        pass
+
+    def resetTrialNum(self) -> None:
+        """
+        (@inheritdoc)
+        """
         pass
 
     def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
@@ -76,7 +92,9 @@ class StarchArea(Analysis):
         )
         return bin_mask
 
-    def calculateStarch(self, img: NDArray[np.uint8]) -> float:
+    def calculateStarch(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
+        """
+        """
         new_img = img.copy()
         img = cv2.GaussianBlur(img, (11, 11), 0)
         lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2LAB))
@@ -119,17 +137,47 @@ class StarchArea(Analysis):
         )
         starch = np.count_nonzero(th123)
 
-        return starch / ground_truth
+        return starch / ground_truth, new_img
 
-    def performAnalysis(self) -> None:
+    def rateImageInstance(self, image_instance: Image) -> Tuple[str, float]:
+        """
+        1. Loads and performs analysis on the provided Image instance.
+        2. Saves the instance to result directory
+
+        @param image_instance: An GRANNY.Models.Images.Image instance
+
+        @return
+            image_name: file name of the image instance
+            score: rating for the instance
+        """
         # loads image from file system with RGBImageFile(ImageIO)
-        self.image.loadImage()
+        image_instance.loadImage()
 
         # gets array image
-        img = self.image.getImage()
+        img = image_instance.getImage()
 
         # performs starch percentage calculation
-        new_img, result = self.calculateStarch(img)
+        score, new_img = self.calculateStarch(img)
 
-        # saves image to a results file
-        self.image.saveImage(new_img)
+        # calls IO to save the image
+        image_instance.saveImage(new_img, self.__analysis_name__)
+
+        print(image_instance.image_name)
+        print(score)
+        
+        return image_instance.image_name, score
+
+    def performAnalysis_multiprocessing(self, image_instance: Image):
+        """
+        {@inheritdoc}
+        """
+        self.rateImageInstance(image_instance)
+
+    def performAnalysis(self):
+        """
+        {@inheritdoc}
+        """
+        num_cpu = os.cpu_count()
+        cpu_count = int(num_cpu * 0.8) or 1
+        with Pool(cpu_count) as pool:
+            pool.map(self.performAnalysis_multiprocessing, self.images)

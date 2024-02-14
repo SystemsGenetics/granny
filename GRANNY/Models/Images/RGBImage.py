@@ -1,7 +1,7 @@
 import numpy as np
-from GRANNY.Models.Images.Image import Image
-from GRANNY.Models.IO.ImageIO import ImageIO
-from GRANNY.Models.IO.RGBImageFile import RGBImageFile
+from Granny.Models.Images.Image import Image
+from Granny.Models.IO.ImageIO import ImageIO
+from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
 
 

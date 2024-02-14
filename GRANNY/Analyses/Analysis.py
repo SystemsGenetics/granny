@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, List, OrderedDict
 
-from GRANNY.Models.Images.Image import Image
+from Granny.Models.Images.Image import Image
 
 
 class Analysis(ABC):
@@ -59,7 +59,7 @@ class Analysis(ABC):
     @abstractmethod
     def resetTrialNum(self) -> None:
         """
-        Resets 
+        Sets the trial number back to 0.
         """
         pass
 
@@ -82,4 +82,3 @@ class Analysis(ABC):
         @param image_instance An instance of a GRANNY.Models.Images.Image object
         """
         pass
-

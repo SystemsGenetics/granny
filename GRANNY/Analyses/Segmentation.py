@@ -1,7 +1,7 @@
 from typing import List
 
-from GRANNY.Analyses.Analysis import Analysis
-from GRANNY.Models.Images.Image import Image
+from Granny.Analyses.Analysis import Analysis
+from Granny.Models.Images.Image import Image
 
 
 class Segmentation(Analysis):

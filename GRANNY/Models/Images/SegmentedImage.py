@@ -1,9 +1,9 @@
 from typing import List
 
 import numpy as np
-from GRANNY.Models.Images.Image import Image
-from GRANNY.Models.Images.RGBImage import RGBImage
-from GRANNY.Models.IO.RGBImageFile import RGBImageFile
+from Granny.Models.Images.Image import Image
+from Granny.Models.Images.RGBImage import RGBImage
+from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
 
 

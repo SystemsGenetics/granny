@@ -4,7 +4,7 @@ from typing import cast
 
 import cv2
 import numpy as np
-from GRANNY.Models.IO.ImageIO import ImageIO
+from Granny.Models.IO.ImageIO import ImageIO
 from numpy.typing import NDArray
 
 

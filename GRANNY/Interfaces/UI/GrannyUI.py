@@ -9,7 +9,7 @@ class GrannyUI(ABC):
 
         @param ArgumentParser parser
           Used to add arguments that this UI will need for calling
-          granny on the command-line.
+          Granny on the command-line.
         """
         self.parser = parser
 

@@ -1,5 +1,5 @@
-from GRANNY.Models.Images.MetaData import MetaData
-from GRANNY.Models.IO.MetaDataIO import MetaDataIO
+from Granny.Models.Images.MetaData import MetaData
+from Granny.Models.IO.MetaDataIO import MetaDataIO
 
 
 class MetaDataFile(MetaDataIO):

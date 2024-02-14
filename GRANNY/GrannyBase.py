@@ -1,7 +1,7 @@
 import argparse
 
-from GRANNY.Interfaces.UI.GrannyCLI import GrannyCLI
-from GRANNY.Interfaces.UI.GrannyPyQt import GrannyPyQt
+from Granny.Interfaces.UI.GrannyCLI import GrannyCLI
+from Granny.Interfaces.UI.GrannyPyQt import GrannyPyQt
 
 
 def run():

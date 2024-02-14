@@ -4,8 +4,8 @@ from typing import Any, List, Tuple, cast
 
 import cv2
 import numpy as np
-from GRANNY.Analyses.Analysis import Analysis
-from GRANNY.Models.Images.Image import Image
+from Granny.Analyses.Analysis import Analysis
+from Granny.Models.Images.Image import Image
 from numpy.typing import NDArray
 
 
@@ -202,10 +202,14 @@ class SuperficialScald(Analysis):
 
     def rateImageInstance(self, image_instance: Image) -> Tuple[str, float]:
         """
-        @param image_instance: An GRANNY.Models.Images.Image instance
-
         1. Loads and performs analysis on the provided Image instance.
         2. Saves the instance to result directory
+
+        @param image_instance: An GRANNY.Models.Images.Image instance
+
+        @return
+            image_name: file name of the image instance
+            score: rating for the instance
         """
         # loads image from file system with RGBImageFile(ImageIO)
         image_instance.loadImage()
@@ -218,6 +222,9 @@ class SuperficialScald(Analysis):
 
         # saves the image
         image_instance.saveImage(binarized_image, self.__analysis_name__)
+
+        print(image_instance.image_name)
+        print(score)
 
         return image_instance.image_name, score
 

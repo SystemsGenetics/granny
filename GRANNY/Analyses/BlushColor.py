@@ -2,8 +2,8 @@ from typing import Any, cast
 
 import cv2
 import numpy as np
-from GRANNY.Analyses.Analysis import Analysis
-from GRANNY.Models.Images.Image import Image
+from Granny.Analyses.Analysis import Analysis
+from Granny.Models.Images.Image import Image
 from numpy.typing import NDArray
 
 
