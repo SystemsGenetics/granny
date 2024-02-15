@@ -49,12 +49,11 @@ class Analysis(ABC):
     def getParamKeys(self) -> None:
         pass
 
-    @abstractmethod
     def resetTrialNum(self) -> None:
         """
         Sets the trial number back to 0.
         """
-        pass
+        self.trial_num = 0
 
     @abstractmethod
     def performAnalysis(self) -> None:

@@ -34,7 +34,7 @@ class SuperficialScald(Analysis):
         """
         return list(self.params)
 
-    def setResults(self, index: int, key: str, value: Any):
+    def setResults(self, index: int, name: str, value: Any):
         """
         {@inheritdoc}
         """
@@ -231,9 +231,6 @@ class SuperficialScald(Analysis):
 
         # saves the image
         image_instance.saveImage(binarized_image, self.__analysis_name__)
-
-        print(image_instance.image_name)
-        print(score)
 
         return image_instance.image_name, score
 

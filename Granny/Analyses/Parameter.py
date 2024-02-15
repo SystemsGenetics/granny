@@ -1,7 +1,6 @@
 import math
 from abc import ABC, abstractmethod
-from numbers import Number
-from typing import Any
+from typing import Any, List
 
 
 class Param(ABC):
@@ -194,7 +193,6 @@ class IntParam(NumericParam):
         """
         Provides a list of valid values for this integer paratmer.
         """
-        # @todo: validate that the values match the type
         self.valid_values = values
 
     def setValue(self, value: int):
@@ -203,7 +201,7 @@ class IntParam(NumericParam):
         """
         super().setValue(value)
 
-    def getValidValues(self) -> list[int]:
+    def getValidValues(self) -> List[int]:
         """
         Gets the list of valid values for this integer paramter.
         """
@@ -233,7 +231,7 @@ class FloatParam(NumericParam):
         """
         NumericParam.__init__(self, name, label, help)
         self.type = float
-        self.value_values: list[float] = []
+        self.value_values: List[float] = []
         self.value: float = 0
 
     def setMax(self, value: float):
@@ -254,11 +252,10 @@ class FloatParam(NumericParam):
         """
         self.default_value = value
 
-    def setValidValues(self, values: list[float]):
+    def setValidValues(self, values: List[float]):
         """
         Provides a list of valid values for this integer paratmer.
         """
-        # @todo: validate that the values match the type
         self.valid_values = values
 
     def setValue(self, value: float):
@@ -267,7 +264,7 @@ class FloatParam(NumericParam):
         """
         super().setValue(value)
 
-    def getValidValues(self) -> list[float]:
+    def getValidValues(self) -> List[float]:
         """
         Gets the list of valid values for this integer paramter.
         """
@@ -291,15 +288,15 @@ class StringParam(Param):
         """
         Param.__init__(self, name, label, help)
         self.type = str
-        self.value_values: list[str] = []
+        self.value_values: List[str] = []
 
-    def setValidValues(self, values: list[str]):
+    def setValidValues(self, values: List[str]):
         """
         Provides a list of valid values for this string paratmer.
         """
         self.valid_values = values
 
-    def getValidValues(self) -> list[str]:
+    def getValidValues(self) -> List[str]:
         """
         Gets the list of valid values for this string paramter.
         """
