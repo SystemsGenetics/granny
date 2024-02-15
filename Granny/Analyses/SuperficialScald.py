@@ -5,6 +5,7 @@ from typing import Any, List, Tuple, cast
 import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
+from Granny.Analyses.Parameter import IntParam, Param
 from Granny.Models.Images.Image import Image
 from numpy.typing import NDArray
 
@@ -15,15 +16,23 @@ class SuperficialScald(Analysis):
 
     def __init__(self, images: List[Image]):
         Analysis.__init__(self, images)
-        self.params["param_name"]["type"] = self.__analysis_name__
-        self.params["param_name"]["label"] = ""
-        self.params["param_name"]["help"] = ""
+
+        # This analysis will allow the user to manually set a threshold
+        # to distinguish between the brown scald regions and the green
+        # peel color. By default this threshold is determined automatically
+        # but we will allow the user to manually set it if they want.
+        th = IntParam(
+            "th", "threshold", "The green color threhsold that distinguishes non-scald regions"
+        )
+        th.setMin(0)
+        th.setMax(255)
+        self.addParam(th)
 
     def getParams(self) -> List[Any]:
         """
         {@inheritdoc}
         """
-        return list(self.params["param_name"].values())
+        return list(self.params)
 
     def setResults(self, index: int, key: str, value: Any):
         """
@@ -37,13 +46,13 @@ class SuperficialScald(Analysis):
         """
         pass
 
-    def setParamValue(self, key: str, value: str) -> None:
+    def setParamValue(self, name: str, value: str) -> None:
         """
         {@inheritdoc}
         """
         pass
 
-    def getParamValue(self, key: str) -> Any:
+    def getParamValue(self, name: str) -> Any:
         """
         {@inheritdoc}
         """

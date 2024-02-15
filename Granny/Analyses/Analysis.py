@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, List, OrderedDict
 
+from Granny.Analyses.Parameter import Param
 from Granny.Models.Images.Image import Image
 
 
@@ -17,19 +18,11 @@ class Analysis(ABC):
         @return GRANNY.Analyses.Analysis.Analysis object.
         """
         self.images: List[Image] = images
-        self.params: OrderedDict[str, OrderedDict[str, Any]] = {
-            "param_name": {
-                "type": "",
-                "default": 18,
-                "upper": 1000,
-                "lower": -1,
-                "valid_values": [],
-                "label": "",
-                "help": "",
-            }
-        }
-        self.param_values: OrderedDict[str, str] = {"": ""}
+        self.params: list[Param] = []
         self.trial_num: int = 0
+
+    def addParam(self, param: Param):
+        self.params.append(param)
 
     @abstractmethod
     def getParams(self) -> List[Any]:
@@ -37,7 +30,7 @@ class Analysis(ABC):
         pass
 
     @abstractmethod
-    def setResults(self, index: int, key: str, value: Any):
+    def setResults(self, index: int, name: str, value: Any):
         pass
 
     @abstractmethod
@@ -45,11 +38,11 @@ class Analysis(ABC):
         pass
 
     @abstractmethod
-    def setParamValue(self, key: str, value: str) -> None:
+    def setParamValue(self, name: str, value: str) -> None:
         pass
 
     @abstractmethod
-    def getParamValue(self, key: str):
+    def getParamValue(self, name: str):
         pass
 
     @abstractmethod
