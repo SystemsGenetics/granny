@@ -85,6 +85,9 @@ class GrannyBase(object):
         # results for cross-section starch area
         self.STARCH_AREA = f"{self.RESULT_DIR}{os.sep}starch_results"
 
+        # results for cross-section starch area labels
+        self.STARCH_LABEL = f"{self.RESULT_DIR}{os.sep}starch_labels"
+
     def create_directories(self, *args: str) -> None:
         """
         Create directories from args

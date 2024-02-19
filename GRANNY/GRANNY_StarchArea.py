@@ -59,6 +59,12 @@ class GrannyStarchArea(granny.GrannyBase):
             new_img,
         )
 
+        # saves binary mask to be used as labels
+        cv2.imwrite(
+            os.path.join(self.STARCH_LABEL, os.path.basename(file_name)),
+            th123 * 255
+        )
+
         ground_truth = np.count_nonzero(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) > 0)
         starch = np.count_nonzero(th123)
 
@@ -116,7 +122,7 @@ class GrannyStarchArea(granny.GrannyBase):
         return results
 
     def GrannyStarchArea(self) -> None:
-        self.create_directories(self.RESULT_DIR, self.STARCH_AREA)
+        self.create_directories(self.RESULT_DIR, self.STARCH_AREA, self.STARCH_LABEL)
         image_list = os.listdir(self.FOLDER_NAME)
         cpu_count = int(os.cpu_count() * 0.8) or 1
         image_list = sorted(image_list)
