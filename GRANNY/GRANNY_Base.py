@@ -83,10 +83,13 @@ class GrannyBase(object):
         self.BIN_COLOR = f"{self.RESULT_DIR}{os.sep}peel_color_results"
 
         # results for cross-section starch area
-        self.STARCH_AREA = f"{self.RESULT_DIR}{os.sep}starch_results"
+        self.STARCH_RESULTS = f"{self.RESULT_DIR}{os.sep}starch{os.sep}results"
 
         # results for cross-section starch area labels
-        self.STARCH_LABEL = f"{self.RESULT_DIR}{os.sep}starch_labels"
+        self.STARCH_LABELS = f"{self.RESULT_DIR}{os.sep}starch{os.sep}labels"
+
+        # results for cross-section starch area labels
+        self.STARCH_IMAGES = f"{self.RESULT_DIR}{os.sep}starch{os.sep}images"
 
     def create_directories(self, *args: str) -> None:
         """

@@ -15,6 +15,7 @@ class GrannyStarchArea(granny.GrannyBase):
     def calculate_starch(self, file_name: str) -> float:
         # Load the image
         img = cast(NDArray[np.uint8], cv2.imread(file_name, cv2.IMREAD_COLOR))
+        old_img = img.copy()
         new_img = img.copy()
         img = cv2.GaussianBlur(img, (11, 11), 0)
         lab_img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
@@ -55,14 +56,22 @@ class GrannyStarchArea(granny.GrannyBase):
         new_img = self.draw_binary_mask(new_img, th123)
 
         cv2.imwrite(
-            os.path.join(self.STARCH_AREA, os.path.basename(file_name)),
+            os.path.join(self.STARCH_RESULTS, os.path.basename(file_name)),
             new_img,
         )
 
+        resized_dim = (512, 512)
+
         # saves binary mask to be used as labels
         cv2.imwrite(
-            os.path.join(self.STARCH_LABEL, os.path.basename(file_name)),
-            th123 * 255
+            os.path.join(self.STARCH_LABELS, os.path.basename(file_name)),
+            cv2.resize(th123 * 255, resized_dim, interpolation = cv2.INTER_CUBIC)
+        )
+
+        # saves images to be used for starch segmentation
+        cv2.imwrite(
+            os.path.join(self.STARCH_IMAGES, os.path.basename(file_name)),
+            cv2.resize(old_img, resized_dim, interpolation = cv2.INTER_CUBIC)
         )
 
         ground_truth = np.count_nonzero(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) > 0)
@@ -122,7 +131,7 @@ class GrannyStarchArea(granny.GrannyBase):
         return results
 
     def GrannyStarchArea(self) -> None:
-        self.create_directories(self.RESULT_DIR, self.STARCH_AREA, self.STARCH_LABEL)
+        self.create_directories(self.RESULT_DIR, self.STARCH_RESULTS, self.STARCH_LABELS, self.STARCH_IMAGES)
         image_list = os.listdir(self.FOLDER_NAME)
         cpu_count = int(os.cpu_count() * 0.8) or 1
         image_list = sorted(image_list)
