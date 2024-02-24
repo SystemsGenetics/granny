@@ -8,21 +8,42 @@ from numpy.typing import NDArray
 
 
 class SegmentedImage(object):
-    def __init__(self, image: Image, masks: NDArray[np.uint8]):
+    def __init__(self, image: Image):
         self.image = image
-        self.masks = masks
+        self.checkResult()
+
+    def checkResult(self):
+        """
+        Checks if the masks and boxes are present in the instance. If not then throw an error.
+        """
+        if self.image.getSegmentationResults() is None: #type: ignore
+            ModuleNotFoundError("Call Yolo to generate masks of the image before performing segmentation.")
 
     def getNumFeatures(self) -> int:
-        return 0
+        """
+        Returns the number of detected instances.
+        """
+        return len(self.image.getSegmentationResults())
+
+    def extractFruits(self) -> List[Image]:
+        """
+        Returns a list of Image instances, each instance represents a fruit.
+        """
+        return self.image.extractFeature()
+
+
+    def extractTrayInfo(self) -> List[Image]:
+        """
+        Returns an Image instance containing tray information about the fruits.
+        """
+        pass
 
     def getImage(self, index: int) -> Image:
+
         return
 
     def getMask(self, index: int) -> NDArray[np.uint8]:
-        return self.masks[index]
+        return self.image.getSegmentationResults()
 
-    def saveImage(self, index: int, output: RGBImageFile):
-        return
-
-    def saveMask(self, index: int):
-        return
+    def getMask(self, index: int) -> NDArray[np.uint8]:
+        return self.image.getSegmentationResults()

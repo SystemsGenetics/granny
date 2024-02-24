@@ -5,7 +5,7 @@ from typing import Any, List, Tuple, cast
 import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
-from Granny.Analyses.Parameter import IntParam, Param
+from Granny.Analyses.Parameter import IntParam
 from Granny.Models.Images.Image import Image
 from numpy.typing import NDArray
 
@@ -40,32 +40,6 @@ class SuperficialScald(Analysis):
         """
         pass
 
-    def checkParams(self):
-        """
-        {@inheritdoc}
-        """
-        pass
-
-    def setParamValue(self, name: str, value: str) -> None:
-        """
-        {@inheritdoc}
-        """
-        pass
-
-    def getParamValue(self, name: str) -> Any:
-        """
-        {@inheritdoc}
-        """
-        pass
-
-    def getParamKeys(self) -> None:
-        """
-        {@inheritdoc}
-        """
-        pass
-
-    def resetTrialNum(self) -> None:
-        self.trial_num = 0
 
     def smoothMask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -226,7 +200,7 @@ class SuperficialScald(Analysis):
         # gets array image
         img = image_instance.getImage()
 
-        # performs starch percentage calculation
+        # performs superficial scald calculation
         score, binarized_image = self.rateSuperficialScald(img)
 
         # saves the image

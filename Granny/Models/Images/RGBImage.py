@@ -1,7 +1,7 @@
+from typing import Any, List
+
 import numpy as np
 from Granny.Models.Images.Image import Image
-from Granny.Models.IO.ImageIO import ImageIO
-from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
 
 
@@ -18,8 +18,10 @@ class RGBImage(Image):
     def saveImage(self, image: NDArray[np.uint8], analysis: str):
         self.image_io.saveImage(image, analysis)
 
-    def extractFeature(self, mask: NDArray[np.float16]):
-        pass
+    def extractFeature(self) -> List[Image]:
+        boxes = self.result.boxes
+        masks = self.result.masks
+        
 
     def loadMetaData(self):
         pass
@@ -47,3 +49,9 @@ class RGBImage(Image):
 
     def setRating(self):
         pass
+
+    def setSegmentationResults(self, result: Any):
+        self.result = result
+
+    def getSegmentationResults(self) -> Any:
+        return self.result

@@ -5,6 +5,7 @@ from typing import Any, List, Tuple, cast
 import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
+from Granny.Analyses.Parameter import IntParam
 from Granny.Models.Images.Image import Image
 from numpy.typing import NDArray
 
@@ -15,37 +16,21 @@ class StarchArea(Analysis):
 
     def __init__(self, images: List[Image]):
         Analysis.__init__(self, images)
-        self.params["param_name"]["type"] = self.__analysis_name__
-        self.params["param_name"]["label"] = ""
-        self.params["param_name"]["help"] = ""
+        th = IntParam(
+            "th", "threshold", "The color threhsold that distinguishes iodine-stained starch regions"
+        )
+        th.setMin(0)
+        th.setMax(255)
+        self.addParam(th)
 
 
     def getParams(self) -> List[Any]:
         """
         {@inheritdoc}
         """
-        return list(self.params["param_name"].values())
+        return list(self.params)
 
-
-    def setResults(self, index: int, key: str, value: Any):
-        pass
-
-    def checkParams(self):
-        pass
-
-    def setParamValue(self, key: str, value: str) -> None:
-        pass
-
-    def getParamValue(self, key: str):
-        pass
-
-    def getParamKeys(self) -> None:
-        pass
-
-    def resetTrialNum(self) -> None:
-        """
-        (@inheritdoc)
-        """
+    def setResults(self, index: int, name: str, value: Any):
         pass
 
     def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
@@ -162,9 +147,6 @@ class StarchArea(Analysis):
         # calls IO to save the image
         image_instance.saveImage(new_img, self.__analysis_name__)
 
-        print(image_instance.image_name)
-        print(score)
-        
         return image_instance.image_name, score
 
     def performAnalysis_multiprocessing(self, image_instance: Image):
@@ -178,6 +160,6 @@ class StarchArea(Analysis):
         {@inheritdoc}
         """
         num_cpu = os.cpu_count()
-        cpu_count = int(num_cpu * 0.8) or 1
+        cpu_count = int(num_cpu * 0.8) or 1     # type: ignore
         with Pool(cpu_count) as pool:
             pool.map(self.performAnalysis_multiprocessing, self.images)

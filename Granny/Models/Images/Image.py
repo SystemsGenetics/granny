@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any, List
 
 import numpy as np
 from Granny.Models.IO.ImageIO import ImageIO
@@ -11,6 +12,7 @@ class Image(ABC):
         self.image: NDArray[np.uint8]
         self.image_name: str = image_name
         self.image_io: ImageIO = RGBImageFile(self.image_name)
+        self.result: Any = None # type: ultralytics.engine.results.Results
 
     @abstractmethod
     def loadImage(self):
@@ -61,5 +63,13 @@ class Image(ABC):
         pass
 
     @abstractmethod
-    def extractFeature(self, mask: NDArray[np.float16]):
+    def extractFeature(self) -> List["Image"]:
+        pass
+
+    @abstractmethod
+    def setSegmentationResults(self, result: List[Any]):
+        pass
+
+    @abstractmethod
+    def getSegmentationResults(self) -> Any:
         pass
