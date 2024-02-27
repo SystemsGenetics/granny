@@ -16,8 +16,10 @@ class SegmentedImage(object):
         """
         Checks if the masks and boxes are present in the instance. If not then throw an error.
         """
-        if self.image.getSegmentationResults() is None: #type: ignore
-            ModuleNotFoundError("Call Yolo to generate masks of the image before performing segmentation.")
+        if self.image.getSegmentationResults() is None:  # type: ignore
+            ModuleNotFoundError(
+                "Call Yolo to generate masks of the image before performing segmentation."
+            )
 
     def getNumFeatures(self) -> int:
         """
@@ -31,7 +33,6 @@ class SegmentedImage(object):
         """
         return self.image.extractFeature()
 
-
     def extractTrayInfo(self) -> List[Image]:
         """
         Returns an Image instance containing tray information about the fruits.
@@ -39,11 +40,7 @@ class SegmentedImage(object):
         pass
 
     def getImage(self, index: int) -> Image:
-
-        return
-
-    def getMask(self, index: int) -> NDArray[np.uint8]:
-        return self.image.getSegmentationResults()
+        return self.image
 
     def getMask(self, index: int) -> NDArray[np.uint8]:
         return self.image.getSegmentationResults()

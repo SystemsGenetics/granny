@@ -12,7 +12,11 @@ class Image(ABC):
         self.image: NDArray[np.uint8]
         self.image_name: str = image_name
         self.image_io: ImageIO = RGBImageFile(self.image_name)
-        self.result: Any = None # type: ultralytics.engine.results.Results
+        self.result: Any = None  # type: ultralytics.engine.results.Results
+
+    @abstractmethod
+    def getImageName(self) -> str:
+        pass
 
     @abstractmethod
     def loadImage(self):
@@ -32,6 +36,10 @@ class Image(ABC):
 
     @abstractmethod
     def getImage(self) -> NDArray[np.uint8]:
+        pass
+
+    @abstractmethod
+    def setImage(self, image: NDArray[np.uint8]):
         pass
 
     @abstractmethod
