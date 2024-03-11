@@ -31,7 +31,7 @@ setuptools.setup(
     ],
     entry_points={
         "console_scripts": [
-            "granny = GRANNY.command:main",
+            "granny = Granny.command:main",
         ]
     },
 )

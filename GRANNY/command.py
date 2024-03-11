@@ -1,15 +1,14 @@
+import argparse
 import os
 
-from . import GRANNY_StarchArea
-
-import argparse
-
-from GRANNY import (
+from Granny import (
     GRANNY_BlushColor,
     GRANNY_PeelColor,
     GRANNY_Segmentation,
     GRANNY_SuperficialScald,
 )
+
+from . import GRANNY_StarchArea
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
