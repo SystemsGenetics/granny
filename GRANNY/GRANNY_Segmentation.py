@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import skimage
-from GRANNY import GRANNY_Base as granny
-from GRANNY import GRANNY_config as config
+from Granny import GRANNY_Base as granny
+from Granny import GRANNY_config as config
 from Mask_RCNN.model import MaskRCNN
 from numpy.typing import NDArray
 

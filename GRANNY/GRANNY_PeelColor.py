@@ -4,7 +4,7 @@ from typing import Any, List, Tuple, cast
 
 import cv2
 import numpy as np
-from GRANNY import GRANNY_Base as granny
+from Granny import GRANNY_Base as granny
 from numpy.typing import NDArray
 
 
@@ -280,7 +280,7 @@ class GrannyPeelColor(granny.GrannyBase):
 
     def extract_green_yellow_values(
         self, file_name: str
-    ) -> Tuple[int, float, float, float, float, float, float]:
+    ) -> Tuple[int, float, float, float, float, float, float, float, float]:
         img = cast(
             NDArray[np.uint8],
             cv2.cvtColor(cv2.imread(file_name, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB),
@@ -309,7 +309,7 @@ class GrannyPeelColor(granny.GrannyBase):
         # bin_num, _ = self.calculate_bin_distance([projection[0], projection[1]], method = "Score")
         bin_num, _ = self.calculate_bin_distance([score], method="Score")
 
-        return (bin_num, score, orth_distance, point, l, a, b)
+        return (bin_num, score, orth_distance, point, l, a, b, projection[0], projection[1])
 
     def extract_green_yellow_values_multiprocessing(self, args: str) -> Any:
         file_name = args
@@ -337,11 +337,11 @@ class GrannyPeelColor(granny.GrannyBase):
 
         with open(f"{self.BIN_COLOR}{os.sep}peel_colors.csv", "w") as w:
             for i, file_name in enumerate(image_list):
-                bin_num, score, orth_distance, point, l, a, b = results[i]
+                bin_num, score, orth_distance, point, l, a, b, line_intersect_x, line_intersect_y = results[i]
                 w.writelines(
                     (
                         f"{self.clean_name(file_name)},{bin_num},{score},{str(orth_distance)},"
-                        f"{point},{l},{a},{b}"
+                        f"{point},{l},{a},{b},{line_intersect_x},{line_intersect_y}"
                     )
                 )
                 w.writelines("\n")

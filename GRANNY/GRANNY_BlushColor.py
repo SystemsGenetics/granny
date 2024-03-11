@@ -4,7 +4,7 @@ from multiprocessing import Pool
 from typing import cast
 
 import cv2
-from GRANNY import GRANNY_Base as granny
+from Granny import GRANNY_Base as granny
 
 
 class GrannyPearBlush(granny.GrannyBase):

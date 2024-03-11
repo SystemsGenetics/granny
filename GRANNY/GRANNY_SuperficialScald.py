@@ -4,7 +4,7 @@ from typing import Tuple, cast
 
 import cv2
 import numpy as np
-from GRANNY import GRANNY_Base as granny
+from Granny import GRANNY_Base as granny
 from numpy.typing import NDArray
 
 
