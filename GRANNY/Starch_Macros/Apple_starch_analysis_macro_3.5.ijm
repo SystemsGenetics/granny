@@ -120,7 +120,9 @@ run("Manual Threshold...", "min=5 max=255"); //threshold of the total cross-sect
 run("Analyze Particles...", "size=2000-Infinity display"); //outputs total area
 saveAs(".jpg",output_path+image+"total_area.jpg"); //saves total cross-section threshold images
 wait(200);
-B = getResult("Area", nResults-1);
+if (nResults > 0){
+	B = getResult("Area", nResults-1);
+}
 
 // if / then scripts to output data in comma delmitted format 
 if (nResults == 1){
@@ -147,13 +149,13 @@ print(fileNoExtension+","+B+","+C+","+D+","+E+","+F+","+G+","+H+","+"0"+","+"0"+
 if (nResults == 8){
 print(fileNoExtension+","+B+","+C+","+D+","+E+","+F+","+G+","+H+","+I+","+"0"+","+"0"+","+"0"+","+C+D+E+F+G+H+I+","+((C+D+E+F+G+H+I)/B*100)+","+(round((((C+D+E+F+G+H+I)/B*100)*((C+D+E+F+G+H+I)/B*100)*-0.0006-0.0056*((C+D+E+F+G+H+I)/B*100)+7.5874)))+","+(round((((C+D+E+F+G+H+I)/B*100)*((C+D+E+F+G+H+I)/B*100)*-0.0006-0.0371*((C+D+E+F+G+H+I)/B*100)+9.2883)))+","+(round((((C+D+E+F+G+H+I)/B*100)*((C+D+E+F+G+H+I)/B*100)*-0.0003-0.0306*((C+D+E+F+G+H+I)/B*100)+5.9517)))+","+(round((((C+D+E+F+G+H+I)/B*100)*((C+D+E+F+G+H+I)/B*100)*-0.00066+0.001*((C+D+E+F+G+H+I)/B*100)+5.7876))));
 }
-if (nResults == 8){
+if (nResults == 9){
 print(fileNoExtension+","+B+","+C+","+D+","+E+","+F+","+G+","+H+","+I+","+J+","+"0"+","+"0"+","+C+D+E+F+G+H+I+J+","+((C+D+E+F+G+H+I+J)/B*100)+","+(round((((C+D+E+F+G+H+I+J)/B*100)*((C+D+E+F+G+H+I+J)/B*100)*-0.0006-0.0056*((C+D+E+F+G+H+I+J)/B*100)+7.5874)))+","+(round((((C+D+E+F+G+H+I+J)/B*100)*((C+D+E+F+G+H+I+J)/B*100)*-0.0006-0.0371*((C+D+E+F+G+H+I+J)/B*100)+9.2883)))+","+(round((((C+D+E+F+G+H+I+J)/B*100)*((C+D+E+F+G+H+I+J)/B*100)*-0.0003-0.0306*((C+D+E+F+G+H+I+J)/B*100)+5.9517)))+","+(round((((C+D+E+F+G+H+I+J)/B*100)*((C+D+E+F+G+H+I+J)/B*100)*-0.00066+0.001*((C+D+E+F+G+H+I+J)/B*100)+5.7876))));
 }
-if (nResults == 9){
+if (nResults == 10){
 print(fileNoExtension+","+B+","+C+","+D+","+E+","+F+","+G+","+H+","+I+","+J+","+K+","+"0"+","+C+D+E+F+G+H+I+J+K+","+((C+D+E+F+G+H+I+J+K)/B*100)+","+(round((((C+D+E+F+G+H+I+J+K)/B*100)*((C+D+E+F+G+H+I+J+K)/B*100)*-0.0006-0.0056*((C+D+E+F+G+H+I+J+K)/B*100)+7.5874)))+","+(round((((C+D+E+F+G+H+I+J+K)/B*100)*((C+D+E+F+G+H+I+J+K)/B*100)*-0.0006-0.0371*((C+D+E+F+G+H+I+J+K)/B*100)+9.2883)))+","+(round((((C+D+E+F+G+H+I+J+K)/B*100)*((C+D+E+F+G+H+I+J+K)/B*100)*-0.0003-0.0306*((C+D+E+F+G+H+I+J+K)/B*100)+5.9517)))+","+(round((((C+D+E+F+G+H+I+J+K)/B*100)*((C+D+E+F+G+H+I+J+K)/B*100)*-0.00066+0.001*((C+D+E+F+G+H+I+J+K)/B*100)+5.7876))));
 }
-if (nResults == 10){
+if (nResults == 11){
 print(fileNoExtension+","+B+","+C+","+D+","+E+","+F+","+G+","+H+","+I+","+J+","+K+","+L+","+C+D+E+F+G+H+I+J+K+L+","+((C+D+E+F+G+H+I+J+K+L)/B*100)+","+(round((((C+D+E+F+G+H+I+J+K+L)/B*100)*((C+D+E+F+G+H+I+J+K+L)/B*100)*-0.0006-0.0056*((C+D+E+F+G+H+I+J+K+L)/B*100)+7.5874)))+","+(round((((C+D+E+F+G+H+I+J+K+L)/B*100)*((C+D+E+F+G+H+I+J+K+L)/B*100)*-0.0006-0.0371*((C+D+E+F+G+H+I+J+K+L)/B*100)+9.2883)))+","+(round((((C+D+E+F+G+H+I+J+K+L)/B*100)*((C+D+E+F+G+H+I+J+K+L)/B*100)*-0.0003-0.0306*((C+D+E+F+G+H+I+J+K+L)/B*100)+5.9517)))+","+(round((((C+D+E+F+G+H+I+J+K+L)/B*100)*((C+D+E+F+G+H+I+J+K+L)/B*100)*-0.00066+0.001*((C+D+E+F+G+H+I+J+K+L)/B*100)+5.7876))));
 }
 close("Results");
