@@ -82,7 +82,6 @@ def cal_blush(file_paths: List[str]):
             break
 
     cv.destroyAllWindows()
-
     return color_blush
 
 
@@ -125,8 +124,8 @@ def blush_percentage(blush_threshold):
                 ),
             ]
         )
-        cv.imwrite(os.getcwd() + "//RGB BlushPercentage//" + "BLP_" + file, bgr_image)
-    blush_file.to_csv(os.getcwd() + "//RGB BlushPercentage//Blush percentage.csv", index=False)
+        cv.imwrite(f"{os.getcwd()}{os.sep}BlushResults{os.sep}BLP_{file}", bgr_image)
+    blush_file.to_csv(f"{os.getcwd()}{os.sep}BlushResults{os.sep}Blush_percentage.csv", index=False)
 
 file_paths = open_file_dialog()
 blush_threshold = cal_blush(file_paths)
