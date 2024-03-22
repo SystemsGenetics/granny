@@ -6,6 +6,9 @@ Created on Tue Mar 21 16:51:28 2023
 
 import glob
 import os
+import tkinter as tk
+from tkinter import filedialog
+from typing import List
 
 import cv2 as cv
 import numpy as np
@@ -16,7 +19,29 @@ def nothig(x):
     return
 
 
-def cal_blush(img_1="DSC_0519_9.png", img_2="DSC_0510_8.png", img_3="DSC_0510_10.png"):
+def open_file_dialog():
+    root = tk.Tk()
+    root.withdraw()
+
+    file_paths: List[str] = []
+    while True:
+        if len(file_paths) == 3:
+            break
+        file_path = filedialog.askopenfilename(initialdir="~", title="Select 3 Files", filetypes=(("All Files", "*.png"),))
+        if file_path:
+            file_paths.append(file_path)
+            print("Selected file:", file_path)
+        else:
+            if file_paths:
+                print("No more files to select.")
+                break
+            else:
+                print("No files selected. Please select at least one file.")
+
+    return file_paths
+
+
+def cal_blush(file_paths: List[str]):
     cv.namedWindow("Blush Calibration")
     cv.createTrackbar("a*", "Blush Calibration", 0, 255, nothig)
     cv.setTrackbarMax("a*", "Blush Calibration", 255)
@@ -27,9 +52,9 @@ def cal_blush(img_1="DSC_0519_9.png", img_2="DSC_0510_8.png", img_3="DSC_0510_10
         color_blush = cv.getTrackbarPos("a*", "Blush Calibration")
         if flag_acoor != color_blush:
             # load images
-            bgr_img_1 = cv.imread(img_1)
-            bgr_img_2 = cv.imread(img_2)
-            bgr_img_3 = cv.imread(img_3)
+            bgr_img_1 = cv.imread(file_paths[0])
+            bgr_img_2 = cv.imread(file_paths[1])
+            bgr_img_3 = cv.imread(file_paths[2])
 
             # resize images
             rsz_bgr_img_1 = cv.resize(bgr_img_1, (500, 300))
@@ -57,30 +82,31 @@ def cal_blush(img_1="DSC_0519_9.png", img_2="DSC_0510_8.png", img_3="DSC_0510_10
             break
 
     cv.destroyAllWindows()
+
     return color_blush
 
 
-def blush_percentage():
-    if os.path.exists(os.getcwd() + "//RGB BlushPercentage") == False:
-        os.mkdir(os.getcwd() + "//RGB BlushPercentage")
+def blush_percentage(blush_threshold):
+    if not os.path.exists(f"{os.getcwd()}{os.sep}BlushResults"):
+        os.mkdir(f"{os.getcwd()}{os.sep}BlushResults")
     files = pd.DataFrame({"file": glob.glob("*.png")})
     blush_file = pd.DataFrame({"file": [], "Fruitpx": [], "Blushpx": [], "Blushpct": []})
     for file in files.file:
-        print(file)
         bgr_image = cv.imread(file)
-        lab_image = cv.cvtColor(bgr_image, cv.COLOR_BGR2Lab)
+        lab_image = cv.cvtColor(bgr_image, cv.COLOR_BGR2LAB)
         fruit_px = lab_image[:, :, 2] > 140
         fruit_px.sum()
-        blush_px = lab_image[:, :, 1] > 148
+        blush_px = lab_image[:, :, 1] > blush_threshold
         bgr_image[:, :, 0][blush_px] = 150
         bgr_image[:, :, 1][blush_px] = 55
         bgr_image[:, :, 2][blush_px] = 50
         blush_px.sum()
         blush_pct = 100 * blush_px.sum() / fruit_px.sum()
+        image_height, _, _ = bgr_image.shape
         cv.putText(
             bgr_image,
-            "Blush:" + str(blush_pct.round(1)) + "%",
-            (20, 50),
+            "Blush:" + str(blush_pct.round(2)) + "%",
+            (20, image_height - 20),
             fontFace=cv.FONT_HERSHEY_SIMPLEX,
             fontScale=1,
             color=(0, 0, 255),
@@ -99,14 +125,9 @@ def blush_percentage():
                 ),
             ]
         )
-        cv.imwritxe(os.getcwd() + "//RGB BlushPercentage//" + "BLP_" + file, bgr_image)
+        cv.imwrite(os.getcwd() + "//RGB BlushPercentage//" + "BLP_" + file, bgr_image)
     blush_file.to_csv(os.getcwd() + "//RGB BlushPercentage//Blush percentage.csv", index=False)
 
-
-#### MAIN ####
-## SET WORKING DIRECTORY
-os.chdir("E:\\rene.mogollon\\Downloads\\segmented_data-20230322T000248Z-001\\segmented_data\\")
-## BLUSH CALIBRATION PROCESS
-cal_blush()
-## RUN BLUSH CALCULATION OVER THE WORKING DIRECTORY FILES
-blush_percentage()
+file_paths = open_file_dialog()
+blush_threshold = cal_blush(file_paths)
+blush_percentage(blush_threshold)
