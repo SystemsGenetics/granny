@@ -88,14 +88,16 @@ def cal_blush(file_paths: List[str]):
 def blush_percentage(blush_threshold):
     if not os.path.exists(f"{os.getcwd()}{os.sep}BlushResults"):
         os.mkdir(f"{os.getcwd()}{os.sep}BlushResults")
-    files = pd.DataFrame({"file": glob.glob("*.png")})
+    files = pd.DataFrame({"file": sorted(glob.glob("*.png"))})
     blush_file = pd.DataFrame({"file": [], "Fruitpx": [], "Blushpx": [], "Blushpct": []})
     for file in files.file:
         bgr_image = cv.imread(file)
         lab_image = cv.cvtColor(bgr_image, cv.COLOR_BGR2LAB)
-        fruit_px = lab_image[:, :, 2] > 140
+        fruit_px = bgr_image[:,:,0] > 0.5
         fruit_px.sum()
         blush_px = lab_image[:, :, 1] > blush_threshold
+        if blush_threshold < 128:
+            blush_px = np.logical_and(blush_px, fruit_px)
         bgr_image[:, :, 0][blush_px] = 150
         bgr_image[:, :, 1][blush_px] = 55
         bgr_image[:, :, 2][blush_px] = 50
