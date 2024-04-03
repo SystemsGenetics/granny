@@ -15,10 +15,6 @@ class Image(ABC):
         self.result: Any = None  # type: ultralytics.engine.results.Results
 
     @abstractmethod
-    def getImageName(self) -> str:
-        pass
-
-    @abstractmethod
     def loadImage(self):
         pass
 

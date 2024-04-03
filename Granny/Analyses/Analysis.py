@@ -29,10 +29,6 @@ class Analysis(ABC):
         pass
 
     @abstractmethod
-    def setResults(self, index: int, name: str, value: Any):
-        pass
-
-    @abstractmethod
     def performAnalysis(self) -> None:
         """
         Calls multiple CPUs to perform the analysis in parallel

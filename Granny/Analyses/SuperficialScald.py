@@ -34,13 +34,6 @@ class SuperficialScald(Analysis):
         """
         return list(self.params)
 
-    def setResults(self, index: int, name: str, value: Any):
-        """
-        {@inheritdoc}
-        """
-        pass
-
-
     def smoothMask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
         Smooth scald region with basic morphological operations.
@@ -57,12 +50,12 @@ class SuperficialScald(Analysis):
             cv2.erode(bin_mask, kernel=strel, iterations=1),
             kernel=strel,
             iterations=1,
-        )
+        )  # type: ignore
         bin_mask = cv2.erode(
             cv2.dilate(bin_mask, kernel=strel, iterations=1),
             kernel=strel,
             iterations=1,
-        )
+        )  # type: ignore
         return bin_mask
 
     def isolateScald(self, img: NDArray[np.uint8]) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
