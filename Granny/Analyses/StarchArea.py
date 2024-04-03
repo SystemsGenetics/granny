@@ -29,9 +29,7 @@ class StarchArea(Analysis):
         {@inheritdoc}
         """
         return list(self.params)
-
-    def setResults(self, index: int, name: str, value: Any):
-        pass
+    
 
     def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """

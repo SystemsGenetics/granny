@@ -1,4 +1,4 @@
-from typing import Any, cast
+from typing import Any, List, cast
 
 import cv2
 import numpy as np
@@ -11,8 +11,8 @@ class BlushColor(Analysis):
 
     __analysis_name__ = "blush"
 
-    def __init__(self, image: Image):
-        Analysis.__init__(self, image)
+    def __init__(self, images: List[Image]):
+        Analysis.__init__(self, images)
 
     def getParams(self):
         pass

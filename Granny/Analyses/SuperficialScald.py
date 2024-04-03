@@ -34,12 +34,6 @@ class SuperficialScald(Analysis):
         """
         return list(self.params)
 
-    def setResults(self, index: int, name: str, value: Any):
-        """
-        {@inheritdoc}
-        """
-        pass
-
 
     def smoothMask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """

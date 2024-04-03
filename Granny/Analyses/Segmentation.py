@@ -1,8 +1,7 @@
 import os
 from multiprocessing import Pool
-from typing import Any, List
+from typing import Any, List, Set
 
-import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
 from Granny.Models.AIModel.AIModel import AIModel
@@ -19,7 +18,7 @@ class Segmentation(Analysis):
         Analysis.__init__(self, images)
         self.AIModel: AIModel = YoloModel(model_dir)
 
-    def detectInstances(self, image: NDArray[np.uint8]) -> List[Any]:
+    def detectInstances(self, images: List[NDArray[np.uint8]]) -> List[Any]:
         """
         Uses Yolo model to predict instances in the image. Instances could be tray_info, apples,
         pears, cross-sections, etc.
@@ -27,47 +26,44 @@ class Segmentation(Analysis):
         @param image_name: numpy array of the image. Yolo model can also accept OpenCV,
         torch.Tensor, PIL.Image, csv, image file, and URL.
         """
-        return self.AIModel.predict(image, conf = 0.25, iou = 0.7, device = self.device) # type: ignore
+        return self.AIModel.predict(images, conf = 0.25, iou = 0.7, device = self.device)  # type: ignore
 
 
-    def segmentInstances(self, image_instance: Image):
+    def segmentInstances(self, image_instances: List[NDArray[np.uint8]]):
         """
         1. Loads the Segmentation model (Yolov8 Segmentation)
         2. Performs instance segmentaion to find fruit and tray information
-        3. Returns an instance of ultralytics.engine.results.Results
+        3. Returns a list of instance of ultralytics.engine.results.Results
 
         @param image_instance: An GRANNY.Models.Images.Image instance
 
-        @return
-
+        @return resuts: List of ultralytics.engine.results.Results of segmentation results,
+        including: masks, boxes, xyxy's, classes, confident scores
         """
-        # loads image from file system with RGBImageFile(ImageIO)
-        image_instance.loadImage()
-
-        # gets array image
-        img = image_instance.getImage()
-
         # loads segmentation model
         self.AIModel.loadModel()
 
         # detects instances on the image
-        results = self.detectInstances(img)
+        results = self.detectInstances(image_instances)
 
-        # saves segmentation results to the Image instance
-        image_instance.setSegmentationResults(results)
-
-
-    def performAnalysis_multiprocessing(self, image_instance: Image) -> None:
-        """
-        {@inheritdoc}
-        """
-        self.segmentInstances(image_instance)
+        return results
 
     def performAnalysis(self) -> None:
         """
         {@inheritdoc}
         """
-        num_cpu = os.cpu_count()
-        cpu_count = int(num_cpu * 0.8) or 1
-        with Pool(cpu_count) as pool:
-            pool.map(self.performAnalysis_multiprocessing, self.images)
+        # loads np.ndarray image from a list of Image objects
+        image_instances: List[NDArray[np.uint8]] = []
+        for image in self.images:
+            image.loadImage()
+            image_instances.append(image.getImage())
+
+        # performs instance segmentation to retrieve the masks
+        results = self.segmentInstances(image_instances)
+
+        # checks for potential mismatch of results, then loops through the list of Images to save
+        # the segmentaiton results
+        if len(results) != len(image_instances):
+            raise ValueError("Different output mask length.")
+        for i, result in enumerate(results):
+            self.images[i].setSegmentationResults(result = result)
