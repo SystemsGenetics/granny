@@ -5,7 +5,6 @@ name = "pypi"
 
 [packages]
 ultralytics = "*"
-ipykernel = "*"
 
 [dev-packages]
 

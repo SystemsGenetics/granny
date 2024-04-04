@@ -40,9 +40,3 @@ class Analysis(ABC):
         """
         pass
 
-    @abstractmethod
-    def performAnalysis_multiprocessing(self, image_instance: Image) -> None:
-        """
-        @param image_instance An instance of a GRANNY.Models.Images.Image object
-        """
-        pass

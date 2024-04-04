@@ -203,9 +203,10 @@ class SuperficialScald(Analysis):
 
     def performAnalysis_multiprocessing(self, image_instance: Image):
         """
-        {@inheritdoc}
+        Rates image with multiprocessing
         """
-        self.rateImageInstance(image_instance)
+        image_name, score = self.rateImageInstance(image_instance)
+
 
     def performAnalysis(self):
         """
@@ -214,4 +215,6 @@ class SuperficialScald(Analysis):
         num_cpu = os.cpu_count()
         cpu_count = int(num_cpu * 0.8) or 1
         with Pool(cpu_count) as pool:
-            pool.map(self.performAnalysis_multiprocessing, self.images)
+            results = pool.map(self.performAnalysis_multiprocessing, self.images)
+
+        

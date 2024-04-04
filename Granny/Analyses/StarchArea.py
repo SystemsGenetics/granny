@@ -29,7 +29,7 @@ class StarchArea(Analysis):
         {@inheritdoc}
         """
         return list(self.params)
-    
+
 
     def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -53,7 +53,6 @@ class StarchArea(Analysis):
     def smoothMask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
         Smooth binary mask with basic morphological operations.
-        By performing morphology, the binary mask will be smoothened.
         """
         bin_mask = bin_mask
 
@@ -67,12 +66,12 @@ class StarchArea(Analysis):
             cv2.erode(bin_mask, kernel=strel, iterations=1),
             kernel=strel,
             iterations=1,
-        )
+        )  # type: ignore
         bin_mask = cv2.erode(
             cv2.dilate(bin_mask, kernel=strel, iterations=1),
             kernel=strel,
             iterations=1,
-        )
+        )  # type: ignore
         return bin_mask
 
     def calculateStarch(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
@@ -80,29 +79,11 @@ class StarchArea(Analysis):
         """
         new_img = img.copy()
         img = cv2.GaussianBlur(img, (11, 11), 0)
-        lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2LAB))
-
-        def calculate_threshold_from_hist(hist: NDArray[np.int8]) -> int:
-            histogram_sum = np.sum(hist)
-            left_sum = 0
-
-            for i, bin_value in enumerate(hist):
-                left_sum += bin_value
-                right_sum = histogram_sum - left_sum
-
-                if left_sum - right_sum > 0.1 * histogram_sum:
-                    if i < 160:
-                        return 160
-                    return i
-            return -1
 
         # create thresholded matrices
-        hist, _ = np.histogram(lab_img[:, :, 2], bins=256, range=(0, 255))
-        threshold_value = calculate_threshold_from_hist(hist)
-
-        threshold_1 = np.logical_and((lab_img[:, :, 0] > 0), (lab_img[:, :, 0] <= 205))
-        threshold_2 = np.logical_and((lab_img[:, :, 1] > 0), (lab_img[:, :, 1] <= 255))
-        threshold_3 = np.logical_and((lab_img[:, :, 2] > 0), (lab_img[:, :, 2] <= threshold_value))
+        threshold_1 = np.logical_and((img[:, :, 0] > 0), (img[:, :, 0] <= 170))
+        threshold_2 = np.logical_and((img[:, :, 1] > 0), (img[:, :, 1] <= 170))
+        threshold_3 = np.logical_and((img[:, :, 2] > 0), (img[:, :, 2] <= 170))
 
         # combine to one matrix
         th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
@@ -149,7 +130,7 @@ class StarchArea(Analysis):
 
     def performAnalysis_multiprocessing(self, image_instance: Image):
         """
-        {@inheritdoc}
+        Rates image with multiprocessing
         """
         self.rateImageInstance(image_instance)
 
@@ -158,6 +139,6 @@ class StarchArea(Analysis):
         {@inheritdoc}
         """
         num_cpu = os.cpu_count()
-        cpu_count = int(num_cpu * 0.8) or 1     # type: ignore
+        cpu_count = int(num_cpu * 0.8) or 1  # type: ignore 
         with Pool(cpu_count) as pool:
             pool.map(self.performAnalysis_multiprocessing, self.images)

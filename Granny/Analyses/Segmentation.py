@@ -26,7 +26,7 @@ class Segmentation(Analysis):
         @param image_name: numpy array of the image. Yolo model can also accept OpenCV,
         torch.Tensor, PIL.Image, csv, image file, and URL.
         """
-        return self.AIModel.predict(images, conf = 0.25, iou = 0.7, device = self.device)  # type: ignore
+        return self.AIModel.predict(images)  # type: ignore
 
 
     def segmentInstances(self, image_instances: List[NDArray[np.uint8]]):
@@ -62,7 +62,7 @@ class Segmentation(Analysis):
         results = self.segmentInstances(image_instances)
 
         # checks for potential mismatch of results, then loops through the list of Images to save
-        # the segmentaiton results
+        # the segmentation results
         if len(results) != len(image_instances):
             raise ValueError("Different output mask length.")
         for i, result in enumerate(results):

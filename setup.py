@@ -17,7 +17,7 @@ setuptools.setup(
     severity in pome fruits.",
     author="Nhan H. Nguyen",
     license="GNU General Public License v3.0",
-    python_requires=">=3.8",
+    python_requires=">=3.9",
     install_requires=[
         requirements,
     ],
