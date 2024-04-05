@@ -11,6 +11,7 @@ from Granny.Analyses.StarchArea import StarchArea
 from Granny.Analyses.SuperficialScald import SuperficialScald
 from Granny.Interfaces.UI.GrannyUI import GrannyUI
 from Granny.Models.Images.RGBImage import RGBImage
+from Granny.Models.Images.Image import Image
 
 
 class GrannyCLI(GrannyUI):
@@ -42,6 +43,15 @@ class GrannyCLI(GrannyUI):
                 return True
         return False
 
+    def listImages(self) -> List[Image]:
+        """ 
+        """
+        # Gets the list of images.
+        image_files: List[str] = os.listdir(self.image_dir)
+        images = [RGBImage(os.path.join(self.image_dir, image_file)) for image_file in image_files]
+        return images 
+
+
     def run(self):
         """
         {@inheritdoc}
@@ -58,9 +68,6 @@ class GrannyCLI(GrannyUI):
         if not self.checkArgs():
             exit(1)
 
-        # Gets the list of images.
-        image_files: List[str] = os.listdir(self.image_dir)
-        images = [RGBImage(os.path.join(self.image_dir, image_file)) for image_file in image_files]
 
         # Gets parameter arguments
         self.addParameterArgs()

@@ -8,18 +8,21 @@ from numpy.typing import NDArray
 
 
 class Image(ABC):
-    def __init__(self, image_name: str):
-        self.image: NDArray[np.uint8]
-        self.image_name: str = image_name
-        self.image_io: ImageIO = RGBImageFile(self.image_name)
+    """
+
+    """
+    def __init__(self, file_path: str):
+        self.file_path: str = file_path
         self.result: Any = None  # type: ultralytics.engine.results.Results
+        self.image_io: ImageIO
+        self.image: NDArray[np.uint8]
 
     @abstractmethod
     def loadImage(self):
         pass
 
     @abstractmethod
-    def saveImage(self, image: NDArray[np.uint8], analysis: str):
+    def saveImage(self, folder: str):
         pass
 
     @abstractmethod

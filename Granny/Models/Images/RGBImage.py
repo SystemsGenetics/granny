@@ -3,15 +3,17 @@ from typing import Any, List
 import cv2
 import numpy as np
 from Granny.Models.Images.Image import Image
+from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
 
 
 class RGBImage(Image):
-    def __init__(self, image_name: str):
-        Image.__init__(self, image_name)
+    def __init__(self, file_path: str):
+        Image.__init__(self, file_path)
+        self.image_io = RGBImageFile(self.file_path)
 
     def getImageName(self) -> str:
-        return self.image_name
+        return self.file_path
 
     def getImage(self) -> NDArray[np.uint8]:
         return self.image
@@ -20,10 +22,10 @@ class RGBImage(Image):
         self.image = image
 
     def loadImage(self):
-        self.image = self.image_io.loadImage()
+        self.image_io.loadImage()
 
-    def saveImage(self, image: NDArray[np.uint8], analysis: str):
-        self.image_io.saveImage(image, analysis)
+    def saveImage(self, folder: str):
+        self.image_io.saveImage(folder)
 
     def extractFeature(self) -> List[Image]:
         """
