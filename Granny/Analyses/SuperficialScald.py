@@ -7,6 +7,7 @@ import numpy as np
 from Granny.Analyses.Analysis import Analysis
 from Granny.Analyses.Parameter import IntParam
 from Granny.Models.Images.Image import Image
+from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
 
 
@@ -176,7 +177,7 @@ class SuperficialScald(Analysis):
         score = self.calculateScald(binarized_image, nopurple_img)
         return score, binarized_image
 
-    def rateImageInstance(self, image_instance: Image) -> Tuple[str, float]:
+    def rateImageInstance(self, image_instance: Image) -> Image:
         """
         1. Loads and performs analysis on the provided Image instance.
         2. Saves the instance to result directory
@@ -187,25 +188,23 @@ class SuperficialScald(Analysis):
             image_name: file name of the image instance
             score: rating for the instance
         """
-        # loads image from file system with RGBImageFile(ImageIO)
-        image_instance.loadImage()
+        # initiates ImageIO
+        image_io = RGBImageFile(image_instance.getFilePath())
 
-        # gets array image
+        # loads image from file system with RGBImageFile(ImageIO)
+        image_instance.loadImage(image_io=image_io)
+
+        # gets the image array
         img = image_instance.getImage()
 
         # performs superficial scald calculation
         score, binarized_image = self.rateSuperficialScald(img)
 
-        # saves the image
-        image_instance.saveImage(binarized_image, self.__analysis_name__)
+        # saves the output image
+        image_io.saveImage(binarized_image, self.__analysis_name__)
 
-        return image_instance.image_name, score
-
-    def performAnalysis_multiprocessing(self, image_instance: Image):
-        """
-        Rates image with multiprocessing
-        """
-        image_name, score = self.rateImageInstance(image_instance)
+        # image_instance.setRating(score)
+        return image_instance
 
 
     def performAnalysis(self):
@@ -213,8 +212,6 @@ class SuperficialScald(Analysis):
         {@inheritdoc}
         """
         num_cpu = os.cpu_count()
-        cpu_count = int(num_cpu * 0.8) or 1
+        cpu_count = int(num_cpu * 0.8) or 1 # type: ignore
         with Pool(cpu_count) as pool:
-            results = pool.map(self.performAnalysis_multiprocessing, self.images)
-
-        
+            pool.map(self.rateImageInstance, self.images)

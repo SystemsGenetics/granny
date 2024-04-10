@@ -3,17 +3,15 @@ from typing import Any, List
 import cv2
 import numpy as np
 from Granny.Models.Images.Image import Image
-from Granny.Models.IO.RGBImageFile import RGBImageFile
+from Granny.Models.IO.ImageIO import ImageIO
 from numpy.typing import NDArray
 
 
 class RGBImage(Image):
+    """
+    """
     def __init__(self, file_path: str):
         Image.__init__(self, file_path)
-        self.image_io = RGBImageFile(self.file_path)
-
-    def getImageName(self) -> str:
-        return self.file_path
 
     def getImage(self) -> NDArray[np.uint8]:
         return self.image
@@ -21,15 +19,16 @@ class RGBImage(Image):
     def setImage(self, image: NDArray[np.uint8]):
         self.image = image
 
-    def loadImage(self):
-        self.image_io.loadImage()
+    def loadImage(self, image_io: ImageIO):
+        self.image = image_io.loadImage()
 
-    def saveImage(self, folder: str):
-        self.image_io.saveImage(folder)
+    def saveImage(self, image_io: ImageIO, folder: str):
+        image_io.saveImage(self.image, folder)
 
+    # todo: move to segmentedimage
     def extractFeature(self) -> List[Image]:
         """
-        Extracts all the instances detected from the RGBImage.
+        Extracts all the instances detected stored in self.result.
         """
         # gets bounding boxes, binary masks, and original full-tray image
         boxes: NDArray[np.float32] = self.result.boxes.data.numpy()
@@ -54,7 +53,6 @@ class RGBImage(Image):
             image_instance: Image = RGBImage(self.getImageName())
             image_instance.setImage(individual_image)
             individual_images.append(image_instance)
-
         return individual_images
 
     def loadMetaData(self):
@@ -82,6 +80,7 @@ class RGBImage(Image):
         pass
 
     def setRating(self):
+
         pass
 
     def setSegmentationResults(self, result: Any):

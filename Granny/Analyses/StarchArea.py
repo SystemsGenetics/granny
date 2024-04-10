@@ -7,6 +7,7 @@ import numpy as np
 from Granny.Analyses.Analysis import Analysis
 from Granny.Analyses.Parameter import IntParam
 from Granny.Models.Images.Image import Image
+from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
 
 
@@ -103,7 +104,7 @@ class StarchArea(Analysis):
 
         return starch / ground_truth, new_img
 
-    def rateImageInstance(self, image_instance: Image) -> Tuple[str, float]:
+    def rateImageInstance(self, image_instance: Image) -> Image:
         """
         1. Loads and performs analysis on the provided Image instance.
         2. Saves the instance to result directory
@@ -114,8 +115,11 @@ class StarchArea(Analysis):
             image_name: file name of the image instance
             score: rating for the instance
         """
+        # initiates ImageIO
+        image_io = RGBImageFile(image_instance.getFilePath())
+
         # loads image from file system with RGBImageFile(ImageIO)
-        image_instance.loadImage()
+        image_instance.loadImage(image_io=image_io)
 
         # gets array image
         img = image_instance.getImage()
@@ -124,21 +128,16 @@ class StarchArea(Analysis):
         score, new_img = self.calculateStarch(img)
 
         # calls IO to save the image
-        image_instance.saveImage(new_img, self.__analysis_name__)
+        image_io.saveImage(new_img, self.__analysis_name__)
 
-        return image_instance.image_name, score
+        return image_instance
 
-    def performAnalysis_multiprocessing(self, image_instance: Image):
-        """
-        Rates image with multiprocessing
-        """
-        self.rateImageInstance(image_instance)
 
     def performAnalysis(self):
         """
         {@inheritdoc}
         """
         num_cpu = os.cpu_count()
-        cpu_count = int(num_cpu * 0.8) or 1  # type: ignore 
+        cpu_count = int(num_cpu * 0.8) or 1  # type: ignore
         with Pool(cpu_count) as pool:
-            pool.map(self.performAnalysis_multiprocessing, self.images)
+            pool.map(self.rateImageInstance, self.images)

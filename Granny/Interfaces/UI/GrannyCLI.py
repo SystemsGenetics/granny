@@ -10,8 +10,8 @@ from Granny.Analyses.Segmentation import Segmentation
 from Granny.Analyses.StarchArea import StarchArea
 from Granny.Analyses.SuperficialScald import SuperficialScald
 from Granny.Interfaces.UI.GrannyUI import GrannyUI
-from Granny.Models.Images.RGBImage import RGBImage
 from Granny.Models.Images.Image import Image
+from Granny.Models.Images.RGBImage import RGBImage
 
 
 class GrannyCLI(GrannyUI):
@@ -43,13 +43,29 @@ class GrannyCLI(GrannyUI):
                 return True
         return False
 
-    def listImages(self) -> List[Image]:
-        """ 
+    def listImages(self, image_dir: str) -> List[Image]:
         """
-        # Gets the list of images.
-        image_files: List[str] = os.listdir(self.image_dir)
-        images = [RGBImage(os.path.join(self.image_dir, image_file)) for image_file in image_files]
-        return images 
+        Reads the input image directory and returns a list of Granny.Model.Image instances
+        """
+        # Gets the list of files in the directory.
+        image_files: List[str] = os.listdir(image_dir)
+        IMAGE_EXTENSION = (
+            ".JPG",
+            ".JPG".lower(),
+            ".PNG",
+            ".PNG".lower(),
+            ".JPEG",
+            ".JPEG".lower(),
+            ".TIFF",
+            ".TIFF".lower(),
+        )
+
+        # Creates a list of Image instances
+        images: List[Image] = []
+        for image_file in image_files:
+            if image_file.endswith(IMAGE_EXTENSION):
+                images.append(RGBImage(os.path.join(self.image_dir, image_file)))
+        return images
 
 
     def run(self):
@@ -68,6 +84,8 @@ class GrannyCLI(GrannyUI):
         if not self.checkArgs():
             exit(1)
 
+        # Gets Image instances
+        images = self.listImages(self.image_dir)
 
         # Gets parameter arguments
         self.addParameterArgs()
@@ -79,7 +97,7 @@ class GrannyCLI(GrannyUI):
         analyses = Analysis.__subclasses__()
         for aclass in analyses:
             if self.analysis == aclass.__analysis_name__:
-                # call aclass.getParams() and add an addiitonal set of
+                # call aclass.getParams() and add an additional set of
                 # arguments for this class.
                 analysis = aclass(images)
                 analysis.performAnalysis()

@@ -1,6 +1,5 @@
-from abc import ABC
+import os
 
-
-class MetaData(ABC):
+class MetaData(object):
     def __init__(self):
         pass

@@ -1,28 +1,41 @@
+import os
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any, List
 
 import numpy as np
 from Granny.Models.IO.ImageIO import ImageIO
-from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
 
 
 class Image(ABC):
     """
-
+    Abstract base class for Image module.
     """
-    def __init__(self, file_path: str):
-        self.file_path: str = file_path
+    def __init__(self, filepath: str):
+        """
+        """
+        self.filepath: str = os.path.abspath(filepath)
         self.result: Any = None  # type: ultralytics.engine.results.Results
-        self.image_io: ImageIO
         self.image: NDArray[np.uint8]
 
+    def getFilePath(self) -> str:
+        """
+        Returns the full file path of the image
+        """
+        return self.filepath
+
+    def getImageName(self) -> str:
+        """
+        """
+        return Path(self.filepath).name
+
     @abstractmethod
-    def loadImage(self):
+    def loadImage(self, image_io: ImageIO):
         pass
 
     @abstractmethod
-    def saveImage(self, folder: str):
+    def saveImage(self, image_io: ImageIO, folder: str):
         pass
 
     @abstractmethod
