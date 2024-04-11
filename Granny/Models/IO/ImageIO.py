@@ -9,6 +9,7 @@ class ImageIO(ABC):
     """
     Abstract base class to handle input and output of images.
     """
+
     def __init__(self, filepath: str):
         self.filepath: str = filepath
         self.image_dir = Path(filepath).parent
@@ -16,14 +17,12 @@ class ImageIO(ABC):
 
     @abstractmethod
     def saveImage(self, image: NDArray[np.uint8], folder: str):
-        """
-        """
+        """ """
         pass
 
     @abstractmethod
     def loadImage(self) -> NDArray[np.uint8]:
-        """
-        """
+        """ """
         pass
 
     @abstractmethod

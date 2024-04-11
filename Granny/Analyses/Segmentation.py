@@ -28,7 +28,6 @@ class Segmentation(Analysis):
         """
         return self.AIModel.predict(images)  # type: ignore
 
-
     def segmentInstances(self, image_instances: List[NDArray[np.uint8]]):
         """
         1. Loads the Segmentation model (Yolov8 Segmentation)
@@ -66,4 +65,4 @@ class Segmentation(Analysis):
         if len(results) != len(image_instances):
             raise ValueError("Different output mask length.")
         for i, result in enumerate(results):
-            self.images[i].setSegmentationResults(result = result)
+            self.images[i].setSegmentationResults(result=result)

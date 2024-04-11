@@ -18,19 +18,19 @@ class StarchArea(Analysis):
     def __init__(self, images: List[Image]):
         Analysis.__init__(self, images)
         th = IntParam(
-            "th", "threshold", "The color threhsold that distinguishes iodine-stained starch regions"
+            "th",
+            "threshold",
+            "The color threhsold that distinguishes iodine-stained starch regions",
         )
         th.setMin(0)
         th.setMax(255)
         self.addParam(th)
-
 
     def getParams(self) -> List[Any]:
         """
         {@inheritdoc}
         """
         return list(self.params)
-
 
     def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -76,15 +76,14 @@ class StarchArea(Analysis):
         return bin_mask
 
     def calculateStarch(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
-        """
-        """
+        """ """
         new_img = img.copy()
-        img = cv2.GaussianBlur(img, (11, 11), 0)
+        img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (5, 5), 0))
 
         # create thresholded matrices
-        threshold_1 = np.logical_and((img[:, :, 0] > 0), (img[:, :, 0] <= 170))
-        threshold_2 = np.logical_and((img[:, :, 1] > 0), (img[:, :, 1] <= 170))
-        threshold_3 = np.logical_and((img[:, :, 2] > 0), (img[:, :, 2] <= 170))
+        threshold_1 = np.logical_and((img[:, :, 0] > 0), (img[:, :, 0] <= 172))
+        threshold_2 = np.logical_and((img[:, :, 1] > 0), (img[:, :, 1] <= 172))
+        threshold_3 = np.logical_and((img[:, :, 2] > 0), (img[:, :, 2] <= 172))
 
         # combine to one matrix
         th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
@@ -131,7 +130,6 @@ class StarchArea(Analysis):
         image_io.saveImage(new_img, self.__analysis_name__)
 
         return image_instance
-
 
     def performAnalysis(self):
         """

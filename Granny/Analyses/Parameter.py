@@ -9,7 +9,6 @@ class Param(ABC):
 
     This class is used by all Analysis objects for representing the
     parameters that can be used to set how the anlaysis will perform.
-
     """
 
     def __init__(self, name: str, label: str, help: str):

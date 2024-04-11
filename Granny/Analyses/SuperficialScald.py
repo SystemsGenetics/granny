@@ -59,7 +59,7 @@ class SuperficialScald(Analysis):
         )  # type: ignore
         return bin_mask
 
-    def isolateScald(self, img: NDArray[np.uint8]) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
+    def removeScald(self, img: NDArray[np.uint8]) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
         """
         Remove the scald region from the individual apple images.
         Note that the stem could have potentially been removed during the process.
@@ -137,7 +137,7 @@ class SuperficialScald(Analysis):
         img = cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0)
 
         # Removal of scald regions
-        bw, img = self.isolateScald(img)
+        bw, img = self.removeScald(img)
 
         return nopurple_img, img, bw
 
@@ -206,12 +206,11 @@ class SuperficialScald(Analysis):
         # image_instance.setRating(score)
         return image_instance
 
-
     def performAnalysis(self):
         """
         {@inheritdoc}
         """
         num_cpu = os.cpu_count()
-        cpu_count = int(num_cpu * 0.8) or 1 # type: ignore
+        cpu_count = int(num_cpu * 0.8) or 1  # type: ignore
         with Pool(cpu_count) as pool:
             pool.map(self.rateImageInstance, self.images)

@@ -39,4 +39,3 @@ class Analysis(ABC):
         @throws Exception
         """
         pass
-

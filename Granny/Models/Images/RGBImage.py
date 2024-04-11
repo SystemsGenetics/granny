@@ -8,8 +8,8 @@ from numpy.typing import NDArray
 
 
 class RGBImage(Image):
-    """
-    """
+    """ """
+
     def __init__(self, file_path: str):
         Image.__init__(self, file_path)
 

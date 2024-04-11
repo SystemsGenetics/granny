@@ -11,6 +11,7 @@ class RGBImageFile(ImageIO):
     """
     I/O of RGB image.
     """
+
     __image_type__ = "rgb"
 
     def __init__(self, filepath: str):
@@ -27,7 +28,10 @@ class RGBImageFile(ImageIO):
         """
         {@inheritdoc}
         """
-        cv2.imwrite(os.path.join(self.image_dir, folder, self.image_name), image)
+        cv2.imwrite(
+            os.path.join(self.image_dir, folder, self.image_name),
+            cv2.cvtColor(image, cv2.COLOR_RGB2BGR),
+        )
 
     def getType(self):
         """

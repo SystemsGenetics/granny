@@ -12,9 +12,9 @@ class Image(ABC):
     """
     Abstract base class for Image module.
     """
+
     def __init__(self, filepath: str):
-        """
-        """
+        """ """
         self.filepath: str = os.path.abspath(filepath)
         self.result: Any = None  # type: ultralytics.engine.results.Results
         self.image: NDArray[np.uint8]
@@ -26,8 +26,7 @@ class Image(ABC):
         return self.filepath
 
     def getImageName(self) -> str:
-        """
-        """
+        """ """
         return Path(self.filepath).name
 
     @abstractmethod
