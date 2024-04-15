@@ -4,6 +4,8 @@ from pathlib import Path
 from typing import Any, List
 
 import numpy as np
+from Granny.Analyses.Parameter import Param
+from Granny.Models.Images.MetaData import MetaData
 from Granny.Models.IO.ImageIO import ImageIO
 from numpy.typing import NDArray
 
@@ -18,6 +20,7 @@ class Image(ABC):
         self.filepath: str = os.path.abspath(filepath)
         self.result: Any = None  # type: ultralytics.engine.results.Results
         self.image: NDArray[np.uint8]
+        self.metadata: MetaData
 
     def getFilePath(self) -> str:
         """
@@ -31,18 +34,26 @@ class Image(ABC):
 
     @abstractmethod
     def loadImage(self, image_io: ImageIO):
+        """ """
         pass
 
     @abstractmethod
     def saveImage(self, image_io: ImageIO, folder: str):
+        """ """
         pass
 
     @abstractmethod
     def loadMetaData(self):
+        """
+        Calls MetaDataIO to load MetaData file
+        """
         pass
 
     @abstractmethod
     def saveMetaData(self):
+        """
+        Calls MetaDataIO to save MetaData file
+        """
         pass
 
     @abstractmethod
@@ -54,35 +65,10 @@ class Image(ABC):
         pass
 
     @abstractmethod
-    def getMetaKeys(self):
-        pass
-
-    @abstractmethod
-    def getValue(self):
-        pass
-
-    @abstractmethod
-    def setValue(self):
-        pass
-
-    @abstractmethod
-    def getSpec(self):
-        pass
-
-    @abstractmethod
-    def setSpec(self):
-        pass
-
-    @abstractmethod
-    def getRating(self):
-        pass
-
-    @abstractmethod
-    def setRating(self):
-        pass
-
-    @abstractmethod
-    def extractFeature(self) -> List["Image"]:
+    def setMetaData(self, params: List[Param]):
+        """
+        Calls MetaData class
+        """
         pass
 
     @abstractmethod

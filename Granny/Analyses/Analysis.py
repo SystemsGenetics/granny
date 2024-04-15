@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List
+from typing import List
 
 from Granny.Analyses.Parameter import Param
 from Granny.Models.Images.Image import Image
@@ -21,21 +21,22 @@ class Analysis(ABC):
         self.params: List[Param] = []
 
     def addParam(self, param: Param):
+        """
+        Adds a parameter to the parameter list
+        """
         self.params.append(param)
 
     @abstractmethod
-    def getParams(self) -> List[Any]:
-        """Returns to the GUI/CLI all the default parameters in self.params"""
+    def getParams(self) -> List[Param]:
+        """
+        Returns to the GUI/CLI all the default parameters in self.params
+        """
         pass
 
     @abstractmethod
     def performAnalysis(self) -> None:
         """
-        Calls multiple CPUs to perform the analysis in parallel
-
         Once all required paramterers have been set, this function is used
         to perform the analysis.
-
-        @throws Exception
         """
         pass

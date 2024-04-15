@@ -5,7 +5,7 @@ from typing import Any, List, Tuple, cast
 import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
-from Granny.Analyses.Parameter import IntParam
+from Granny.Analyses.Parameter import FloatParam, IntParam, Param
 from Granny.Models.Images.Image import Image
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
@@ -23,7 +23,7 @@ class SuperficialScald(Analysis):
         # peel color. By default this threshold is determined automatically
         # but we will allow the user to manually set it if they want.
         th = IntParam(
-            "th", "threshold", "The green color threhsold that distinguishes non-scald regions"
+            "th", "threshold", "The green color threhsold that distinguishes non-scald regions."
         )
         th.setMin(0)
         th.setMax(255)
@@ -203,7 +203,18 @@ class SuperficialScald(Analysis):
         # saves the output image
         image_io.saveImage(binarized_image, self.__analysis_name__)
 
-        # image_instance.setRating(score)
+        rating = FloatParam(
+            name="score",
+            label="score",
+            help="Granny rating of the image",
+        )
+        rating.setValue(score)
+        self.addParam(rating)
+
+        # todo: need a method to generate metadata such as: date-time, reps, imagename,
+        # lab values, threshold values, ...
+
+        image_instance.setMetaData(self.params)
         return image_instance
 
     def performAnalysis(self):

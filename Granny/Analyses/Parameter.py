@@ -8,7 +8,7 @@ class Param(ABC):
     The base abstract class for a parameter used by Granny.
 
     This class is used by all Analysis objects for representing the
-    parameters that can be used to set how the anlaysis will perform.
+    parameters that can be used to set how the analysis will perform.
     """
 
     def __init__(self, name: str, label: str, help: str):
@@ -144,16 +144,19 @@ class BoolParam(Param):
         """
         {@inheritdoc}
         """
-        return super().getDefaultValue()
+        return self.default_value
 
     def setDefaultValue(self, value: bool):
         """
         {@inheritdoc}
         """
-        return super().setDefaultValue(value)
+        self.default_value = value
 
     def setValue(self, value: bool):
-        return super().setValue(value)
+        """
+        {@inheritdoc}
+        """
+        self.value = value
 
 
 class IntParam(NumericParam):
@@ -190,7 +193,7 @@ class IntParam(NumericParam):
 
     def setValidValues(self, values: list[int]):
         """
-        Provides a list of valid values for this integer paratmer.
+        Provides a list of valid values for this integer parameter.
         """
         self.valid_values = values
 
@@ -198,11 +201,11 @@ class IntParam(NumericParam):
         """
         {@inheritdoc}
         """
-        super().setValue(value)
+        self.value = value
 
     def getValidValues(self) -> List[int]:
         """
-        Gets the list of valid values for this integer paramter.
+        Gets the list of valid values for this integer parameter.
         """
         return self.value_values
 
@@ -216,7 +219,7 @@ class IntParam(NumericParam):
         """
         {@inheritdoc}
         """
-        return super().getDefaultValue()
+        return self.default_value
 
 
 class FloatParam(NumericParam):
@@ -247,13 +250,19 @@ class FloatParam(NumericParam):
 
     def setDefaultValue(self, value: float):
         """
-        Gets the default value for the parameter.
+        Sets the default value for the parameter.
         """
         self.default_value = value
 
+    def getDefaultValue(self) -> float:
+        """
+        Gets the default value for the parameter.
+        """
+        return self.default_value
+
     def setValidValues(self, values: List[float]):
         """
-        Provides a list of valid values for this integer paratmer.
+        Provides a list of valid values for this integer parameter.
         """
         self.valid_values = values
 
@@ -265,7 +274,7 @@ class FloatParam(NumericParam):
 
     def getValidValues(self) -> List[float]:
         """
-        Gets the list of valid values for this integer paramter.
+        Gets the list of valid values for this integer parameter.
         """
         return self.value_values
 

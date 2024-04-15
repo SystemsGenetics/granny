@@ -1,8 +1,8 @@
 from typing import Any, List, cast
 
-import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
+from Granny.Analyses.Parameter import Param
 from Granny.Models.Images.Image import Image
 from numpy.typing import NDArray
 
@@ -14,23 +14,10 @@ class BlushColor(Analysis):
     def __init__(self, images: List[Image]):
         Analysis.__init__(self, images)
 
-    def getParams(self):
-        pass
+    def getParams(self) -> List[Param]:
+        return self.params
 
-    def setResults(self, index: int, key: str, value: Any):
-        pass
-
-    def checkParams(self):
-        pass
-
-    def setParamValue(self, key: str, value: str) -> None:
-        pass
-
-    def getParamValue(self, key: str):
-        pass
-
-    def getParamKeys(self) -> None:
-        pass
+    
 
     def performAnalysis(self) -> None:
         pass

@@ -4,8 +4,7 @@ from Granny.Models.IO.MetaDataIO import MetaDataIO
 
 class MetaDataFile(MetaDataIO):
     def __init__(self, filepath: str):
-        super(MetaDataIO, self).__init__()
-        self.filepath: str = filepath
+        MetaDataIO.__init__(self, filepath)
         self.metadata: MetaData
 
     def load(self):
