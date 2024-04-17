@@ -1,17 +1,23 @@
-import argparse
+import glob
 import os
 from argparse import ArgumentParser
+from datetime import datetime
 from typing import List
 
 from Granny.Analyses.Analysis import Analysis
 from Granny.Analyses.BlushColor import BlushColor
+from Granny.Analyses.Parameter import IntParam, Param, StringParam
 from Granny.Analyses.PeelColor import PeelColor
 from Granny.Analyses.Segmentation import Segmentation
 from Granny.Analyses.StarchArea import StarchArea
 from Granny.Analyses.SuperficialScald import SuperficialScald
 from Granny.Interfaces.UI.GrannyUI import GrannyUI
 from Granny.Models.Images.Image import Image
+from Granny.Models.Images.MetaData import MetaData
 from Granny.Models.Images.RGBImage import RGBImage
+from Granny.Models.IO.MetaDataFile import MetaDataFile
+
+# datetime.now().strftime("%Y%m%d")
 
 
 class GrannyCLI(GrannyUI):
@@ -21,8 +27,8 @@ class GrannyCLI(GrannyUI):
         """
         GrannyUI.__init__(self, parser)
         self.image_dir: str = ""
-        self.metadata_dir: str = ""
         self.result_dir: str = ""
+        self.metadata_file: str = ""
         self.analysis: str = ""
 
     def checkArgs(self) -> bool:
@@ -43,11 +49,19 @@ class GrannyCLI(GrannyUI):
                 return True
         return False
 
+    def readMetaData(self, metadata_file: str) -> MetaData:
+        """
+        Reads the input metadata file and returns a list of Granny.Analysis.Param instances
+        """
+        metadata_io = MetaDataFile(metadata_file)
+        metadata = MetaData(metadata_io=metadata_io)
+        return metadata
+
     def listImages(self, image_dir: str) -> List[Image]:
         """
-        Reads the input image directory and returns a list of Granny.Model.Image instances
+        Reads the input image directory and returns a list of Granny.Model.Images.Image instances
         """
-        # Gets the list of files in the directory.
+        # Gets a list of image files in the directory.
         image_files: List[str] = os.listdir(image_dir)
         IMAGE_EXTENSION = (
             ".JPG",
@@ -60,13 +74,17 @@ class GrannyCLI(GrannyUI):
             ".TIFF".lower(),
         )
 
-        # Creates a list of Image instances
+        # Gets a list of parameters needed for the analysis.
+        params: List[Param] = self.readMetaData(self.metadata_file).getMetaData()
+
+        # Creates a list of Image instances.
         images: List[Image] = []
         for image_file in image_files:
             if image_file.endswith(IMAGE_EXTENSION):
-                images.append(RGBImage(os.path.join(self.image_dir, image_file)))
+                rgb_image = RGBImage(os.path.join(self.image_dir, image_file))
+                rgb_image.setMetaData(params)
+                images.append(rgb_image)
         return images
-
 
     def run(self):
         """
@@ -76,8 +94,8 @@ class GrannyCLI(GrannyUI):
         self.addAnalysisArgs()
         analysis_args, _ = self.parser.parse_known_args()
         self.image_dir = analysis_args.dir
-        self.result_dir = analysis_args.result
-        # self.metadata_dir = args.metadata
+        self.result_dir = analysis_args.result if not None else os.path.join("results", os.sep)
+        self.metadata_file = analysis_args.metadata if not None else glob.glob("./*.ini")
         self.analysis = analysis_args.analysis
 
         # Checks the incoming arguments for errors, if all is okay then collect the arguments.
@@ -126,15 +144,15 @@ class GrannyCLI(GrannyUI):
             required=True,
             help="Required. Specify a folder containing input images.",
         )
-        # self.parser.add_argument(
-        #     "-m",
-        #     "--metadata",
-        #     dest="metadata",
-        #     type=str,
-        #     nargs="?",
-        #     required=True,
-        #     help="Required. Specify a path for metadata file.",
-        # )
+        self.parser.add_argument(
+            "-m",
+            "--metadata",
+            dest="metadata",
+            type=str,
+            nargs="?",
+            required=True,
+            help="Required. Specify a path for the metadata file.",
+        )
         self.parser.add_argument(
             "-r",
             "--result_dir",

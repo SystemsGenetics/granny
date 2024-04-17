@@ -7,6 +7,7 @@ import numpy as np
 from Granny.Analyses.Parameter import Param
 from Granny.Models.Images.MetaData import MetaData
 from Granny.Models.IO.ImageIO import ImageIO
+from Granny.Models.IO.MetaDataFile import MetaDataFile
 from numpy.typing import NDArray
 
 
@@ -18,7 +19,7 @@ class Image(ABC):
     def __init__(self, filepath: str):
         """ """
         self.filepath: str = os.path.abspath(filepath)
-        self.result: Any = None  # type: ultralytics.engine.results.Results
+        self.results: Any = None  # type: ultralytics.engine.results.Results
         self.image: NDArray[np.uint8]
         self.metadata: MetaData
 
@@ -43,20 +44,6 @@ class Image(ABC):
         pass
 
     @abstractmethod
-    def loadMetaData(self):
-        """
-        Calls MetaDataIO to load MetaData file
-        """
-        pass
-
-    @abstractmethod
-    def saveMetaData(self):
-        """
-        Calls MetaDataIO to save MetaData file
-        """
-        pass
-
-    @abstractmethod
     def getImage(self) -> NDArray[np.uint8]:
         pass
 
@@ -67,14 +54,20 @@ class Image(ABC):
     @abstractmethod
     def setMetaData(self, params: List[Param]):
         """
-        Calls MetaData class
+        Calls MetaData class to set up a list of parameters for the analysis
         """
         pass
 
     @abstractmethod
-    def setSegmentationResults(self, result: List[Any]):
+    def setSegmentationResults(self, results: List[Any]):
+        """
+        Sets the segmentation results to self.results
+        """
         pass
 
     @abstractmethod
     def getSegmentationResults(self) -> Any:
+        """
+        Returns the segmentation results stored in self.results
+        """
         pass

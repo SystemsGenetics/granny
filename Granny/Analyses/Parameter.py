@@ -315,3 +315,15 @@ class StringParam(Param):
         {@inheritdoc}
         """
         return True
+
+    def getDefaultValue(self) -> str:
+        """
+        {@inheritdoc}
+        """
+        return self.default_value
+
+    def setDefaultValue(self, value: str):
+        """
+        {@inheritdoc}
+        """
+        self.default_value = value

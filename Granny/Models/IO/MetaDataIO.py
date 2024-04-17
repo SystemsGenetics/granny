@@ -1,4 +1,7 @@
 from abc import ABC, abstractmethod
+from typing import List
+
+from Granny.Analyses.Parameter import Param
 
 
 class MetaDataIO(ABC):
@@ -6,9 +9,9 @@ class MetaDataIO(ABC):
         self.filepath: str = filepath
 
     @abstractmethod
-    def load(self):
+    def load(self) -> List[Param]:
         pass
 
     @abstractmethod
-    def save(self):
+    def save(self, params: List[Param]):
         pass
