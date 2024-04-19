@@ -14,6 +14,7 @@ class YoloModel(AIModel):
     """
     {@inheritdoc}
     """
+
     def __init__(self, model_dir: str):
         AIModel.__init__(self, model_dir)
 

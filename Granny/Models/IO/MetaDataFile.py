@@ -28,4 +28,10 @@ class MetaDataFile(MetaDataIO):
 
     def save(self, params: List[Param]):
         """ """
-        pass
+        config = configparser.ConfigParser()
+        for param in params:
+            config["RESULT"][param.getLabel()] = param.getValue()
+
+        # writes config parser to file
+        with open("example.ini", "w") as configfile:
+            config.write(configfile)

@@ -1,6 +1,5 @@
 import os
-from multiprocessing import Pool
-from typing import Any, List, Set
+from typing import Any, List
 
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
@@ -8,7 +7,6 @@ from Granny.Models.AIModel.AIModel import AIModel
 from Granny.Models.AIModel.YoloModel import YoloModel
 from Granny.Models.Images.Image import Image
 from numpy.typing import NDArray
-from ultralytics import YOLO
 
 
 class Segmentation(Analysis):
@@ -54,15 +52,15 @@ class Segmentation(Analysis):
         # loads np.ndarray image from a list of Image objects
         image_instances: List[NDArray[np.uint8]] = []
         for image in self.images:
-            image.loadImage()
             image_instances.append(image.getImage())
 
         # performs instance segmentation to retrieve the masks
         results = self.segmentInstances(image_instances)
+        print(results)
 
         # checks for potential mismatch of results, then loops through the list of Images to save
         # the segmentation results
         if len(results) != len(image_instances):
             raise ValueError("Different output mask length.")
         for i, result in enumerate(results):
-            self.images[i].setSegmentationResults(result=result)
+            self.images[i].setSegmentationResults(results=result)

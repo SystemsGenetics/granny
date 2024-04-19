@@ -78,7 +78,7 @@ class StarchArea(Analysis):
     def calculateStarch(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
         """ """
         new_img = img.copy()
-        img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (5, 5), 0))
+        img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (11, 11), 0))
 
         # create thresholded matrices
         threshold_1 = np.logical_and((img[:, :, 0] > 0), (img[:, :, 0] <= 172))

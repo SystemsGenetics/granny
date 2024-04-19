@@ -2,6 +2,7 @@ import glob
 import os
 from argparse import ArgumentParser
 from datetime import datetime
+from pathlib import Path
 from typing import List
 
 from Granny.Analyses.Analysis import Analysis
@@ -75,14 +76,14 @@ class GrannyCLI(GrannyUI):
         )
 
         # Gets a list of parameters needed for the analysis.
-        params: List[Param] = self.readMetaData(self.metadata_file).getMetaData()
+        metadata = self.readMetaData(self.metadata_file)
 
         # Creates a list of Image instances.
         images: List[Image] = []
         for image_file in image_files:
             if image_file.endswith(IMAGE_EXTENSION):
                 rgb_image = RGBImage(os.path.join(self.image_dir, image_file))
-                rgb_image.setMetaData(params)
+                rgb_image.setMetaData(metadata)
                 images.append(rgb_image)
         return images
 
@@ -95,7 +96,13 @@ class GrannyCLI(GrannyUI):
         analysis_args, _ = self.parser.parse_known_args()
         self.image_dir = analysis_args.dir
         self.result_dir = analysis_args.result if not None else os.path.join("results", os.sep)
-        self.metadata_file = analysis_args.metadata if not None else glob.glob("./*.ini")
+        self.metadata_file = (
+            analysis_args.metadata
+            if None
+            else os.path.join(
+                Path(__file__).parent.parent.parent, "Analyses", "config", "Analysis.ini"
+            )
+        )
         self.analysis = analysis_args.analysis
 
         # Checks the incoming arguments for errors, if all is okay then collect the arguments.
@@ -133,7 +140,7 @@ class GrannyCLI(GrannyUI):
             nargs="?",
             required=True,
             choices=["segmentation", "blush", "color", "scald", "starch"],
-            help="Required. Specify an analysis you want to perform.",
+            help="Required. An analysis you want to perform.",
         )
         self.parser.add_argument(
             "-d",
@@ -142,7 +149,7 @@ class GrannyCLI(GrannyUI):
             type=str,
             nargs="?",
             required=True,
-            help="Required. Specify a folder containing input images.",
+            help="Required. A folder containing input images.",
         )
         self.parser.add_argument(
             "-m",
@@ -150,8 +157,9 @@ class GrannyCLI(GrannyUI):
             dest="metadata",
             type=str,
             nargs="?",
-            required=True,
-            help="Required. Specify a path for the metadata file.",
+            required=False,
+            help="Optional. A path for the metadata file. If not specified, the default parameters \
+                in Granny.Analyses.config.Analysis will be loaded.",
         )
         self.parser.add_argument(
             "-r",
@@ -161,7 +169,7 @@ class GrannyCLI(GrannyUI):
             nargs="?",
             required=False,
             default="results/",
-            help="Optional. Specify a folder to save results. Default directory is 'results/'.",
+            help="Optional. A folder to save results. Default directory is 'results/'.",
         )
 
     def addParameterArgs(self) -> None:

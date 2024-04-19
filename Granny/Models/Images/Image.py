@@ -52,7 +52,7 @@ class Image(ABC):
         pass
 
     @abstractmethod
-    def setMetaData(self, params: List[Param]):
+    def setMetaData(self, metadata: MetaData):
         """
         Calls MetaData class to set up a list of parameters for the analysis
         """

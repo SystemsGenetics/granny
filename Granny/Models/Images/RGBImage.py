@@ -17,28 +17,24 @@ class RGBImage(Image):
         Image.__init__(self, filepath)
 
     def getImage(self) -> NDArray[np.uint8]:
-        """
-        """
+        """ """
         return self.image
 
     def setImage(self, image: NDArray[np.uint8]):
-        """
-        """
+        """ """
         self.image = image
 
     def loadImage(self, image_io: ImageIO):
-        """
-        """
+        """ """
         self.image = image_io.loadImage()
 
     def saveImage(self, image_io: ImageIO, folder: str):
         """"""
         image_io.saveImage(self.image, folder)
 
-    def setMetaData(self, params: List[Param]):
-        """
-        """
-        self.metadata.setMetaData(params)
+    def setMetaData(self, metadata: MetaData):
+        """ """
+        self.metadata = metadata
 
     def setSegmentationResults(self, results: Any):
         """
