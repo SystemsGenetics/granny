@@ -92,7 +92,7 @@ class GrannyCLI(GrannyUI):
         {@inheritdoc}
         """
         # Get the input arguments.
-        self.addAnalysisArgs()
+        self.addProgramArgs()
         analysis_args, _ = self.parser.parse_known_args()
         self.image_dir = analysis_args.dir
         self.result_dir = analysis_args.result if not None else os.path.join("results", os.sep)
@@ -112,10 +112,6 @@ class GrannyCLI(GrannyUI):
         # Gets Image instances
         images = self.listImages(self.image_dir)
 
-        # Gets parameter arguments
-        self.addParameterArgs()
-        param_args, _ = self.parser.parse_known_args()
-
         # Iterates through all of the available analysis classes.
         # Finds then one whose machine name matches the argument
         # provided by the user and run the performAnalysis() function.
@@ -127,7 +123,7 @@ class GrannyCLI(GrannyUI):
                 analysis = aclass(images)
                 analysis.performAnalysis()
 
-    def addAnalysisArgs(self) -> None:
+    def addProgramArgs(self) -> None:
         """
         Parses the command-line analysis arguments: analysis, image directory, metadata directory,
         and result directory
@@ -170,58 +166,4 @@ class GrannyCLI(GrannyUI):
             required=False,
             default="results/",
             help="Optional. A folder to save results. Default directory is 'results/'.",
-        )
-
-    def addParameterArgs(self) -> None:
-        """
-        Parses the command-line parameter arguments: type, default, upper bound, lower bound,
-        valid values, and label
-        """
-        self.parser.add_argument(
-            "--type",
-            dest="type",
-            type=str,
-            nargs="?",
-            required=False,
-            help="",
-        )
-        self.parser.add_argument(
-            "--default",
-            dest="default",
-            type=str,
-            nargs="?",
-            required=False,
-            help="",
-        )
-        self.parser.add_argument(
-            "--upper",
-            dest="upper",
-            type=int,
-            nargs="?",
-            required=False,
-            help="",
-        )
-        self.parser.add_argument(
-            "--lower",
-            dest="lower",
-            type=int,
-            nargs="?",
-            required=False,
-            help="",
-        )
-        self.parser.add_argument(
-            "--valid",
-            dest="valid",
-            type=int,
-            nargs="+",
-            required=False,
-            help="Provides multiple valid values for the analysis",
-        )
-        self.parser.add_argument(
-            "--label",
-            dest="label",
-            type=str,
-            nargs="?",
-            required=False,
-            help="",
         )
