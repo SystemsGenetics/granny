@@ -20,18 +20,23 @@ class Analysis(ABC):
         self.images: List[Image] = images
         self.params: List[Param] = []
 
+    def resetParam(self):
+        """
+        Resets the parameter list to an empty list
+        """
+        self.params = []
+
     def addParam(self, param: Param):
         """
         Adds a parameter to the parameter list
         """
         self.params.append(param)
 
-    @abstractmethod
     def getParams(self) -> List[Param]:
         """
-        Returns to the GUI/CLI all the default parameters in self.params
+        Returns to the GUI/CLI all the required parameters in self.params
         """
-        pass
+        return list(self.params)
 
     @abstractmethod
     def performAnalysis(self) -> None:

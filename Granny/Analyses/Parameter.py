@@ -23,9 +23,9 @@ class Param(ABC):
             The help text that is displayed to the user that
             describes how the paramter is used.
         """
-        self.help = help
         self.name = name
         self.label = label
+        self.help = help
         self.default_value = None
         self.type = Any
         self.value = None
@@ -37,6 +37,12 @@ class Param(ABC):
         Validates the value matches the parameter constraints.
         """
         pass
+
+    def getName(self) -> str:
+        """
+        Gets the machine readable name for this parameter
+        """
+        return self.name
 
     def getLabel(self) -> str:
         """
@@ -152,12 +158,6 @@ class BoolParam(Param):
         """
         self.default_value = value
 
-    def setValue(self, value: bool):
-        """
-        {@inheritdoc}
-        """
-        self.value = value
-
 
 class IntParam(NumericParam):
     """
@@ -196,12 +196,6 @@ class IntParam(NumericParam):
         Provides a list of valid values for this integer parameter.
         """
         self.valid_values = values
-
-    def setValue(self, value: int):
-        """
-        {@inheritdoc}
-        """
-        self.value = value
 
     def getValidValues(self) -> List[int]:
         """
@@ -265,12 +259,6 @@ class FloatParam(NumericParam):
         Provides a list of valid values for this integer parameter.
         """
         self.valid_values = values
-
-    def setValue(self, value: float):
-        """
-        {@inheritdoc}
-        """
-        super().setValue(value)
 
     def getValidValues(self) -> List[float]:
         """

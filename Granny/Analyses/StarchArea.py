@@ -17,20 +17,15 @@ class StarchArea(Analysis):
 
     def __init__(self, images: List[Image]):
         Analysis.__init__(self, images)
-        th = IntParam(
+        threshold = IntParam(
             "th",
             "threshold",
             "The color threhsold that distinguishes iodine-stained starch regions",
         )
-        th.setMin(0)
-        th.setMax(255)
-        self.addParam(th)
-
-    def getParams(self) -> List[Any]:
-        """
-        {@inheritdoc}
-        """
-        return list(self.params)
+        threshold.setMin(0)
+        threshold.setMax(255)
+        threshold.setDefaultValue(172)
+        self.addParam(threshold)
 
     def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """

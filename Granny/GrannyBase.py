@@ -11,7 +11,7 @@ def run():
     The user specifies the interface to use. If no interface is provided then
     the default interface is used.
     """
-    parser = argparse.ArgumentParser(description="Welcome to Granny")
+    parser = argparse.ArgumentParser(description="Welcome to Granny!")
     parser.add_argument(
         "-i",
         "--interface",

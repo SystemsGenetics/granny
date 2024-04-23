@@ -93,17 +93,11 @@ class GrannyCLI(GrannyUI):
         """
         # Get the input arguments.
         self.addProgramArgs()
-        analysis_args, _ = self.parser.parse_known_args()
-        self.image_dir = analysis_args.dir
-        self.result_dir = analysis_args.result if not None else os.path.join("results", os.sep)
-        self.metadata_file = (
-            analysis_args.metadata
-            if None
-            else os.path.join(
-                Path(__file__).parent.parent.parent, "Analyses", "config", "Analysis.ini"
-            )
-        )
-        self.analysis = analysis_args.analysis
+        program_args, _ = self.parser.parse_known_args()
+        self.image_dir = program_args.dir
+        self.result_dir = program_args.result
+        # self.metadata_file = program_args.metadata
+        self.analysis = program_args.analysis
 
         # Checks the incoming arguments for errors, if all is okay then collect the arguments.
         if not self.checkArgs():
@@ -121,12 +115,22 @@ class GrannyCLI(GrannyUI):
                 # call aclass.getParams() and add an additional set of
                 # arguments for this class.
                 analysis = aclass(images)
+                params = analysis.getParams()
+                analysis.resetParam()
+                if len(params) > 0:
+                    self.addAnalysisArgs(params)
+                    analysis_args, _ = self.parser.parse_known_args()
+                    args = analysis_args.__dict__
+                    for param in params:
+                        user_value = args.get(param.getLabel())
+                        param.setValue(user_value)
+                        analysis.addParam(param)
                 analysis.performAnalysis()
 
     def addProgramArgs(self) -> None:
         """
-        Parses the command-line analysis arguments: analysis, image directory, metadata directory,
-        and result directory
+        Parses the command-line arguments: analysis, image directory, metadata directory,
+        and result directory. These parameters are required to run the program.
         """
         self.parser.add_argument(
             "-a",
@@ -147,16 +151,15 @@ class GrannyCLI(GrannyUI):
             required=True,
             help="Required. A folder containing input images.",
         )
-        self.parser.add_argument(
-            "-m",
-            "--metadata",
-            dest="metadata",
-            type=str,
-            nargs="?",
-            required=False,
-            help="Optional. A path for the metadata file. If not specified, the default parameters \
-                in Granny.Analyses.config.Analysis will be loaded.",
-        )
+        # self.parser.add_argument(
+        #     "-m",
+        #     "--metadata",
+        #     dest="metadata",
+        #     type=str,
+        #     nargs="?",
+        #     required=False,
+        #     help="Optional. A path for the metadata file.",
+        # )
         self.parser.add_argument(
             "-r",
             "--result_dir",
@@ -167,3 +170,13 @@ class GrannyCLI(GrannyUI):
             default="results/",
             help="Optional. A folder to save results. Default directory is 'results/'.",
         )
+
+    def addAnalysisArgs(self, params: List[Param]) -> None:
+        for param in params:
+            self.parser.add_argument(
+                f"-{param.getName()}",
+                f"--{param.getLabel()}",
+                type=param.getType(),  # type: ignore
+                required=False,
+                help=param.getHelp(),
+            )

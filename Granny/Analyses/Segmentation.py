@@ -56,7 +56,6 @@ class Segmentation(Analysis):
 
         # performs instance segmentation to retrieve the masks
         results = self.segmentInstances(image_instances)
-        print(results)
 
         # checks for potential mismatch of results, then loops through the list of Images to save
         # the segmentation results
