@@ -126,12 +126,12 @@ class GrannyCLI(GrannyUI):
                     # loops through the parameter list to update new values using setValue()
                     for param in params:
                         # if the user provide a value
-                        if args_dict.get(param.getLabel()) is not None:
+                        arg_value = args_dict.get(param.getLabel())
+                        if arg_value is not None:
                             print(
-                                f"{param.getLabel()}:\t No value provided by the user,",
-                                "using system default value.",
+                                f"{param.getLabel()}:\t {arg_value}",
                             )
-                            param.setValue(args_dict.get(param.getLabel()))
+                            param.setValue(arg_value)
                         # if the user doesn't provide a value
                         else:
                             print(
