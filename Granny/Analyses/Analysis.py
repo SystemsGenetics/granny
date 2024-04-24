@@ -26,11 +26,12 @@ class Analysis(ABC):
         """
         self.params = []
 
-    def addParam(self, param: Param):
+    def addParam(self, *param: Param):
         """
         Adds a parameter to the parameter list
         """
-        self.params.append(param)
+        for p in param:
+            self.params.append(p)
 
     def getParams(self) -> List[Param]:
         """

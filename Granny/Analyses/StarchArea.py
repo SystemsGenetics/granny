@@ -1,11 +1,12 @@
 import os
+from datetime import datetime
 from multiprocessing import Pool
 from typing import Any, List, Tuple, cast
 
 import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
-from Granny.Analyses.Parameter import IntParam
+from Granny.Analyses.Parameter import IntParam, StringParam
 from Granny.Models.Images.Image import Image
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
@@ -17,6 +18,8 @@ class StarchArea(Analysis):
 
     def __init__(self, images: List[Image]):
         Analysis.__init__(self, images)
+
+        # default threshold parameter
         threshold = IntParam(
             "th",
             "threshold",
@@ -130,6 +133,12 @@ class StarchArea(Analysis):
         """
         {@inheritdoc}
         """
+        # string parameter for date and time of the analysis
+        time = StringParam("dt", "datetime", "Date and time of when the analysis was performed.")
+        time.setDefaultValue(datetime.now().strftime("%Y-%m-%d %H:%M"))
+        self.addParam(time)
+
+        # perform analysis with multiprocessing
         num_cpu = os.cpu_count()
         cpu_count = int(num_cpu * 0.8) or 1  # type: ignore
         with Pool(cpu_count) as pool:

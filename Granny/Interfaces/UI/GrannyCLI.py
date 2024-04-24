@@ -1,7 +1,7 @@
 import glob
 import os
+import warnings
 from argparse import ArgumentParser
-from datetime import datetime
 from pathlib import Path
 from typing import List
 
@@ -17,8 +17,6 @@ from Granny.Models.Images.Image import Image
 from Granny.Models.Images.MetaData import MetaData
 from Granny.Models.Images.RGBImage import RGBImage
 from Granny.Models.IO.MetaDataFile import MetaDataFile
-
-# datetime.now().strftime("%Y%m%d")
 
 
 class GrannyCLI(GrannyUI):
@@ -112,24 +110,42 @@ class GrannyCLI(GrannyUI):
         analyses = Analysis.__subclasses__()
         for aclass in analyses:
             if self.analysis == aclass.__analysis_name__:
-                # call aclass.getParams() and add an additional set of
+                # calls analysis.getParams() and add an additional set of
                 # arguments for this class.
                 analysis = aclass(images)
                 params = analysis.getParams()
-                analysis.resetParam()
+                # checks to make sure the list of parameters is not empty
                 if len(params) > 0:
+                    # calls argparse to parse analysis arguments specified by the user
                     self.addAnalysisArgs(params)
                     analysis_args, _ = self.parser.parse_known_args()
-                    args = analysis_args.__dict__
+                    args_dict = analysis_args.__dict__
+                    # resets the parameter list in the analysis to update new parameter's values
+                    # from the user
+                    analysis.resetParam()
+                    # loops through the parameter list to update new values using setValue()
                     for param in params:
-                        user_value = args.get(param.getLabel())
-                        param.setValue(user_value)
+                        # if the user provide a value
+                        if args_dict.get(param.getLabel()) is not None:
+                            print(
+                                f"{param.getLabel()}:\t No value provided by the user,",
+                                "using system default value.",
+                            )
+                            param.setValue(args_dict.get(param.getLabel()))
+                        # if the user doesn't provide a value
+                        else:
+                            print(
+                                f"{param.getLabel()}:\t No value provided by the user,",
+                                "using system default value.",
+                            )
+                            param.setValue(param.getDefaultValue())
                         analysis.addParam(param)
+                # performs the analysis with a newly updated set of parameters provided by the user
                 analysis.performAnalysis()
 
     def addProgramArgs(self) -> None:
         """
-        Parses the command-line arguments: analysis, image directory, metadata directory,
+        Parses the following command-line arguments: analysis, image directory, metadata directory,
         and result directory. These parameters are required to run the program.
         """
         self.parser.add_argument(
@@ -172,6 +188,12 @@ class GrannyCLI(GrannyUI):
         )
 
     def addAnalysisArgs(self, params: List[Param]) -> None:
+        """
+        Parses the command-line arguments for the analysis's parameters.
+
+        These parameters are not required to run the program, but if there is no value provided by
+        the user, the value is set to the default value by the analysis class.
+        """
         for param in params:
             self.parser.add_argument(
                 f"-{param.getName()}",
