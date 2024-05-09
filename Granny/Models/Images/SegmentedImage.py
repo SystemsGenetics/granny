@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import List
 
 import cv2
 import numpy as np
@@ -19,7 +19,7 @@ class SegmentedImage(object):
         """
         Checks if the masks and boxes are present in the instance. If not then throw an error.
         """
-        if self.image.getSegmentationResults() is None:  # type: ignore
+        if self.image.getSegmentationResults() is None:
             ModuleNotFoundError(
                 "Call Yolo to generate masks of the image before performing segmentation."
             )
@@ -53,7 +53,7 @@ class SegmentedImage(object):
             image_instance.setImage(individual_image)
             individual_images.append(image_instance)
 
-        # sets individual 
+        # sets individual
         self.individual_images = individual_images
 
     def getNumFeatures(self) -> int:

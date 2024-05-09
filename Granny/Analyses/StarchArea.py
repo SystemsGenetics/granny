@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from multiprocessing import Pool
-from typing import Any, List, Tuple, cast
+from typing import List, Tuple, cast
 
 import cv2
 import numpy as np
@@ -53,7 +53,6 @@ class StarchArea(Analysis):
         """
         Smooth binary mask with basic morphological operations.
         """
-        bin_mask = bin_mask
 
         # create a circular structuring element of size 10
         ksize = (10, 10)

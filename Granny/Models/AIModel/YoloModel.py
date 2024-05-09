@@ -24,6 +24,12 @@ class YoloModel(AIModel):
         """
         self.model = YOLO(self.model_dir)
 
+    def getModel(self):
+        """
+        {@inheritdoc}
+        """
+        return self.model
+
     # todo: move this to segmentedimage
     def visualizeResults(self, image_instance: Image):
         """

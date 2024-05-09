@@ -16,18 +16,11 @@ class Segmentation(Analysis):
         Analysis.__init__(self, images)
         self.AIModel: AIModel = YoloModel(model_dir)
 
-    def detectInstances(self, images: List[NDArray[np.uint8]]) -> List[Any]:
+    def segmentInstances(self, image_instances: List[NDArray[np.uint8]]) -> List[Any]:
         """
-        Uses Yolo model to predict instances in the image. Instances could be tray_info, apples,
-        pears, cross-sections, etc.
+        Uses instance segmentation model to predict instances in the image. Instances could be
+        tray_info, apples, pears, cross-sections, etc.
 
-        @param image_name: numpy array of the image. Yolo model can also accept OpenCV,
-        torch.Tensor, PIL.Image, csv, image file, and URL.
-        """
-        return self.AIModel.predict(images)  # type: ignore
-
-    def segmentInstances(self, image_instances: List[NDArray[np.uint8]]):
-        """
         1. Loads the Segmentation model (Yolov8 Segmentation)
         2. Performs instance segmentaion to find fruit and tray information
         3. Returns a list of instance of ultralytics.engine.results.Results
@@ -39,9 +32,10 @@ class Segmentation(Analysis):
         """
         # loads segmentation model
         self.AIModel.loadModel()
+        segmentation_model = self.AIModel.getModel()
 
         # detects instances on the image
-        results = self.detectInstances(image_instances)
+        results = segmentation_model.predict(image_instances, retina_masks = True)  # type: ignore
 
         return results
 
@@ -60,6 +54,6 @@ class Segmentation(Analysis):
         # checks for potential mismatch of results, then loops through the list of Images to save
         # the segmentation results
         if len(results) != len(image_instances):
-            raise ValueError("Different output mask length.")
+            raise ValueError("Mismatch output mask length.")
         for i, result in enumerate(results):
             self.images[i].setSegmentationResults(results=result)

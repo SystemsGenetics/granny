@@ -114,7 +114,7 @@ class GrannyCLI(GrannyUI):
                 # arguments for this class.
                 analysis = aclass(images)
                 params = analysis.getParams()
-                # checks to make sure the list of parameters is not empty
+                # checks the list of parameters
                 if len(params) > 0:
                     # calls argparse to parse analysis arguments specified by the user
                     self.addAnalysisArgs(params)

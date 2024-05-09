@@ -21,6 +21,13 @@ class AIModel(ABC):
     @abstractmethod
     def loadModel(self):
         """
-        Instantiates Yolo model for segmentation
+        Instantiates AI model for segmentation
+        """
+        pass
+
+    @abstractmethod
+    def getModel(self):
+        """
+        Gets segmentation model
         """
         pass
