@@ -94,7 +94,6 @@ class GrannyCLI(GrannyUI):
         program_args, _ = self.parser.parse_known_args()
         self.image_dir = program_args.dir
         self.result_dir = program_args.result
-        # self.metadata_file = program_args.metadata
         self.analysis = program_args.analysis
 
         # Checks the incoming arguments for errors, if all is okay then collect the arguments.
@@ -167,15 +166,6 @@ class GrannyCLI(GrannyUI):
             required=True,
             help="Required. A folder containing input images.",
         )
-        # self.parser.add_argument(
-        #     "-m",
-        #     "--metadata",
-        #     dest="metadata",
-        #     type=str,
-        #     nargs="?",
-        #     required=False,
-        #     help="Optional. A path for the metadata file.",
-        # )
         self.parser.add_argument(
             "-r",
             "--result_dir",
