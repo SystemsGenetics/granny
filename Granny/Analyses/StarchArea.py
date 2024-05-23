@@ -50,7 +50,15 @@ class StarchArea(Analysis):
         return result
 
     def calculateStarch(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
-        """ """
+        """
+        Calculates the starch content in the given image and return the modified image.
+
+        This function processes the input image to calculate the starch content. The process
+        involves blurring the image to remove noise, converting it to grayscale, adjusting
+        its intensity values, and creating a binary thresholded image to identify the starch
+        regions. The ratio of starch pixels to the total pixels in the ground truth is
+        returned along with the modified image.
+        """
 
         def extractImage(img: NDArray[np.uint8]):
             """
@@ -80,7 +88,9 @@ class StarchArea(Analysis):
             return out.astype(np.uint8)
 
         new_img = img.copy()
-        img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (11, 11), 0))
+
+        # blurs the image to remove sharp noises, then converts it to gray scale
+        img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (7, 7), 0))
         gray = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_RGB2GRAY))
 
         # re-adjusts the image to [0 255]
