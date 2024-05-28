@@ -1,12 +1,11 @@
 import os
-from datetime import datetime
 from multiprocessing import Pool
 from typing import List, Tuple, cast
 
 import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
-from Granny.Analyses.Parameter import IntParam, StringParam
+from Granny.Analyses.Parameter import IntParam
 from Granny.Models.Images.Image import Image
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
@@ -34,7 +33,7 @@ class StarchArea(Analysis):
         """
         Overlays a binary mask on an image.
 
-        Args:
+        @param
             - img: The input image where the mask will be applied.
             - mask: The binary mask to be overlied on the image.
         """

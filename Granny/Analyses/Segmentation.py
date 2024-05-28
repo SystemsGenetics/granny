@@ -1,4 +1,3 @@
-import os
 from typing import Any, List
 
 import numpy as np
@@ -35,7 +34,7 @@ class Segmentation(Analysis):
         segmentation_model = self.AIModel.getModel()
 
         # detects instances on the image
-        results = segmentation_model.predict(image_instances, retina_masks = True)  # type: ignore
+        results = segmentation_model.predict(image_instances, retina_masks=True)  # type: ignore
 
         return results
 
