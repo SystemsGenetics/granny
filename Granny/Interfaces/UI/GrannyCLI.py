@@ -82,6 +82,8 @@ class GrannyCLI(GrannyUI):
                 images.append(rgb_image)
         return images
 
+    def
+
     def run(self):
         """
         {@inheritdoc}
@@ -106,9 +108,9 @@ class GrannyCLI(GrannyUI):
         analyses = Analysis.__subclasses__()
         for aclass in analyses:
             if self.analysis == aclass.__analysis_name__:
-                # calls analysis.getParams() and add an additional set of
-                # arguments for this class.
+                # intantiates the analysis class with the Image list
                 analysis = aclass(images)
+                # calls analysis.getParams() for additional parameters of the analysis.
                 params = analysis.getParams()
                 # checks the list of parameters
                 if len(params) > 0:
@@ -118,7 +120,7 @@ class GrannyCLI(GrannyUI):
                     args_dict = analysis_args.__dict__
                     # resets the parameter list in the analysis to update new parameter's values
                     # from the user
-                    analysis.resetParam()
+                    analysis.setParam([])
                     # loops through the parameter list to update new values using setValue()
                     for param in params:
                         # if the user provide a value

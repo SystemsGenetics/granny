@@ -30,11 +30,11 @@ class Analysis(ABC):
         self.images: List[Image] = images
         self.params: List[Param] = []
 
-    def resetParam(self):
+    def setParam(self, params: List[Param]) -> None:
         """
-        Resets the parameter list to an empty list
+        Sets the parameter list
         """
-        self.params = []
+        self.params = params
 
     def addParam(self, *param: Param):
         """
@@ -48,6 +48,12 @@ class Analysis(ABC):
         Returns to the GUI/CLI all the required parameters in self.params
         """
         return list(self.params)
+
+    def getImages(self) -> List[Image]:
+        """
+        Returns to the user the image list
+        """
+        return list(self.images)
 
     def generateAnalysisMetadata(self):
         """

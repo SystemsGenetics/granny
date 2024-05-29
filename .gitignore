@@ -35,3 +35,4 @@ test_perf.py
 *.onnx
 *.pt
 *.lock
+*.ini

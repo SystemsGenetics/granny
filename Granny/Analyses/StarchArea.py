@@ -18,7 +18,7 @@ class StarchArea(Analysis):
     def __init__(self, images: List[Image]):
         Analysis.__init__(self, images)
 
-        # default threshold parameter
+        # sets up default threshold parameter
         threshold = IntParam(
             "th",
             "threshold",
@@ -28,6 +28,9 @@ class StarchArea(Analysis):
         threshold.setMax(255)
         threshold.setDefaultValue(172)
         self.addParam(threshold)
+
+        # sets up starch card ratings
+        
 
     def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
