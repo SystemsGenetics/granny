@@ -1,11 +1,18 @@
+"""
+Superficial scald calculation module for Granny Smith apple images.
+
+Author: Nhan Nguyen
+Date: May 21, 2024
+"""
+
 import os
 from multiprocessing import Pool
-from typing import Any, List, Tuple, cast
+from typing import List, Tuple, cast
 
 import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
-from Granny.Analyses.Parameter import FloatParam, IntParam, Param
+from Granny.Analyses.Parameter import FloatParam, IntParam
 from Granny.Models.Images.Image import Image
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
@@ -22,18 +29,12 @@ class SuperficialScald(Analysis):
         # to distinguish between the brown scald regions and the green
         # peel color. By default this threshold is determined automatically
         # but we will allow the user to manually set it if they want.
-        th = IntParam(
+        threshold = IntParam(
             "th", "threshold", "The green color threhsold that distinguishes non-scald regions."
         )
-        th.setMin(0)
-        th.setMax(255)
-        self.addParam(th)
-
-    def getParams(self) -> List[Any]:
-        """
-        {@inheritdoc}
-        """
-        return list(self.params)
+        threshold.setMin(0)
+        threshold.setMax(255)
+        self.addParam(threshold)
 
     def smoothMask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -134,7 +135,7 @@ class SuperficialScald(Analysis):
         nopurple_img = img.copy()
 
         # Image smoothing
-        img = cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0)
+        img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0))
 
         # Removal of scald regions
         bw, img = self.removeScald(img)
@@ -211,16 +212,16 @@ class SuperficialScald(Analysis):
         rating.setValue(score)
         self.addParam(rating)
 
-        # todo: need a method to generate metadata such as: date-time, reps, imagename,
-        # lab values, threshold values, ...
-
-        image_instance.setMetaData(self.params)
         return image_instance
 
     def performAnalysis(self):
         """
         {@inheritdoc}
         """
+        # generate metadata of the analysis
+        self.generateAnalysisMetadata()
+
+        # perform analysis with multiprocessing
         num_cpu = os.cpu_count()
         cpu_count = int(num_cpu * 0.8) or 1  # type: ignore
         with Pool(cpu_count) as pool:

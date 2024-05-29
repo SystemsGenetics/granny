@@ -11,27 +11,8 @@ class MetaDataFile(MetaDataIO):
 
     def load(self) -> List[Param]:
         """ """
-        # Parses config file with configparser
-        config = configparser.ConfigParser()
-        config.read(self.filepath)
-
-        # Gets a list of analysis parameters for the experiment
-        params: List[Param] = []
-        analysis_args = config["Analysis"]
-        analysis_name = StringParam("name", "analysis_name", "")
-        analysis_name.setValue(analysis_args["analysis_name"])
-        threshold = IntParam("th", "threshold", "")
-        threshold.setMax(int(analysis_args["upper_bound"]))
-        threshold.setMin(int(analysis_args["lower_bound"]))
-        params.extend([analysis_name, threshold])
-        return params
+        return []
 
     def save(self, params: List[Param]):
         """ """
-        config = configparser.ConfigParser()
-        for param in params:
-            config["RESULT"][param.getLabel()] = param.getValue()
-
-        # writes config parser to file
-        with open("example.ini", "w") as configfile:
-            config.write(configfile)
+        return

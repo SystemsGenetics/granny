@@ -1,8 +1,5 @@
-import glob
 import os
 from argparse import ArgumentParser
-from datetime import datetime
-from pathlib import Path
 from typing import List
 
 from Granny.Analyses.Analysis import Analysis
@@ -17,8 +14,6 @@ from Granny.Models.Images.Image import Image
 from Granny.Models.Images.MetaData import MetaData
 from Granny.Models.Images.RGBImage import RGBImage
 from Granny.Models.IO.MetaDataFile import MetaDataFile
-
-# datetime.now().strftime("%Y%m%d")
 
 
 class GrannyCLI(GrannyUI):
@@ -87,23 +82,18 @@ class GrannyCLI(GrannyUI):
                 images.append(rgb_image)
         return images
 
+    def
+
     def run(self):
         """
         {@inheritdoc}
         """
         # Get the input arguments.
-        self.addAnalysisArgs()
-        analysis_args, _ = self.parser.parse_known_args()
-        self.image_dir = analysis_args.dir
-        self.result_dir = analysis_args.result if not None else os.path.join("results", os.sep)
-        self.metadata_file = (
-            analysis_args.metadata
-            if None
-            else os.path.join(
-                Path(__file__).parent.parent.parent, "Analyses", "config", "Analysis.ini"
-            )
-        )
-        self.analysis = analysis_args.analysis
+        self.addProgramArgs()
+        program_args, _ = self.parser.parse_known_args()
+        self.image_dir = program_args.dir
+        self.result_dir = program_args.result
+        self.analysis = program_args.analysis
 
         # Checks the incoming arguments for errors, if all is okay then collect the arguments.
         if not self.checkArgs():
@@ -112,25 +102,49 @@ class GrannyCLI(GrannyUI):
         # Gets Image instances
         images = self.listImages(self.image_dir)
 
-        # Gets parameter arguments
-        self.addParameterArgs()
-        param_args, _ = self.parser.parse_known_args()
-
         # Iterates through all of the available analysis classes.
         # Finds then one whose machine name matches the argument
         # provided by the user and run the performAnalysis() function.
         analyses = Analysis.__subclasses__()
         for aclass in analyses:
             if self.analysis == aclass.__analysis_name__:
-                # call aclass.getParams() and add an additional set of
-                # arguments for this class.
+                # intantiates the analysis class with the Image list
                 analysis = aclass(images)
+                # calls analysis.getParams() for additional parameters of the analysis.
+                params = analysis.getParams()
+                # checks the list of parameters
+                if len(params) > 0:
+                    # calls argparse to parse analysis arguments specified by the user
+                    self.addAnalysisArgs(params)
+                    analysis_args, _ = self.parser.parse_known_args()
+                    args_dict = analysis_args.__dict__
+                    # resets the parameter list in the analysis to update new parameter's values
+                    # from the user
+                    analysis.setParam([])
+                    # loops through the parameter list to update new values using setValue()
+                    for param in params:
+                        # if the user provide a value
+                        arg_value = args_dict.get(param.getLabel())
+                        if arg_value is not None:
+                            print(
+                                f"{param.getLabel()}:\t {arg_value}",
+                            )
+                            param.setValue(arg_value)
+                        # if the user doesn't provide a value
+                        else:
+                            print(
+                                f"{param.getLabel()}:\t No value provided by the user,",
+                                "using system default value.",
+                            )
+                            param.setValue(param.getDefaultValue())
+                        analysis.addParam(param)
+                # performs the analysis with a newly updated set of parameters provided by the user
                 analysis.performAnalysis()
 
-    def addAnalysisArgs(self) -> None:
+    def addProgramArgs(self) -> None:
         """
-        Parses the command-line analysis arguments: analysis, image directory, metadata directory,
-        and result directory
+        Parses the following command-line arguments: analysis, image directory, metadata directory,
+        and result directory. These parameters are required to run the program.
         """
         self.parser.add_argument(
             "-a",
@@ -152,16 +166,6 @@ class GrannyCLI(GrannyUI):
             help="Required. A folder containing input images.",
         )
         self.parser.add_argument(
-            "-m",
-            "--metadata",
-            dest="metadata",
-            type=str,
-            nargs="?",
-            required=False,
-            help="Optional. A path for the metadata file. If not specified, the default parameters \
-                in Granny.Analyses.config.Analysis will be loaded.",
-        )
-        self.parser.add_argument(
             "-r",
             "--result_dir",
             dest="result",
@@ -172,56 +176,18 @@ class GrannyCLI(GrannyUI):
             help="Optional. A folder to save results. Default directory is 'results/'.",
         )
 
-    def addParameterArgs(self) -> None:
+    def addAnalysisArgs(self, params: List[Param]) -> None:
         """
-        Parses the command-line parameter arguments: type, default, upper bound, lower bound,
-        valid values, and label
+        Parses the command-line arguments for the analysis's parameters.
+
+        These parameters are not required to run the program, but if there is no value provided by
+        the user, the value is set to the default value by the analysis class.
         """
-        self.parser.add_argument(
-            "--type",
-            dest="type",
-            type=str,
-            nargs="?",
-            required=False,
-            help="",
-        )
-        self.parser.add_argument(
-            "--default",
-            dest="default",
-            type=str,
-            nargs="?",
-            required=False,
-            help="",
-        )
-        self.parser.add_argument(
-            "--upper",
-            dest="upper",
-            type=int,
-            nargs="?",
-            required=False,
-            help="",
-        )
-        self.parser.add_argument(
-            "--lower",
-            dest="lower",
-            type=int,
-            nargs="?",
-            required=False,
-            help="",
-        )
-        self.parser.add_argument(
-            "--valid",
-            dest="valid",
-            type=int,
-            nargs="+",
-            required=False,
-            help="Provides multiple valid values for the analysis",
-        )
-        self.parser.add_argument(
-            "--label",
-            dest="label",
-            type=str,
-            nargs="?",
-            required=False,
-            help="",
-        )
+        for param in params:
+            self.parser.add_argument(
+                f"-{param.getName()}",
+                f"--{param.getLabel()}",
+                type=param.getType(),  # type: ignore
+                required=False,
+                help=param.getHelp(),
+            )

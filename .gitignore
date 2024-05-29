@@ -33,5 +33,7 @@ output.out
 test_perf.py
 *.csv
 *.onnx
-*.pth
+*.pt
+*.lock
+*.ini
 .vscode/settings.json

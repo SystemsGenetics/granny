@@ -28,6 +28,8 @@ class RGBImageFile(ImageIO):
         """
         {@inheritdoc}
         """
+        if not os.path.exists(os.path.join(self.image_dir, folder)):
+            os.mkdir(os.path.join(self.image_dir, folder))
         cv2.imwrite(
             os.path.join(self.image_dir, folder, self.image_name),
             cv2.cvtColor(image, cv2.COLOR_RGB2BGR),

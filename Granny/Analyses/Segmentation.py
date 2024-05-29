@@ -1,4 +1,5 @@
 import os
+import pathlib
 from typing import Any, List
 
 import numpy as np
@@ -6,28 +7,28 @@ from Granny.Analyses.Analysis import Analysis
 from Granny.Models.AIModel.AIModel import AIModel
 from Granny.Models.AIModel.YoloModel import YoloModel
 from Granny.Models.Images.Image import Image
+from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
 
 
 class Segmentation(Analysis):
     __analysis_name__ = "segmentation"
 
-    def __init__(self, images: List[Image], model_dir: str):
+    def __init__(self, images: List[Image]):
         Analysis.__init__(self, images)
-        self.AIModel: AIModel = YoloModel(model_dir)
+        self.model_dir = os.path.join(
+            f"{pathlib.Path(__file__).parent}", "config", "Segmentation", "granny_v1_yolo8.pt"
+        )
+        self.AIModel: AIModel = YoloModel(self.model_dir)
+        # loads segmentation model
+        self.AIModel.loadModel()
+        self.segmentation_model = self.AIModel.getModel()
 
-    def detectInstances(self, images: List[NDArray[np.uint8]]) -> List[Any]:
+    def segmentInstances(self, image: NDArray[np.uint8]) -> List[Any]:
         """
-        Uses Yolo model to predict instances in the image. Instances could be tray_info, apples,
-        pears, cross-sections, etc.
+        Uses instance segmentation model to predict instances in the image. Instances could be
+        tray_info, apples, pears, cross-sections, etc.
 
-        @param image_name: numpy array of the image. Yolo model can also accept OpenCV,
-        torch.Tensor, PIL.Image, csv, image file, and URL.
-        """
-        return self.AIModel.predict(images)  # type: ignore
-
-    def segmentInstances(self, image_instances: List[NDArray[np.uint8]]):
-        """
         1. Loads the Segmentation model (Yolov8 Segmentation)
         2. Performs instance segmentaion to find fruit and tray information
         3. Returns a list of instance of ultralytics.engine.results.Results
@@ -37,11 +38,8 @@ class Segmentation(Analysis):
         @return resuts: List of ultralytics.engine.results.Results of segmentation results,
         including: masks, boxes, xyxy's, classes, confident scores
         """
-        # loads segmentation model
-        self.AIModel.loadModel()
-
         # detects instances on the image
-        results = self.detectInstances(image_instances)
+        results = self.segmentation_model.predict(image, retina_masks=True)  # type: ignore
 
         return results
 
@@ -49,18 +47,21 @@ class Segmentation(Analysis):
         """
         {@inheritdoc}
         """
-        # loads np.ndarray image from a list of Image objects
-        image_instances: List[NDArray[np.uint8]] = []
+        # performs segmentation on each image one-by-one
+        image_instances: List[Image] = []
         for image in self.images:
-            image_instances.append(image.getImage())
+            # initiates ImageIO
+            image_io = RGBImageFile(image.getFilePath())
 
-        # performs instance segmentation to retrieve the masks
-        results = self.segmentInstances(image_instances)
-        print(results)
+            # loads image from file system with RGBImageFile(ImageIO)
+            image.loadImage(image_io=image_io)
 
-        # checks for potential mismatch of results, then loops through the list of Images to save
-        # the segmentation results
-        if len(results) != len(image_instances):
-            raise ValueError("Different output mask length.")
-        for i, result in enumerate(results):
-            self.images[i].setSegmentationResults(results=result)
+            # predicts fruit instances in the image
+            result = self.segmentInstances(image.getImage())
+
+            # sets segmentation result
+            image.setSegmentationResults(results=result)
+            image_instances.append(image)
+
+        # replaces the image list with the images containing the segmentation result
+        self.images = image_instances

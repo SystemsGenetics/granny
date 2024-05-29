@@ -1,6 +1,6 @@
 import os
 from multiprocessing import Pool
-from typing import Any, List, Tuple, cast
+from typing import List, Tuple, cast
 
 import cv2
 import numpy as np
@@ -17,28 +17,28 @@ class StarchArea(Analysis):
 
     def __init__(self, images: List[Image]):
         Analysis.__init__(self, images)
-        th = IntParam(
+
+        # sets up default threshold parameter
+        threshold = IntParam(
             "th",
             "threshold",
             "The color threhsold that distinguishes iodine-stained starch regions",
         )
-        th.setMin(0)
-        th.setMax(255)
-        self.addParam(th)
+        threshold.setMin(0)
+        threshold.setMax(255)
+        threshold.setDefaultValue(172)
+        self.addParam(threshold)
 
-    def getParams(self) -> List[Any]:
-        """
-        {@inheritdoc}
-        """
-        return list(self.params)
+        # sets up starch card ratings
+        
 
     def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
         Overlays a binary mask on an image.
 
-        Args:
+        @param
             - img: The input image where the mask will be applied.
-            - mask: The binary mask to be overlied on the image ().
+            - mask: The binary mask to be overlied on the image.
         """
         result = img.copy()
         color = (0, 0, 0)
@@ -51,55 +51,64 @@ class StarchArea(Analysis):
             )
         return result
 
-    def smoothMask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
-        """
-        Smooth binary mask with basic morphological operations.
-        """
-        bin_mask = bin_mask
-
-        # create a circular structuring element of size 10
-        ksize = (10, 10)
-        strel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, ksize=ksize)
-
-        # using to structuring element to perform one close and one open
-        # operation on the binary mask
-        bin_mask = cv2.dilate(
-            cv2.erode(bin_mask, kernel=strel, iterations=1),
-            kernel=strel,
-            iterations=1,
-        )  # type: ignore
-        bin_mask = cv2.erode(
-            cv2.dilate(bin_mask, kernel=strel, iterations=1),
-            kernel=strel,
-            iterations=1,
-        )  # type: ignore
-        return bin_mask
-
     def calculateStarch(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
-        """ """
+        """
+        Calculates the starch content in the given image and return the modified image.
+
+        This function processes the input image to calculate the starch content. The process
+        involves blurring the image to remove noise, converting it to grayscale, adjusting
+        its intensity values, and creating a binary thresholded image to identify the starch
+        regions. The ratio of starch pixels to the total pixels in the ground truth is
+        returned along with the modified image.
+        """
+
+        def extractImage(img: NDArray[np.uint8]):
+            """
+            Extracts minimum and maximum pixel value of an image
+            """
+            hist, _ = np.histogram(gray, bins=256, range=(0, 255))
+            low = (hist != 0).argmax()
+            high = 255 - (hist[::-1] != 0).argmax()
+            return low, high
+
+        def adjustImage(
+            img: NDArray[np.uint8], lIn: int, hIn: int, lOut: int = 0, hOut: int = 255
+        ):
+            """
+            Adjusts the intensity values of an image I to new values. This function is equivalent
+            to normalize the image pixel values to [0, 255].
+            """
+            # Ensure img is in the range [lIn, hIn]
+            img = np.clip(img, lIn, hIn)
+
+            # Normalize the image to the range [0, 1]
+            out = (img - lIn) / (hIn - lIn)
+
+            # Scale and shift the normalized image to the range [lOut, hOut]
+            out = out * (hOut - lOut) + lOut
+
+            return out.astype(np.uint8)
+
         new_img = img.copy()
-        img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (11, 11), 0))
+
+        # blurs the image to remove sharp noises, then converts it to gray scale
+        img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (7, 7), 0))
+        gray = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_RGB2GRAY))
+
+        # re-adjusts the image to [0 255]
+        low, high = extractImage(gray)
+        gray = adjustImage(gray, low, high)
 
         # create thresholded matrices
-        threshold_1 = np.logical_and((img[:, :, 0] > 0), (img[:, :, 0] <= 172))
-        threshold_2 = np.logical_and((img[:, :, 1] > 0), (img[:, :, 1] <= 172))
-        threshold_3 = np.logical_and((img[:, :, 2] > 0), (img[:, :, 2] <= 172))
-
-        # combine to one matrix
-        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
-            np.uint8
-        )
-
-        # performs a simple morphological operation to smooth the binary mask
-        th123 = self.smoothMask(th123)
+        threshold = np.logical_and((gray > 0), (gray <= 172)).astype(np.uint8)
 
         # creates new image using threshold matrices
-        new_img = self.drawMask(new_img, th123)
+        new_img = self.drawMask(new_img, threshold)
 
         ground_truth = np.count_nonzero(
             cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)) > 0
         )
-        starch = np.count_nonzero(th123)
+        starch = np.count_nonzero(threshold)
 
         return starch / ground_truth, new_img
 
@@ -135,6 +144,10 @@ class StarchArea(Analysis):
         """
         {@inheritdoc}
         """
+        # generate metadata of the analysis
+        self.generateAnalysisMetadata()
+
+        # perform analysis with multiprocessing
         num_cpu = os.cpu_count()
         cpu_count = int(num_cpu * 0.8) or 1  # type: ignore
         with Pool(cpu_count) as pool:
