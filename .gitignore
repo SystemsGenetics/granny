@@ -34,3 +34,4 @@ test_perf.py
 *.csv
 *.onnx
 *.pth
+.vscode/settings.json
