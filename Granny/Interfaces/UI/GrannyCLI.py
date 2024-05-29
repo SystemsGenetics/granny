@@ -82,8 +82,6 @@ class GrannyCLI(GrannyUI):
                 images.append(rgb_image)
         return images
 
-    def
-
     def run(self):
         """
         {@inheritdoc}
