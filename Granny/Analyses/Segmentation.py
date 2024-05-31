@@ -1,6 +1,8 @@
 import os
 import pathlib
+import shutil
 from typing import Any, List
+from urllib import request
 
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
@@ -16,13 +18,35 @@ class Segmentation(Analysis):
 
     def __init__(self, images: List[Image]):
         Analysis.__init__(self, images)
-        self.model_dir = os.path.join(
-            f"{pathlib.Path(__file__).parent}", "config", "Segmentation", "granny_v1_yolo8.pt"
+        self.local_model_dir = os.path.join(
+            f"{pathlib.Path(__file__).parent}",
+            "config",
+            self.__analysis_name__,
+            "granny-v1_0-pome_fruit-v1_0.pt",
         )
-        self.AIModel: AIModel = YoloModel(self.model_dir)
+        self.model_url = (
+            "https://github.com/SystemsGenetics/granny/tree/dev-MVC/Granny/"
+            + "Analysis/config/{self.__analysis_name__}/granny-v1_0-pome_fruit-v1_0.pt"
+        )
+        if not os.path.exists(self.local_model_dir):
+            self.downloadTrainedWeights(self.local_model_dir)
+        self.AIModel: AIModel = YoloModel(self.local_model_dir)
         # loads segmentation model
         self.AIModel.loadModel()
         self.segmentation_model = self.AIModel.getModel()
+
+    def downloadTrainedWeights(self, local_model_path: str, verbose: int = 1):
+        """Download YOLO8 trained weights from Granny GitHub repository:
+        https://github.com/SystemsGenetics/granny/tree/dev-MVC/Granny/Analysis/config/Segmentation/
+
+        @param local_model_path: local path of the trained weights
+        """
+        if verbose > 0:
+            print(f"Downloading pretrained model to {local_model_path} ...")
+        with request.urlopen(self.model_url) as resp, open(local_model_path, "wb") as out:
+            shutil.copyfileobj(resp, out)
+        if verbose > 0:
+            print("... done downloading pretrained model!")
 
     def segmentInstances(self, image: NDArray[np.uint8]) -> List[Any]:
         """

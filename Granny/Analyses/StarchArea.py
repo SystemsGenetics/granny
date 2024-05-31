@@ -1,11 +1,12 @@
 import os
 from multiprocessing import Pool
+from pathlib import Path
 from typing import List, Tuple, cast
 
 import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
-from Granny.Analyses.Parameter import IntParam
+from Granny.Analyses.Parameter import IntParam, StringParam
 from Granny.Models.Images.Image import Image
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
@@ -18,6 +19,15 @@ class StarchArea(Analysis):
     def __init__(self, images: List[Image]):
         Analysis.__init__(self, images)
 
+        # initiates input and output directory
+        input_dir = StringParam(
+            "in", "input", "Input folder containing image files for the analysis."
+        )
+        output_dir = StringParam("out", "output", "Output folder to write the images and results.")
+        output_dir.setDefaultValue(
+            os.path.join(Path(os.getcwd()).parent.parent.as_posix(), "results/")
+        ) # Grannny/results/
+
         # sets up default threshold parameter
         threshold = IntParam(
             "th",
@@ -27,10 +37,11 @@ class StarchArea(Analysis):
         threshold.setMin(0)
         threshold.setMax(255)
         threshold.setDefaultValue(172)
-        self.addParam(threshold)
+
+        # adds parameters for argument parsing
+        self.addParam(threshold, input_dir, output_dir)
 
         # sets up starch card ratings
-        
 
     def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -62,7 +73,7 @@ class StarchArea(Analysis):
         returned along with the modified image.
         """
 
-        def extractImage(img: NDArray[np.uint8]):
+        def extractImage(img: NDArray[np.uint8]) -> Tuple[int, int]:
             """
             Extracts minimum and maximum pixel value of an image
             """

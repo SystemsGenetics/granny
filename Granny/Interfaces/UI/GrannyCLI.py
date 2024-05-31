@@ -82,8 +82,6 @@ class GrannyCLI(GrannyUI):
                 images.append(rgb_image)
         return images
 
-    def
-
     def run(self):
         """
         {@inheritdoc}
@@ -188,6 +186,6 @@ class GrannyCLI(GrannyUI):
                 f"-{param.getName()}",
                 f"--{param.getLabel()}",
                 type=param.getType(),  # type: ignore
-                required=False,
+                required=False if param.isSet() else True,
                 help=param.getHelp(),
             )
