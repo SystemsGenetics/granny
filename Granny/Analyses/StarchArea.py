@@ -6,7 +6,7 @@ from typing import List, Tuple, cast
 import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
-from Granny.Analyses.Parameter import IntParam, StringParam
+from Granny.Analyses.Parameter import IntParam
 from Granny.Models.Images.Image import Image
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
@@ -16,32 +16,21 @@ class StarchArea(Analysis):
 
     __analysis_name__ = "starch"
 
-    def __init__(self, images: List[Image]):
-        Analysis.__init__(self, images)
-
-        # initiates input and output directory
-        input_dir = StringParam(
-            "in", "input", "Input folder containing image files for the analysis."
-        )
-        output_dir = StringParam("out", "output", "Output folder to write the images and results.")
-        output_dir.setDefaultValue(
-            os.path.join(Path(os.getcwd()).parent.parent.as_posix(), "results/")
-        ) # Grannny/results/
-
+    def __init__(self):
+        Analysis.__init__(self)
         # sets up default threshold parameter
-        threshold = IntParam(
+        self.threshold = IntParam(
             "th",
             "threshold",
             "The color threhsold that distinguishes iodine-stained starch regions",
         )
-        threshold.setMin(0)
-        threshold.setMax(255)
-        threshold.setDefaultValue(172)
+        self.threshold.setMin(0)
+        self.threshold.setMax(255)
+        self.threshold.setDefaultValue(172)
 
         # adds parameters for argument parsing
-        self.addParam(threshold, input_dir, output_dir)
+        self.addParam(self.threshold)
 
-        # sets up starch card ratings
 
     def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """

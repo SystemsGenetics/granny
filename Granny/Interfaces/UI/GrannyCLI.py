@@ -22,9 +22,6 @@ class GrannyCLI(GrannyUI):
         {@inheritdoc}
         """
         GrannyUI.__init__(self, parser)
-        self.image_dir: str = ""
-        self.result_dir: str = ""
-        self.metadata_file: str = ""
         self.analysis: str = ""
 
     def checkArgs(self) -> bool:
@@ -45,43 +42,6 @@ class GrannyCLI(GrannyUI):
                 return True
         return False
 
-    def readMetaData(self, metadata_file: str) -> MetaData:
-        """
-        Reads the input metadata file and returns a list of Granny.Analysis.Param instances
-        """
-        metadata_io = MetaDataFile(metadata_file)
-        metadata = MetaData(metadata_io=metadata_io)
-        return metadata
-
-    def listImages(self, image_dir: str) -> List[Image]:
-        """
-        Reads the input image directory and returns a list of Granny.Model.Images.Image instances
-        """
-        # Gets a list of image files in the directory.
-        image_files: List[str] = os.listdir(image_dir)
-        IMAGE_EXTENSION = (
-            ".JPG",
-            ".JPG".lower(),
-            ".PNG",
-            ".PNG".lower(),
-            ".JPEG",
-            ".JPEG".lower(),
-            ".TIFF",
-            ".TIFF".lower(),
-        )
-
-        # Gets a list of parameters needed for the analysis.
-        metadata = self.readMetaData(self.metadata_file)
-
-        # Creates a list of Image instances.
-        images: List[Image] = []
-        for image_file in image_files:
-            if image_file.endswith(IMAGE_EXTENSION):
-                rgb_image = RGBImage(os.path.join(self.image_dir, image_file))
-                rgb_image.setMetaData(metadata)
-                images.append(rgb_image)
-        return images
-
     def run(self):
         """
         {@inheritdoc}
@@ -89,16 +49,11 @@ class GrannyCLI(GrannyUI):
         # Get the input arguments.
         self.addProgramArgs()
         program_args, _ = self.parser.parse_known_args()
-        self.image_dir = program_args.dir
-        self.result_dir = program_args.result
         self.analysis = program_args.analysis
 
         # Checks the incoming arguments for errors, if all is okay then collect the arguments.
         if not self.checkArgs():
             exit(1)
-
-        # Gets Image instances
-        images = self.listImages(self.image_dir)
 
         # Iterates through all of the available analysis classes.
         # Finds then one whose machine name matches the argument
@@ -107,7 +62,7 @@ class GrannyCLI(GrannyUI):
         for aclass in analyses:
             if self.analysis == aclass.__analysis_name__:
                 # intantiates the analysis class with the Image list
-                analysis = aclass(images)
+                analysis = aclass()
                 # calls analysis.getParams() for additional parameters of the analysis.
                 params = analysis.getParams()
                 # checks the list of parameters
@@ -153,25 +108,6 @@ class GrannyCLI(GrannyUI):
             required=True,
             choices=["segmentation", "blush", "color", "scald", "starch"],
             help="Required. An analysis you want to perform.",
-        )
-        self.parser.add_argument(
-            "-d",
-            "--image_dir",
-            dest="dir",
-            type=str,
-            nargs="?",
-            required=True,
-            help="Required. A folder containing input images.",
-        )
-        self.parser.add_argument(
-            "-r",
-            "--result_dir",
-            dest="result",
-            type=str,
-            nargs="?",
-            required=False,
-            default="results/",
-            help="Optional. A folder to save results. Default directory is 'results/'.",
         )
 
     def addAnalysisArgs(self, params: List[Param]) -> None:

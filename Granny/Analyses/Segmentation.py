@@ -18,26 +18,26 @@ class Segmentation(Analysis):
 
     def __init__(self, images: List[Image]):
         Analysis.__init__(self, images)
-        self.local_model_dir = os.path.join(
+
+        self.local_model_path = os.path.join(
             f"{pathlib.Path(__file__).parent}",
             "config",
             self.__analysis_name__,
             "granny-v1_0-pome_fruit-v1_0.pt",
         )
-        self.model_url = (
-            "https://github.com/SystemsGenetics/granny/tree/dev-MVC/Granny/"
-            + "Analysis/config/{self.__analysis_name__}/granny-v1_0-pome_fruit-v1_0.pt"
-        )
-        if not os.path.exists(self.local_model_dir):
-            self.downloadTrainedWeights(self.local_model_dir)
-        self.AIModel: AIModel = YoloModel(self.local_model_dir)
+        self.model_url = ""
+        if not os.path.exists(self.local_model_path):
+            os.makedirs(pathlib.Path(self.local_model_path).parent)
+            self.downloadTrainedWeights(self.local_model_path)
+
         # loads segmentation model
+        self.AIModel: AIModel = YoloModel(self.local_model_path)
         self.AIModel.loadModel()
         self.segmentation_model = self.AIModel.getModel()
 
     def downloadTrainedWeights(self, local_model_path: str, verbose: int = 1):
         """Download YOLO8 trained weights from Granny GitHub repository:
-        https://github.com/SystemsGenetics/granny/tree/dev-MVC/Granny/Analysis/config/Segmentation/
+        https://github.com/SystemsGenetics/granny/tree/dev-MVC/Granny/Analyses/config/segmentation/
 
         @param local_model_path: local path of the trained weights
         """

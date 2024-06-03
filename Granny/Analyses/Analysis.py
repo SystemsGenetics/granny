@@ -6,20 +6,34 @@ Author: Nhan Nguyen
 Date: May 21, 2024
 """
 
+import os
 import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
+from pathlib import Path
 from typing import List
 
 from Granny.Analyses.Parameter import Param, StringParam
 from Granny.Models.Images.Image import Image
+from Granny.Models.Images.RGBImage import RGBImage
+
+IMAGE_EXTENSION = (
+    ".JPG",
+    ".JPG".lower(),
+    ".PNG",
+    ".PNG".lower(),
+    ".JPEG",
+    ".JPEG".lower(),
+    ".TIFF",
+    ".TIFF".lower(),
+)
 
 
 class Analysis(ABC):
 
     __analysis_name__ = "analysis"
 
-    def __init__(self, images: List[Image]):
+    def __init__(self):
         """
         Intializes an instance of an Analysis object
 
@@ -27,8 +41,21 @@ class Analysis(ABC):
 
         @return GRANNY.Analyses.Analysis.Analysis object.
         """
-        self.images: List[Image] = images
+        self.images: List[Image] = []
         self.params: List[Param] = []
+
+        # initiates input and output directory
+        self.input_dir = StringParam(
+            "in", "input", "Input folder containing image files for the analysis."
+        )
+        self.output_dir = StringParam(
+            "out", "output", "Output folder to export the analysis's results."
+        )
+        self.output_dir.setDefaultValue(
+            os.path.join(Path(os.getcwd()).parent.parent.as_posix(), "results/")
+        )  # Grannny/results/
+
+        self.addParam(self.input_dir, self.output_dir)
 
     def setParam(self, params: List[Param]) -> None:
         """
@@ -53,6 +80,12 @@ class Analysis(ABC):
         """
         Returns to the user the image list
         """
+        input_dir: str = self.input_dir.getValue()
+        image_files: List[str] = os.listdir(input_dir)
+        for image_file in image_files:
+            if image_file.endswith(IMAGE_EXTENSION):
+                rgb_image = RGBImage(os.path.join(input_dir, image_file))
+                self.images.append(rgb_image)
         return list(self.images)
 
     def generateAnalysisMetadata(self):
