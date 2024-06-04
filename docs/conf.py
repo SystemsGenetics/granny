@@ -9,8 +9,10 @@
 # PHP stuff
 # see: https://www.sitepoint.com/using-sphinx-for-php-project-documentation/
 
-from sphinx.highlighting import lexers
+from importlib import metadata
+
 from pygments.lexers.web import PhpLexer
+from sphinx.highlighting import lexers
 
 lexers["php"] = PhpLexer(startinline=True, linenos=1)
 lexers["php-annotations"] = PhpLexer(startinline=True, linenos=1)
@@ -33,9 +35,9 @@ copyright = "2023, Washington State University"
 author = "Nhan Nguyen, Stephen Ficklin"
 
 # The short X.Y version
-version = "0.1a"
+version = f"{metadata.version('granny')}"
 # The full version, including alpha/beta/rc tags
-release = "0.1a"
+release = f"{metadata.version('granny')}"
 
 
 # -- General configuration ---------------------------------------------------
@@ -82,7 +84,7 @@ pygments_style = "sphinx"
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

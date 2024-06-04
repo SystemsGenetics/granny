@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 ultralytics = "*"
+sphinx = "*"
 
 [dev-packages]
 ipykernel = "*"

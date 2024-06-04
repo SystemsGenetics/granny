@@ -1,3 +1,4 @@
+import argparse
 import os
 from argparse import ArgumentParser
 from typing import List
@@ -107,7 +108,14 @@ class GrannyCLI(GrannyUI):
             nargs="?",
             required=True,
             choices=["segmentation", "blush", "color", "scald", "starch"],
-            help="Required. An analysis you want to perform.",
+            help="Chooses an analysis you want Granny to run.",
+        )
+        self.parser.add_argument(
+            "-h",
+            "--help",
+            action="help",
+            default=argparse.SUPPRESS,
+            help="Show this message and exit.",
         )
 
     def addAnalysisArgs(self, params: List[Param]) -> None:
