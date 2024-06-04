@@ -59,6 +59,7 @@ def run():
     )
     namespace, _ = parser.parse_known_args()
     interface = namespace.interface
+    
 
     # Now calls the proper interface class.
     if interface == "cli":
