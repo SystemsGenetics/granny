@@ -10,5 +10,11 @@ class GrannyPyQt(GrannyUI):
         """
         GrannyUI.__init__(self, parser)
 
+    def configureParser(self, sub_parser):  # type:ignore
+        self.gui_parser = sub_parser.add_parser(
+            "gui",
+            help="Graphical User Interface",
+        )
+
     def run(self):
         pass

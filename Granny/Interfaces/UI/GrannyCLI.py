@@ -1,6 +1,6 @@
 import argparse
 import os
-from argparse import ArgumentParser
+from argparse import ArgumentParser, _SubParsersAction  # type: ignore
 from typing import List
 
 from Granny.Analyses.Analysis import Analysis
@@ -18,12 +18,18 @@ from Granny.Models.IO.MetaDataFile import MetaDataFile
 
 
 class GrannyCLI(GrannyUI):
-    def __init__(self, parser: ArgumentParser):
+    def __init__(self, parser):  # type:ignore
         """
         {@inheritdoc}
         """
         GrannyUI.__init__(self, parser)
         self.analysis: str = ""
+
+    def configureParser(self, sub_parser):  # type: ignore
+        self.cli_parser = sub_parser.add_parser(
+            "cli",
+            help="Command Line Interface",
+        )
 
     def checkArgs(self) -> bool:
         """
@@ -49,7 +55,7 @@ class GrannyCLI(GrannyUI):
         """
         # Get the input arguments.
         self.addProgramArgs()
-        program_args, _ = self.parser.parse_known_args()
+        program_args = self.parser.parse_args()
         self.analysis = program_args.analysis
 
         # Checks the incoming arguments for errors, if all is okay then collect the arguments.
@@ -100,7 +106,7 @@ class GrannyCLI(GrannyUI):
         Parses the following command-line arguments: analysis, image directory, metadata directory,
         and result directory. These parameters are required to run the program.
         """
-        self.parser.add_argument(
+        self.cli_parser.add_argument(
             "-a",
             "--analysis",
             dest="analysis",
@@ -109,13 +115,6 @@ class GrannyCLI(GrannyUI):
             required=True,
             choices=["segmentation", "blush", "color", "scald", "starch"],
             help="Chooses an analysis you want Granny to run.",
-        )
-        self.parser.add_argument(
-            "-h",
-            "--help",
-            action="help",
-            default=argparse.SUPPRESS,
-            help="Show this message and exit.",
         )
 
     def addAnalysisArgs(self, params: List[Param]) -> None:

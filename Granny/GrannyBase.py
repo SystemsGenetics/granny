@@ -34,6 +34,13 @@ def run():
         description="Welcome to Granny!",
         conflict_handler="resolve",
     )
+    sub_parser = parser.add_subparsers(
+        metavar="interface",
+        title="commands",
+        description="The following commands are available.",
+        dest="cmd",
+        required=True,
+    )
     parser.add_argument(
         "-h",
         "--help",
@@ -42,30 +49,16 @@ def run():
         help="show this help message and exit",
     )
     parser.add_argument(
-        "-i",
-        "--interface",
-        dest="interface",
-        type=str,
-        nargs="?",
-        required=True,
-        choices=["cli", "gui"],
-        help="Indicates the user interface to use, either the command-line (cli) or the graphical interface (gui).",
-    )
-    parser.add_argument(
         "-v",
         "--version",
         action="version",
         version=f"Granny {metadata.version('granny')}",
     )
-    namespace, _ = parser.parse_known_args()
-    interface = namespace.interface
-    
 
     # Now calls the proper interface class.
-    if interface == "cli":
-        GrannyCLI(parser).run()
-    elif interface == "gui":
-        GrannyPyQt(parser).run()
-    else:
-        print("Error: unknown interface")
-        exit(1)
+    gui = GrannyPyQt(parser)
+    gui.configureParser(sub_parser)
+    gui.run()
+    cli = GrannyCLI(parser)
+    cli.configureParser(sub_parser)
+    cli.run()
