@@ -36,4 +36,4 @@ test_perf.py
 *.pt
 *.lock
 *.ini
-.vscode/settings.json
+*.vscode
