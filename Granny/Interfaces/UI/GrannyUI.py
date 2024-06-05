@@ -15,7 +15,9 @@ class GrannyUI(ABC):
 
     @abstractmethod
     def configureParser(self, sub_parser):  # type: ignore
-        """ """
+        """
+        Creates a subparser for the class
+        """
         pass
 
     @abstractmethod

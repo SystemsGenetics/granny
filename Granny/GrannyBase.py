@@ -56,8 +56,6 @@ def run():
     )
 
     # Now calls the proper interface class.
-    gui = GrannyPyQt(parser)
-    gui.configureParser(sub_parser)
     cli = GrannyCLI(parser)
     cli.configureParser(sub_parser)
     cli.run()
