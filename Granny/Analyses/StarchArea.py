@@ -31,6 +31,8 @@ class StarchArea(Analysis):
         # adds parameters for argument parsing
         self.addParam(self.threshold)
 
+        # initiates Granny.Model.Images.Image instances for the analysis
+        self.images = self.getImages()
 
     def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """

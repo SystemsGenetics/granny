@@ -16,8 +16,8 @@ from numpy.typing import NDArray
 class Segmentation(Analysis):
     __analysis_name__ = "segmentation"
 
-    def __init__(self, images: List[Image]):
-        Analysis.__init__(self, images)
+    def __init__(self):
+        Analysis.__init__(self)
 
         self.local_model_path = os.path.join(
             f"{pathlib.Path(__file__).parent}",

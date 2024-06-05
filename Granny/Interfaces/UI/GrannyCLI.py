@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, _SubParsersAction  # type: ignore
-from typing import List
+from typing import Dict
 
 from Granny.Analyses.Analysis import Analysis
 from Granny.Analyses.BlushColor import BlushColor
@@ -78,9 +78,9 @@ class GrannyCLI(GrannyUI):
                     args_dict = analysis_args.__dict__
                     # resets the parameter list in the analysis to update new parameter's values
                     # from the user
-                    analysis.setParam([])
+                    analysis.setParam({})
                     # loops through the parameter list to update new values using setValue()
-                    for param in params:
+                    for param in params.values():
                         # if the user provide a value
                         arg_value = args_dict.get(param.getLabel())
                         if arg_value is not None:
@@ -115,15 +115,15 @@ class GrannyCLI(GrannyUI):
             help="Chooses an analysis you want Granny to run.",
         )
 
-    def addAnalysisArgs(self, params: List[Param]) -> None:
+    def addAnalysisArgs(self, params: Dict[str, Param]) -> None:
         """
         Parses the command-line arguments for the analysis's parameters.
 
         These parameters are not required to run the program, but if there is no value provided by
         the user, the value is set to the default value by the analysis class.
         """
-        for param in params:
-            self.parser.add_argument(
+        for param in params.values():
+            self.cli_parser.add_argument(
                 f"-{param.getName()}",
                 f"--{param.getLabel()}",
                 type=param.getType(),  # type: ignore

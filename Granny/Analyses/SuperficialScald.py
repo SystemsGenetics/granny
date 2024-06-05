@@ -22,8 +22,8 @@ class SuperficialScald(Analysis):
 
     __analysis_name__ = "scald"
 
-    def __init__(self, images: List[Image]):
-        Analysis.__init__(self, images)
+    def __init__(self):
+        Analysis.__init__(self)
 
         # This analysis will allow the user to manually set a threshold
         # to distinguish between the brown scald regions and the green

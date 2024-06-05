@@ -11,7 +11,7 @@ import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from Granny.Analyses.Parameter import Param, StringParam
 from Granny.Models.Images.Image import Image
@@ -42,7 +42,7 @@ class Analysis(ABC):
         @return GRANNY.Analyses.Analysis.Analysis object.
         """
         self.images: List[Image] = []
-        self.params: List[Param] = []
+        self.params: Dict[str, Param] = {}
 
         # initiates input and output directory
         self.input_dir = StringParam(
@@ -57,30 +57,32 @@ class Analysis(ABC):
 
         self.addParam(self.input_dir, self.output_dir)
 
-    def setParam(self, params: List[Param]) -> None:
+    def setParam(self, params: Dict[str, Param]) -> None:
         """
-        Sets the parameter list
+        Sets the parameter dictionary
         """
         self.params = params
 
-    def addParam(self, *param: Param):
+    def addParam(self, *params: Param):
         """
-        Adds a parameter to the parameter list
+        Adds a parameter to the parameter dictionary
         """
-        for p in param:
-            self.params.append(p)
+        for param in params:
+            self.params[param.getName()] = param
 
-    def getParams(self) -> List[Param]:
+    def getParams(self) -> Dict[str, Param]:
         """
         Returns to the GUI/CLI all the required parameters in self.params
         """
-        return list(self.params)
+        return dict(self.params)
 
     def getImages(self) -> List[Image]:
         """
-        Returns to the user the image list
+        Returns to the user the list of Granny.Models.Images.Image instances
         """
-        input_dir: str = self.input_dir.getValue()
+        input_param: Param = self.params.get(self.input_dir.getName())  # type:ignore
+        input_dir: str = input_param.getValue()
+        print(input_dir)
         image_files: List[str] = os.listdir(input_dir)
         for image_file in image_files:
             if image_file.endswith(IMAGE_EXTENSION):
