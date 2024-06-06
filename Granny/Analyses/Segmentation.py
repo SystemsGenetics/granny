@@ -1,17 +1,34 @@
+"""
+This class perform instance segmentation on the user provided image files. The analysis will be
+carried out in the following manner:
+    1. retrieves the machine learning (instance segmentation) trained models from https://osf.io/.
+    to the current directory 'Analyses/'. The machine learning models are uploaded manually and should be
+    named in this convention: granny-v{granny_version}-{model_name}-v{model_version}.pt
+    2. parses user's input for image folder, initiates a list of Granny.Models.Images.Image,
+    then runs YOLOv8 on the images.
+    3. Todo: visualize results and segment individual images
+
+date: June 06, 2024
+author: Nhan H. Nguyen
+"""
+
+import configparser
 import os
 import pathlib
-import shutil
 from typing import Any, List
 from urllib import request
 
 import numpy as np
-import requests
 from Granny.Analyses.Analysis import Analysis
 from Granny.Models.AIModel.AIModel import AIModel
 from Granny.Models.AIModel.YoloModel import YoloModel
 from Granny.Models.Images.Image import Image
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
+
+# I think we should keep the config_path but the software should ask for the user's input for the
+# model name in self.model_name
+CONFIG_PATH = "config/granny-v1_0/segmentation.ini"
 
 
 class Segmentation(Analysis):
@@ -20,10 +37,13 @@ class Segmentation(Analysis):
     def __init__(self):
         Analysis.__init__(self)
 
-        self.local_model_path = os.path.join(
-            f"{pathlib.Path(__file__).parent}", "granny-v1_0-pome_fruit-v1_0.pt"
-        )
-        self.model_url = "https://osf.io/dqzyn/download/"
+        # name of the model to be used in this analysis
+        self.model_name = "granny-v1_0-pome_fruit-v1_0.pt"
+
+        # download trained ML models from https://osf.io to the current directory
+        self.local_model_path = os.path.join(f"{pathlib.Path(__file__).parent}", self.model_name)
+        self.model_url = self.getModelUrl(self.model_name)
+        print(self.model_url)
         if not os.path.exists(self.local_model_path):
             self.downloadTrainedWeights(self.local_model_path)
 
@@ -31,6 +51,12 @@ class Segmentation(Analysis):
         self.AIModel: AIModel = YoloModel(self.local_model_path)
         self.AIModel.loadModel()
         self.segmentation_model = self.AIModel.getModel()
+
+    def getModelUrl(self, model_name: str) -> str:
+        """ """
+        config = configparser.ConfigParser()
+        config.read(os.path.join(f"{pathlib.Path(__file__).parent}", CONFIG_PATH))
+        return config["Models"][model_name]
 
     def downloadTrainedWeights(self, local_model_path: str, verbose: int = 1):
         """Download YOLO8 trained weights from Granny GitHub repository:
@@ -67,6 +93,9 @@ class Segmentation(Analysis):
         """
         {@inheritdoc}
         """
+        # initiates Granny.Model.Images.Image instances for the analysis
+        self.images = self.getImages()
+
         # performs segmentation on each image one-by-one
         image_instances: List[Image] = []
         for image in self.images:
