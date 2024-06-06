@@ -51,7 +51,7 @@ class Analysis(ABC):
         self.output_dir = StringParam(
             "out", "output", "Output folder to export the analysis's results."
         )
-        self.output_dir.setDefaultValue(
+        self.output_dir.setValue(
             os.path.join(Path(os.getcwd()).parent.parent.as_posix(), "results/")
         )  # Grannny/results/
 
@@ -82,7 +82,6 @@ class Analysis(ABC):
         """
         input_param: Param = self.params.get(self.input_dir.getName())  # type:ignore
         input_dir: str = input_param.getValue()
-        print(input_dir)
         image_files: List[str] = os.listdir(input_dir)
         for image_file in image_files:
             if image_file.endswith(IMAGE_EXTENSION):

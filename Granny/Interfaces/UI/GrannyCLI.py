@@ -23,12 +23,6 @@ class GrannyCLI(GrannyUI):
         GrannyUI.__init__(self, parser)
         self.analysis: str = ""
 
-    def configureParser(self, sub_parser):  # type: ignore
-        self.cli_parser = sub_parser.add_parser(
-            "cli",
-            help="Command Line Interface",
-        )
-
     def checkArgs(self) -> bool:
         """
         Checks the incoming command-line arguments.
@@ -53,11 +47,12 @@ class GrannyCLI(GrannyUI):
         """
         # Get the input arguments.
         self.addProgramArgs()
-        program_args = self.parser.parse_args()
+        program_args, _ = self.parser.parse_known_args()
         self.analysis = program_args.analysis
 
         # Checks the incoming arguments for errors, if all is okay then collect the arguments.
         if not self.checkArgs():
+            self.parser.print_help()
             exit(1)
 
         # Iterates through all of the available analysis classes.
@@ -85,13 +80,13 @@ class GrannyCLI(GrannyUI):
                         arg_value = args_dict.get(param.getLabel())
                         if arg_value is not None:
                             print(
-                                f"{param.getLabel()}:\t {arg_value}",
+                                f"\t{param.getLabel():<{25}}: {arg_value}",
                             )
                             param.setValue(arg_value)
                         # if the user doesn't provide a value
                         else:
                             print(
-                                f"{param.getLabel()}:\t No value provided by the user,",
+                                f"\t{param.getLabel():<{25}}: No value provided by the user,",
                                 "using system default value.",
                             )
                             param.setValue(param.getDefaultValue())
@@ -104,7 +99,7 @@ class GrannyCLI(GrannyUI):
         Parses the following command-line arguments: analysis, image directory, metadata directory,
         and result directory. These parameters are required to run the program.
         """
-        self.cli_parser.add_argument(
+        self.parser.add_argument(
             "-a",
             "--analysis",
             dest="analysis",
@@ -112,7 +107,7 @@ class GrannyCLI(GrannyUI):
             nargs="?",
             required=True,
             choices=["segmentation", "blush", "color", "scald", "starch"],
-            help="Chooses an analysis you want Granny to run.",
+            help="Chooses an analysis you want to perform.",
         )
 
     def addAnalysisArgs(self, params: Dict[str, Param]) -> None:
@@ -123,8 +118,8 @@ class GrannyCLI(GrannyUI):
         the user, the value is set to the default value by the analysis class.
         """
         for param in params.values():
-            self.cli_parser.add_argument(
-                f"-{param.getName()}",
+            self.parser.add_argument(
+                # f"-{param.getName()}",
                 f"--{param.getLabel()}",
                 type=param.getType(),  # type: ignore
                 required=False if param.isSet() else True,

@@ -20,7 +20,15 @@ class GrannyParser(argparse.ArgumentParser):
         """
         Overrides argparse print_help() with a customized help message
         """
-        self._print_message(self.format_help(), file)
+        # Get the default help message
+        help_message = self.format_help()
+
+        # Remove the program description if present
+        if self.description:
+            help_message = help_message.replace(self.description + "\n", "")
+
+        # Print the modified help message
+        self._print_message(help_message, file)
 
 
 def run():
@@ -34,12 +42,16 @@ def run():
         description="Welcome to Granny!",
         conflict_handler="resolve",
     )
-    sub_parser = parser.add_subparsers(
-        metavar="interface",
-        title="commands",
-        description="The following commands are available.",
-        dest="cmd",
-        required=True,
+    parser.add_argument(
+        "-i",
+        "--interface",
+        dest="interface",
+        type=str,
+        nargs="?",
+        required=False,
+        default="cli",
+        choices=["cli", "gui"],
+        help="Indicates the user interface to use, either the command-line (cli) or the graphical interface (gui).",
     )
     parser.add_argument(
         "-h",
@@ -54,8 +66,14 @@ def run():
         action="version",
         version=f"Granny {metadata.version('granny')}",
     )
+    namespace, _ = parser.parse_known_args()
+    interface = namespace.interface
 
     # Now calls the proper interface class.
-    cli = GrannyCLI(parser)
-    cli.configureParser(sub_parser)
-    cli.run()
+    if interface == "cli":
+        GrannyCLI(parser).run()
+    elif interface == "gui":
+        GrannyPyQt(parser).run()
+    else:
+        print("Error: unknown interface")
+        exit(1)

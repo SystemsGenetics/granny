@@ -5,6 +5,7 @@ from typing import Any, List
 from urllib import request
 
 import numpy as np
+import requests
 from Granny.Analyses.Analysis import Analysis
 from Granny.Models.AIModel.AIModel import AIModel
 from Granny.Models.AIModel.YoloModel import YoloModel
@@ -20,14 +21,10 @@ class Segmentation(Analysis):
         Analysis.__init__(self)
 
         self.local_model_path = os.path.join(
-            f"{pathlib.Path(__file__).parent}",
-            "config",
-            self.__analysis_name__,
-            "granny-v1_0-pome_fruit-v1_0.pt",
+            f"{pathlib.Path(__file__).parent}", "granny-v1_0-pome_fruit-v1_0.pt"
         )
-        self.model_url = ""
+        self.model_url = "https://osf.io/dqzyn/download/"
         if not os.path.exists(self.local_model_path):
-            os.makedirs(pathlib.Path(self.local_model_path).parent)
             self.downloadTrainedWeights(self.local_model_path)
 
         # loads segmentation model
@@ -43,8 +40,7 @@ class Segmentation(Analysis):
         """
         if verbose > 0:
             print(f"Downloading pretrained model to {local_model_path} ...")
-        with request.urlopen(self.model_url) as resp, open(local_model_path, "wb") as out:
-            shutil.copyfileobj(resp, out)
+        request.urlretrieve(self.model_url, local_model_path)
         if verbose > 0:
             print("... done downloading pretrained model!")
 

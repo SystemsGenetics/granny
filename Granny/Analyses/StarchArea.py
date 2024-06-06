@@ -26,7 +26,7 @@ class StarchArea(Analysis):
         )
         self.threshold.setMin(0)
         self.threshold.setMax(255)
-        self.threshold.setDefaultValue(172)
+        self.threshold.setValue(172)
 
         # adds parameters for argument parsing
         self.addParam(self.threshold)
