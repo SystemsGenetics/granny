@@ -15,6 +15,7 @@ from typing import Dict, List
 
 from Granny.Analyses.Parameter import Param, StringParam
 from Granny.Models.Images.Image import Image
+from Granny.Models.Images.MetaData import MetaData
 from Granny.Models.Images.RGBImage import RGBImage
 
 IMAGE_EXTENSION = (
@@ -80,12 +81,24 @@ class Analysis(ABC):
         """
         Returns to the user the list of Granny.Models.Images.Image instances
         """
+        # retrieves input directory from the user (required)
         input_param: Param = self.params.get(self.input_dir.getName())  # type:ignore
         input_dir: str = input_param.getValue()
+
+        # reads image files from the input directory
         image_files: List[str] = os.listdir(input_dir)
+
         for image_file in image_files:
             if image_file.endswith(IMAGE_EXTENSION):
+                # initiates MetaData class to store analysis' parameters
+                analysis_metadata = MetaData()
+                analysis_metadata.updateParameters(list(self.getParams().values()))
+
+                # initiates RGBImage instance for each image
                 rgb_image = RGBImage(os.path.join(input_dir, image_file))
+
+                # updates the image instance with the metadata
+                rgb_image.setMetaData(analysis_metadata)
                 self.images.append(rgb_image)
         return list(self.images)
 

@@ -25,7 +25,8 @@ class StarchArea(Analysis):
         self.threshold = IntParam(
             "th",
             "threshold",
-            "The color threhsold that distinguishes iodine-stained starch regions",
+            "The color threhsold, acting as initial anchor, that distinguishes iodine-stained "
+            + "starch regions",
         )
         self.threshold.setMin(0)
         self.threshold.setMax(255)
@@ -155,6 +156,8 @@ class StarchArea(Analysis):
         rating.setMax(1.0)
         rating.setValue(score)
 
+        image_instance.updateMetaData([rating])
+
         return image_instance
 
     def performAnalysis(self):
@@ -162,9 +165,9 @@ class StarchArea(Analysis):
         {@inheritdoc}
         """
         # initiates user's input
-        self.input_dir = self.params.get(self.input_dir.getName()) # type:ignore
-        self.output_dir = self.params.get(self.output_dir.getName()) # type:ignore
-        self.threshold = self.params.get(self.threshold.getName()) # type:ignore
+        self.input_dir = self.params.get(self.input_dir.getName())  # type:ignore
+        self.output_dir = self.params.get(self.output_dir.getName())  # type:ignore
+        self.threshold = self.params.get(self.threshold.getName())  # type:ignore
 
         # initiates an ImageIO for image input/output
         self.image_io: ImageIO = RGBImageFile()
@@ -182,7 +185,7 @@ class StarchArea(Analysis):
         num_cpu = os.cpu_count()
         cpu_count = int(num_cpu * 0.8) or 1  # type: ignore
         with Pool(cpu_count) as pool:
-            image_instances: List[Image] = pool.map(self.rateImageInstance, self.images)
+            image_instances = pool.map(self.rateImageInstance, self.images)
 
         # with open(f"{self.RESULT_DIR}{os.sep}starch_area.csv", "w") as w:
         #     for i, file_name in enumerate(image_list):

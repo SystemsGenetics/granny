@@ -6,35 +6,66 @@ from Granny.Analyses.Parameter import Param
 from Granny.Models.Images.Image import Image
 from Granny.Models.Images.MetaData import MetaData
 from Granny.Models.IO.ImageIO import ImageIO
-from Granny.Models.IO.MetaDataFile import MetaDataFile
 from numpy.typing import NDArray
 
 
 class RGBImage(Image):
-    """ """
+    """
+    An implementation of the Image class for handling RGB images.
+
+    Provides methods for loading, saving, and manipulating RGB image data and metadata.
+
+    Attributes:
+        filepath (str): Absolute file path of the image file inherited from Image.
+        results (Any): Stores segmentation results.
+        image (NDArray[np.uint8]): The RGB image data stored as a NumPy array.
+        metadata (MetaData): An instance of the MetaData class for image metadata.
+    """
 
     def __init__(self, filepath: str):
         Image.__init__(self, filepath)
 
     def getImage(self) -> NDArray[np.uint8]:
-        """ """
+        """
+        {@inheritdoc}
+        """
         return self.image
 
     def setImage(self, image: NDArray[np.uint8]):
-        """ """
+        """
+        {@inheritdoc}
+        """
         self.image = image
 
     def loadImage(self, image_io: ImageIO):
-        """ """
+        """
+        {@inheritdoc}
+        """
         self.image = image_io.loadImage()
 
     def saveImage(self, image_io: ImageIO, folder: str):
-        """ """
+        """
+        {@inheritdoc}
+        """
         image_io.saveImage(self.image, folder)
 
+    def updateMetaData(self, params: List[Param]):
+        """
+        {@inheritdoc}
+        """
+        self.metadata.updateParameters(params)
+
     def setMetaData(self, metadata: MetaData):
-        """ """
+        """
+        {@inheritdoc}
+        """
         self.metadata = metadata
+
+    def getMetaData(self) -> MetaData:
+        """
+        {@inheritdoc}
+        """
+        return self.metadata
 
     def setSegmentationResults(self, results: Any):
         """

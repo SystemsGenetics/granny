@@ -1,18 +1,12 @@
 from argparse import ArgumentParser, _SubParsersAction  # type: ignore
-from typing import Dict
 
 from Granny.Analyses.Analysis import Analysis
 from Granny.Analyses.BlushColor import BlushColor
-from Granny.Analyses.Parameter import IntParam, Param, StringParam
 from Granny.Analyses.PeelColor import PeelColor
 from Granny.Analyses.Segmentation import Segmentation
 from Granny.Analyses.StarchArea import StarchArea
 from Granny.Analyses.SuperficialScald import SuperficialScald
 from Granny.Interfaces.UI.GrannyUI import GrannyUI
-from Granny.Models.Images.Image import Image
-from Granny.Models.Images.MetaData import MetaData
-from Granny.Models.Images.RGBImage import RGBImage
-from Granny.Models.IO.MetaDataFile import MetaDataFile
 
 
 class GrannyCLI(GrannyUI):

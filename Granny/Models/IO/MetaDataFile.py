@@ -1,4 +1,3 @@
-import configparser
 from typing import List
 
 from Granny.Analyses.Parameter import IntParam, Param, StringParam
