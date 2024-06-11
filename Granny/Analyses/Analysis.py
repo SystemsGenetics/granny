@@ -52,8 +52,8 @@ class Analysis(ABC):
             "out", "output", "Output folder to export the analysis's results."
         )
         self.output_dir.setValue(
-            os.path.join(Path(os.getcwd()).parent.parent.as_posix(), "results/")
-        )  # Grannny/results/
+            os.path.join(Path(__file__).parent.parent.as_posix(), "results/")
+        )  # Granny/results/
 
         self.addParam(self.input_dir, self.output_dir)
 

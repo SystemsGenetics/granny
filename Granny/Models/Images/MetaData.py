@@ -5,9 +5,8 @@ from Granny.Models.IO.MetaDataIO import MetaDataIO
 
 
 class MetaData(object):
-    def __init__(self, metadata_io: MetaDataIO):
-        self.io: MetaDataIO = metadata_io
-        self.params: List[Param] = self.io.load()
+    def __init__(self):
+        self.params: List[Param] = []
 
     def setMetaData(self, params: List[Param]):
         """
@@ -21,8 +20,8 @@ class MetaData(object):
         """
         return self.params
 
-    def saveMetaData(self):
+    def saveMetaData(self, metadata_io: MetaDataIO):
         """
         Calls MetaDataIO to write parameters
         """
-        self.io.save(self.params)
+        metadata_io.save(self.params)

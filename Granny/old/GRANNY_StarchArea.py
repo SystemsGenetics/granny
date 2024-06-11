@@ -39,14 +39,12 @@ class GrannyStarchArea(granny.GrannyBase):
 
         threshold_1 = np.logical_and((lab_img[:, :, 0] > 0), (lab_img[:, :, 0] <= 205))
         threshold_2 = np.logical_and((lab_img[:, :, 1] > 0), (lab_img[:, :, 1] <= 255))
-        threshold_3 = np.logical_and(
-            (lab_img[:, :, 2] > 0), (lab_img[:, :, 2] <= threshold_value)
-        )
+        threshold_3 = np.logical_and((lab_img[:, :, 2] > 0), (lab_img[:, :, 2] <= threshold_value))
 
         # combine to one matrix
-        th123 = np.logical_and(
-            np.logical_and(threshold_1, threshold_2), threshold_3
-        ).astype(np.uint8)
+        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
+            np.uint8
+        )
 
         # perform a simple morphological operation to smooth the binary mask
         th123 = self.smooth_binary_mask(th123)

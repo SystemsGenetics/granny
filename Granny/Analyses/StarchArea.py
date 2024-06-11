@@ -6,8 +6,11 @@ from typing import List, Tuple, cast
 import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
-from Granny.Analyses.Parameter import IntParam
+from Granny.Analyses.Parameter import FloatParam, IntParam, StringParam
 from Granny.Models.Images.Image import Image
+from Granny.Models.IO.ImageIO import ImageIO
+from Granny.Models.IO.MetaDataFile import MetaDataFile
+from Granny.Models.IO.MetaDataIO import MetaDataIO
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
 
@@ -27,6 +30,13 @@ class StarchArea(Analysis):
         self.threshold.setMin(0)
         self.threshold.setMax(255)
         self.threshold.setValue(172)
+
+        # self.metadata_file = StringParam(
+        #     "m",
+        #     "metadata",
+        #     "Output metadata file to export the analysis' metadata and ratings.",
+        # )
+        # self.metadata_file.setValue(os.path.join(self.output_dir.getValue(), "ratings.csv"))
 
         # adds parameters for argument parsing
         self.addParam(self.threshold)
@@ -99,15 +109,16 @@ class StarchArea(Analysis):
         gray = adjustImage(gray, low, high)
 
         # create thresholded matrices
-        threshold = np.logical_and((gray > 0), (gray <= 172)).astype(np.uint8)
+        image_threshold = self.threshold.getValue()  # type:ignore
+        mask = np.logical_and((gray > 0), (gray <= image_threshold)).astype(np.uint8)
 
         # creates new image using threshold matrices
-        new_img = self.drawMask(new_img, threshold)
+        new_img = self.drawMask(new_img, mask)
 
         ground_truth = np.count_nonzero(
             cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)) > 0
         )
-        starch = np.count_nonzero(threshold)
+        starch = np.count_nonzero(mask)
 
         return starch / ground_truth, new_img
 
@@ -123,19 +134,26 @@ class StarchArea(Analysis):
             score: rating for the instance
         """
         # initiates ImageIO
-        image_io = RGBImageFile(image_instance.getFilePath())
+        self.image_io.setFilePath(image_instance.getFilePath())
 
         # loads image from file system with RGBImageFile(ImageIO)
-        image_instance.loadImage(image_io=image_io)
+        image_instance.loadImage(image_io=self.image_io)
 
         # gets array image
         img = image_instance.getImage()
 
         # performs starch percentage calculation
-        score, new_img = self.calculateStarch(img)
+        score, result_img = self.calculateStarch(img)
 
         # calls IO to save the image
-        image_io.saveImage(new_img, self.__analysis_name__)
+        output_dir = self.params.get(self.output_dir.getName()).getValue()  # type:ignore
+        self.image_io.saveImage(result_img, os.path.join(output_dir, self.__analysis_name__))
+
+        # saves the calculated score to the image_instance as a parameter
+        rating = FloatParam("rating", "rating", "Granny calculated rating of total starch area.")
+        rating.setMin(0.0)
+        rating.setMax(1.0)
+        rating.setValue(score)
 
         return image_instance
 
@@ -143,6 +161,17 @@ class StarchArea(Analysis):
         """
         {@inheritdoc}
         """
+        # initiates user's input
+        self.input_dir = self.params.get(self.input_dir.getName()) # type:ignore
+        self.output_dir = self.params.get(self.output_dir.getName()) # type:ignore
+        self.threshold = self.params.get(self.threshold.getName()) # type:ignore
+
+        # initiates an ImageIO for image input/output
+        self.image_io: ImageIO = RGBImageFile()
+
+        # # initiates a MetaDataIO for results
+        # self.metadata_io: MetaDataIO = MetaDataFile()
+
         # initiates Granny.Model.Images.Image instances for the analysis using the user's input
         self.images = self.getImages()
 
@@ -153,4 +182,11 @@ class StarchArea(Analysis):
         num_cpu = os.cpu_count()
         cpu_count = int(num_cpu * 0.8) or 1  # type: ignore
         with Pool(cpu_count) as pool:
-            pool.map(self.rateImageInstance, self.images)
+            image_instances: List[Image] = pool.map(self.rateImageInstance, self.images)
+
+        # with open(f"{self.RESULT_DIR}{os.sep}starch_area.csv", "w") as w:
+        #     for i, file_name in enumerate(image_list):
+        #         w.writelines(f"{self.FOLDER_NAME}/{file_name}\t\t{results[i]}")
+        #         w.writelines("\n")
+        #     print('\t- Done. Check "results/" for output. - \n')
+        # for image_instance in image_instances:

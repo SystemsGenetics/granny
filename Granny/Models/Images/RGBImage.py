@@ -57,6 +57,7 @@ class RGBImage(Image):
                 "No mask detected. Follow the instructions to perform segmentation first."
             )
 
+    # todo: move to Granny.Analyses.Segmentation
     def extractFeature(self) -> List[Image]:
         """
         Extracts all the instances detected stored in self.result.

@@ -32,7 +32,7 @@ class GrannyCLI(GrannyUI):
         do not pass a test, then error messages are printed to STDERR
         and False is returned.
 
-        @return book
+        @return bool
           True if all argument are good, FALSE otherwsie.
         """
         analyses = Analysis.__subclasses__()
@@ -63,34 +63,9 @@ class GrannyCLI(GrannyUI):
             if self.analysis == aclass.__analysis_name__:
                 # intantiates the analysis class with the Image list
                 analysis = aclass()
-                # calls analysis.getParams() for additional parameters of the analysis.
-                params = analysis.getParams()
-                # checks the list of parameters
-                if len(params) > 0:
-                    # calls argparse to parse analysis arguments specified by the user
-                    self.addAnalysisArgs(params)
-                    analysis_args, _ = self.parser.parse_known_args()
-                    args_dict = analysis_args.__dict__
-                    # resets the parameter list in the analysis to update new parameter's values
-                    # from the user
-                    analysis.setParam({})
-                    # loops through the parameter list to update new values using setValue()
-                    for param in params.values():
-                        # if the user provide a value
-                        arg_value = args_dict.get(param.getLabel())
-                        if arg_value is not None:
-                            print(
-                                f"\t{param.getLabel():<{25}}: {arg_value}",
-                            )
-                            param.setValue(arg_value)
-                        # if the user doesn't provide a value
-                        else:
-                            print(
-                                f"\t{param.getLabel():<{25}}: No value provided by the user,",
-                                "using system default value.",
-                            )
-                            param.setValue(param.getDefaultValue())
-                        analysis.addParam(param)
+                # extracts from the analysis the list of parameters needed to be set up,
+                # then adds CLI's argument for each parameter
+                self.addAnalysisArgs(analysis=analysis)
                 # performs the analysis with a newly updated set of parameters provided by the user
                 analysis.performAnalysis()
 
@@ -110,18 +85,43 @@ class GrannyCLI(GrannyUI):
             help="Chooses an analysis you want to perform.",
         )
 
-    def addAnalysisArgs(self, params: Dict[str, Param]) -> None:
+    def addAnalysisArgs(self, analysis: Analysis) -> None:
         """
         Parses the command-line arguments for the analysis's parameters.
 
         These parameters are not required to run the program, but if there is no value provided by
         the user, the value is set to the default value by the analysis class.
         """
-        for param in params.values():
-            self.parser.add_argument(
-                # f"-{param.getName()}",
-                f"--{param.getLabel()}",
-                type=param.getType(),  # type: ignore
-                required=False if param.isSet() else True,
-                help=param.getHelp(),
-            )
+        # calls analysis.getParams() for additional parameters of the analysis.
+        params = analysis.getParams()
+        # checks the list of parameters
+        if len(params) > 0:
+            # calls argparse to parse analysis arguments specified by the user
+            for param in params.values():
+                self.parser.add_argument(
+                    f"--{param.getLabel()}",
+                    type=param.getType(),  # type: ignore
+                    required=False if param.isSet() else True,
+                    help=param.getHelp(),
+                )
+            analysis_args, _ = self.parser.parse_known_args()
+            args_dict = analysis_args.__dict__
+            # resets the parameter list in the analysis to update new parameter's values
+            # from the user
+            analysis.setParam({})
+            # loops through the parameter list to update new values using setValue()
+            for param in params.values():
+                # if the user provide a value
+                arg_value = args_dict.get(param.getLabel())
+                if arg_value is not None:
+                    print(
+                        f"\t{param.getLabel():<{25}}: (user) {arg_value}",
+                    )
+                    param.setValue(arg_value)
+                # if the user doesn't provide a value
+                else:
+                    print(
+                        f"\t{param.getLabel():<{25}}: (default) {param.getValue()}",
+                    )
+                    param.setValue(param.getValue())
+                analysis.addParam(param)
