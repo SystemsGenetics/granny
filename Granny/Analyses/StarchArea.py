@@ -19,25 +19,25 @@ class StarchArea(Analysis):
     def __init__(self):
         Analysis.__init__(self)
         # sets up default threshold parameter
-        self.threshold = IntParam(
+        threshold = IntParam(
             "th",
             "threshold",
             "The color threhsold, acting as initial anchor, that distinguishes iodine-stained "
             + "starch regions",
         )
-        self.threshold.setMin(0)
-        self.threshold.setMax(255)
-        self.threshold.setValue(172)
+        threshold.setMin(0)
+        threshold.setMax(255)
+        threshold.setValue(172)
 
-        # self.metadata_file = StringParam(
+        # metadata_file = StringParam(
         #     "m",
         #     "metadata",
         #     "Output metadata file to export the analysis' metadata and ratings.",
         # )
-        # self.metadata_file.setValue(os.path.join(self.output_dir.getValue(), "ratings.csv"))
+        # metadata_file.setValue(os.path.join(self.output_dir.getValue(), "ratings.csv"))
 
         # adds parameters for argument parsing
-        self.addParam(self.threshold)
+        self.addParam(threshold)
 
     def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """

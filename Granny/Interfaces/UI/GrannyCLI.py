@@ -55,12 +55,14 @@ class GrannyCLI(GrannyUI):
         analyses = Analysis.__subclasses__()
         for aclass in analyses:
             if self.analysis == aclass.__analysis_name__:
-                # intantiates the analysis class with the Image list
+                # Instantiates the analysis class with the Image list
                 analysis = aclass()
-                # extracts from the analysis the list of parameters needed to be set up,
+
+                # Extracts from the analysis the list of parameters needed to be set up,
                 # then adds CLI's argument for each parameter
                 self.addAnalysisArgs(analysis=analysis)
-                # performs the analysis with a newly updated set of parameters provided by the user
+
+                # Performs the analysis with a newly updated set of parameters provided by the user
                 analysis.performAnalysis()
 
     def addProgramArgs(self) -> None:
@@ -100,6 +102,7 @@ class GrannyCLI(GrannyUI):
                 )
             analysis_args, _ = self.parser.parse_known_args()
             args_dict = analysis_args.__dict__
+            # @todo: validate the arguments before setting the value.
             # resets the parameter list in the analysis to update new parameter's values
             # from the user
             analysis.setParam({})

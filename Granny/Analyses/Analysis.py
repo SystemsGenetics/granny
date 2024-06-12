@@ -11,23 +11,12 @@ import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Any
 
 from Granny.Analyses.Parameter import Param, StringParam
 from Granny.Models.Images.Image import Image
 from Granny.Models.Images.MetaData import MetaData
 from Granny.Models.Images.RGBImage import RGBImage
-
-IMAGE_EXTENSION = (
-    ".JPG",
-    ".JPG".lower(),
-    ".PNG",
-    ".PNG".lower(),
-    ".JPEG",
-    ".JPEG".lower(),
-    ".TIFF",
-    ".TIFF".lower(),
-)
 
 
 class Analysis(ABC):
@@ -36,27 +25,16 @@ class Analysis(ABC):
 
     def __init__(self):
         """
-        Intializes an instance of an Analysis object
+        Initializes an instance of an Analysis object
 
         @param GRANNY.Models.Images.Image An instance of an Image object
 
         @return GRANNY.Analyses.Analysis.Analysis object.
         """
-        self.images: List[Image] = []
-        self.params: Dict[str, Param] = {}
+        self.input_params: Dict[str, Param] = {}
+        self.output_params: Dict[str, Param] = {}
 
-        # initiates input and output directory
-        self.input_dir = StringParam(
-            "in", "input", "Input folder containing image files for the analysis."
-        )
-        self.output_dir = StringParam(
-            "out", "output", "Output folder to export the analysis's results."
-        )
-        self.output_dir.setValue(
-            os.path.join(Path(__file__).parent.parent.as_posix(), "results/")
-        )  # Granny/results/
-
-        self.addParam(self.input_dir, self.output_dir)
+        self.addParams()
 
     def setParam(self, params: Dict[str, Param]) -> None:
         """
@@ -77,31 +55,6 @@ class Analysis(ABC):
         """
         return dict(self.params)
 
-    def getImages(self) -> List[Image]:
-        """
-        Returns to the user the list of Granny.Models.Images.Image instances
-        """
-        # retrieves input directory from the user (required)
-        input_param: Param = self.params.get(self.input_dir.getName())  # type:ignore
-        input_dir: str = input_param.getValue()
-
-        # reads image files from the input directory
-        image_files: List[str] = os.listdir(input_dir)
-
-        for image_file in image_files:
-            if image_file.endswith(IMAGE_EXTENSION):
-                # initiates MetaData class to store analysis' parameters
-                analysis_metadata = MetaData()
-                analysis_metadata.updateParameters(list(self.getParams().values()))
-
-                # initiates RGBImage instance for each image
-                rgb_image = RGBImage(os.path.join(input_dir, image_file))
-
-                # updates the image instance with the metadata
-                rgb_image.setMetaData(analysis_metadata)
-                self.images.append(rgb_image)
-        return list(self.images)
-
     def generateAnalysisMetadata(self):
         """
         Generates general metadata for the analysis, including: date and time, analysis name, id.
@@ -117,9 +70,9 @@ class Analysis(ABC):
         self.addParam(time, id)
 
     @abstractmethod
-    def performAnalysis(self) -> None:
+    def performAnalysis(self) -> Any:
         """
-        Once all required paramterers have been set, this function is used
+        Once all required parameters have been set, this function is used
         to perform the analysis.
         """
         pass

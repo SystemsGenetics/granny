@@ -1,4 +1,5 @@
 import math
+import os
 from abc import ABC, abstractmethod
 from typing import Any, List
 
@@ -61,7 +62,7 @@ class Param(ABC):
 
     def setValue(self, value: Any):
         """
-        Sets the current value of the paramter.
+        Sets the current value of the parameter.
         """
         self.value = value
         self.is_set = True
@@ -97,6 +98,7 @@ class Param(ABC):
         Gets the default value for the parameter.
         """
         pass
+
 
 
 class NumericParam(Param):
@@ -315,3 +317,84 @@ class StringParam(Param):
         {@inheritdoc}
         """
         self.default_value = value
+
+
+class FileNameParam(Param):
+
+    def __init__(self, name: str, label: str, help: str):
+        """
+        {@inheritdoc}
+        """
+        Param.__init__(self, name, label, help)
+
+    def validate(self) -> bool:
+        """
+        Makes sure that the filename is valid as either a file or a directory.
+        """
+        return True
+    
+
+class FileDirParam(Param):
+
+    def __init__(self, name: str, label: str, help: str):
+        """
+        {@inheritdoc}
+        """
+        Param.__init__(self, name, label, help)
+   
+    def validate(self) -> bool:
+        """
+        Checks that the value provided is a valid directory on the file system
+
+        @returns boolean
+            returns True if the directory is valid, False otherwise.
+        """
+        return True
+
+
+class ImageListParam(FileDirParam):
+
+    def __init__(self, name: str, label: str, help: str):
+        """
+        {@inheritdoc}
+        """
+        Param.__init__(self, name, label, help)
+
+        self.IMAGE_EXTENSION = (
+            ".JPG",
+            ".JPG".lower(),
+            ".PNG",
+            ".PNG".lower(),
+            ".JPEG",
+            ".JPEG".lower(),
+            ".TIFF",
+            ".TIFF".lower(),
+        )
+    
+    def setValue(self, value: Any):
+        """
+        Finds all images in a directory and returns an image list.
+
+        Returns to the user the list of Granny.Models.Images.Image instances
+        """
+        super().setValue(value)
+    
+        # reads image files from the input directory
+        image_files: List[str] = os.listdir(self.value)
+        images = []
+
+        for image_file in image_files:
+            if image_file.endswith(self.IMAGE_EXTENSION):
+
+                # # initiates MetaData class to store analysis' parameters
+                # analysis_metadata = MetaData()
+                # analysis_metadata.updateParameters(list(self.getParams().values()))
+
+                # initiates RGBImage instance for each image
+                rgb_image = RGBImage(os.path.join(input_dir, image_file))
+
+                # updates the image instance with the metadata
+                rgb_image.setMetaData(analysis_metadata)
+                images.append(rgb_image)
+
+        self.value = images

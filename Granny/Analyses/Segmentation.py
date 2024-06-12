@@ -19,7 +19,7 @@ from typing import Any, List
 from urllib import request
 
 import numpy as np
-from Granny.Analyses.Analysis import Analysis
+from Granny.Analyses.ImageAnalysis import ImageAnalysis
 from Granny.Analyses.Parameter import StringParam
 from Granny.Models.AIModel.AIModel import AIModel
 from Granny.Models.AIModel.YoloModel import YoloModel
@@ -29,16 +29,18 @@ from Granny.Models.IO.ImageIO import ImageIO
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
 
-# I think we should keep the config_path but the software should ask for the user's input for the
-# model name in self.model_name
-CONFIG_PATH = "config/granny-v1_0/segmentation.ini"
+class Segmentation(ImageAnalysis):
+    __analysis_name__ = "segmentation"    
 
+    def __init__(self, images: List[Image], th: int):
+        super.__init__(self)
 
-class Segmentation(Analysis):
-    __analysis_name__ = "segmentation"
-
-    def __init__(self):
-        Analysis.__init__(self)
+        self.models = {
+            'pome_fruit-v1_0': {
+                'url': 'https://osf.io/dqzyn/download',
+                'path': './granny-v1_0-pome_fruit-v1_0.pt'
+            }
+        }
 
         # name of the model to be used in this analysis (this could be changed to take user's input)
         self.model_name = "granny-v1_0-pome_fruit-v1_0.pt"
@@ -54,6 +56,22 @@ class Segmentation(Analysis):
         self.AIModel: AIModel = YoloModel(self.local_model_path)
         self.AIModel.loadModel()
         self.segmentation_model = self.AIModel.getModel()
+
+        self.addParams()
+
+    def addParams(self):
+        """
+        Adds all of the parameters that the Segmentation analysis needs.
+        """
+        super().addParams()
+        model_param = StringParam(
+            "model", "model", "Specifies the model that should be used for segmentation. The " +
+              "model can be specified in one of three ways. First, if a known model name is provided " +
+              "(e.g. 'pome_fruit-v1_0') then Granny will automatically retrieve the model.  If " +
+              "a URL is provided then Granny will download the model from the URL you provided. " +
+              "Otherwise the value must be a path to where the model is stored on the local file system."
+        )
+        self.addParam(model_param)
 
     def getModelUrl(self, model_name: str):
         """
@@ -134,16 +152,16 @@ class Segmentation(Analysis):
         # returns a list of individual instances
         return individual_images
 
-    def performAnalysis(self) -> None:
+    def performAnalysis(self) -> List[Image]:
         """
         {@inheritdoc}
         """
         # initiates user's input
-        self.input_dir: StringParam = self.params.get(self.input_dir.getName())  # type:ignore
-        self.output_dir: StringParam = self.params.get(self.output_dir.getName())  # type:ignore
+        # self.input_dir: StringParam = self.params.get(self.input_dir.getName())  # type:ignore
+        # self.output_dir: StringParam = self.params.get(self.output_dir.getName())  # type:ignore
 
         # initiates Granny.Model.Images.Image instances for the analysis
-        self.images = self.getImages()
+        self.images = self.params.get('input').getValue()
 
         # initiates ImageIO
         self.image_io: ImageIO = RGBImageFile()
