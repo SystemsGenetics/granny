@@ -20,7 +20,7 @@ from urllib import request
 
 import numpy as np
 from Granny.Analyses.ImageAnalysis import ImageAnalysis
-from Granny.Analyses.Parameter import StringParam
+from Granny.Analyses.Parameter import ImageListParam
 from Granny.Models.AIModel.AIModel import AIModel
 from Granny.Models.AIModel.YoloModel import YoloModel
 from Granny.Models.Images.Image import Image
@@ -57,21 +57,38 @@ class Segmentation(ImageAnalysis):
         self.AIModel.loadModel()
         self.segmentation_model = self.AIModel.getModel()
 
-        self.addParams()
+        self.addInParams()
 
-    def addParams(self):
+    def addInParams(self):
         """
         Adds all of the parameters that the Segmentation analysis needs.
         """
-        super().addParams()
-        model_param = StringParam(
+        model_param = ImageListParam(
             "model", "model", "Specifies the model that should be used for segmentation. The " +
               "model can be specified in one of three ways. First, if a known model name is provided " +
               "(e.g. 'pome_fruit-v1_0') then Granny will automatically retrieve the model.  If " +
               "a URL is provided then Granny will download the model from the URL you provided. " +
               "Otherwise the value must be a path to where the model is stored on the local file system."
         )
-        self.addParam(model_param)
+        self.addInParam(model_param)
+
+    def addOutParams(self):
+        """
+        Adds all of the parameters that the Segmentation analysis needs.
+        """
+        masked_image = ImageListParam(
+            "masked_image", 
+            "masked_image", 
+            "The list of images after segementation."
+        )
+        self.addOutParam(masked_image)
+
+        segmented_images = ImageListParam(
+            "segmented_images", 
+            "segmented_images", 
+            "The list of images after segmentation."
+        )
+        self.addOutParam(segmented_images)
 
     def getModelUrl(self, model_name: str):
         """

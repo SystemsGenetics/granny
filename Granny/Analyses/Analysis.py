@@ -31,31 +31,52 @@ class Analysis(ABC):
 
         @return GRANNY.Analyses.Analysis.Analysis object.
         """
-        self.input_params: Dict[str, Param] = {}
-        self.output_params: Dict[str, Param] = {}
+        self.in_params: Dict[str, Param] = {}
+        self.out_params: Dict[str, Param] = {}
+
+        self.compatibility = {}
 
         self.addParams()
 
-    def setParam(self, params: Dict[str, Param]) -> None:
+    def setInParam(self, params: Dict[str, Param]) -> None:
         """
         Sets the parameter dictionary
         """
-        self.params = params
+        self.in_params = params
 
-    def addParam(self, *params: Param):
+    def addInParam(self, *params: Param):
         """
         Adds a parameter to the parameter dictionary
         """
         for param in params:
-            self.params[param.getName()] = param
+            self.in_params[param.getName()] = param
 
-    def getParams(self) -> Dict[str, Param]:
+    def getInParams(self) -> Dict[str, Param]:
         """
         Returns to the GUI/CLI all the required parameters in self.params
         """
         return dict(self.params)
 
-    def generateAnalysisMetadata(self):
+    def setOutParam(self, params: Dict[str, Param]) -> None:
+        """
+        Sets the parameter dictionary
+        """
+        self.out_params = params
+
+    def addOutParam(self, *params: Param):
+        """
+        Adds a parameter to the parameter dictionary
+        """
+        for param in params:
+            self.out_params[param.getName()] = param
+
+    def getOutParams(self) -> Dict[str, Param]:
+        """
+        Returns to the GUI/CLI all the required parameters in self.params
+        """
+        return dict(self.out_params)
+        
+    def getDefaultMetadata(self):
         """
         Generates general metadata for the analysis, including: date and time, analysis name, id.
         """

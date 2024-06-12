@@ -18,6 +18,13 @@ class StarchArea(Analysis):
 
     def __init__(self):
         Analysis.__init__(self)
+
+        self.compatibility = {
+            'segmentation': {
+                'segmented_images': 'input'
+            }
+        }
+
         # sets up default threshold parameter
         threshold = IntParam(
             "th",
