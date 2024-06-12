@@ -43,6 +43,7 @@ class RGBImage(Image):
         """
         self.image = image_io.loadImage()
 
+    # todo: folder should be change to file path
     def saveImage(self, image_io: ImageIO, folder: str):
         """
         {@inheritdoc}

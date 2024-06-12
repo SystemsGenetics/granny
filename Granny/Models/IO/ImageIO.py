@@ -21,7 +21,7 @@ class ImageIO(ABC):
         """
         self.filepath: str = ""
         self.image_dir: str = ""
-        self.image_names: str = ""
+        self.image_name: str = ""
 
     def setFilePath(self, filepath: str):
         """

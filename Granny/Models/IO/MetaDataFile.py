@@ -1,6 +1,6 @@
 from typing import List
 
-from Granny.Analyses.Parameter import IntParam, Param, StringParam
+from Granny.Analyses.Parameter import Param
 from Granny.Models.IO.MetaDataIO import MetaDataIO
 
 

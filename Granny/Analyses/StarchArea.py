@@ -1,7 +1,6 @@
 import os
 from multiprocessing import Pool
-from pathlib import Path
-from typing import List, Tuple, cast
+from typing import Tuple, cast
 
 import cv2
 import numpy as np
@@ -9,8 +8,6 @@ from Granny.Analyses.Analysis import Analysis
 from Granny.Analyses.Parameter import FloatParam, IntParam, StringParam
 from Granny.Models.Images.Image import Image
 from Granny.Models.IO.ImageIO import ImageIO
-from Granny.Models.IO.MetaDataFile import MetaDataFile
-from Granny.Models.IO.MetaDataIO import MetaDataIO
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
 
@@ -165,9 +162,9 @@ class StarchArea(Analysis):
         {@inheritdoc}
         """
         # initiates user's input
-        self.input_dir = self.params.get(self.input_dir.getName())  # type:ignore
-        self.output_dir = self.params.get(self.output_dir.getName())  # type:ignore
-        self.threshold = self.params.get(self.threshold.getName())  # type:ignore
+        self.input_dir: StringParam = self.params.get(self.input_dir.getName())  # type:ignore
+        self.output_dir: StringParam = self.params.get(self.output_dir.getName())  # type:ignore
+        self.threshold: IntParam = self.params.get(self.threshold.getName())  # type:ignore
 
         # initiates an ImageIO for image input/output
         self.image_io: ImageIO = RGBImageFile()
@@ -187,9 +184,14 @@ class StarchArea(Analysis):
         with Pool(cpu_count) as pool:
             image_instances = pool.map(self.rateImageInstance, self.images)
 
-        # with open(f"{self.RESULT_DIR}{os.sep}starch_area.csv", "w") as w:
-        #     for i, file_name in enumerate(image_list):
-        #         w.writelines(f"{self.FOLDER_NAME}/{file_name}\t\t{results[i]}")
-        #         w.writelines("\n")
-        #     print('\t- Done. Check "results/" for output. - \n')
-        # for image_instance in image_instances:
+        with open(
+            os.path.join(f"{self.output_dir.getValue()}", self.__analysis_name__, "ratings.csv"),
+            "w",
+        ) as file:
+            sep = ","
+            for image_instance in image_instances:
+                output = ""
+                for param in image_instance.getMetaData().getParameters():
+                    output = output + str(param.getValue()) + sep
+                file.writelines(f"{image_instance.getImageName()}{sep}{output}")
+                file.writelines("\n")
