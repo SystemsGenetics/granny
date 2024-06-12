@@ -184,6 +184,7 @@ class StarchArea(Analysis):
         with Pool(cpu_count) as pool:
             image_instances = pool.map(self.rateImageInstance, self.images)
 
+        # todo: move IO to MetaDataFile
         with open(
             os.path.join(f"{self.output_dir.getValue()}", self.__analysis_name__, "ratings.csv"),
             "w",

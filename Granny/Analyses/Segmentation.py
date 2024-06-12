@@ -40,7 +40,7 @@ class Segmentation(Analysis):
     def __init__(self):
         Analysis.__init__(self)
 
-        # name of the model to be used in this analysis
+        # name of the model to be used in this analysis (this could be changed to take user's input)
         self.model_name = "granny-v1_0-pome_fruit-v1_0.pt"
 
         # download trained ML models from https://osf.io to the current directory
