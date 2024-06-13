@@ -36,8 +36,6 @@ class Analysis(ABC):
 
         self.compatibility = {}
 
-        self.addParams()
-
     def setInParam(self, params: Dict[str, Param]) -> None:
         """
         Sets the parameter dictionary
@@ -55,7 +53,7 @@ class Analysis(ABC):
         """
         Returns to the GUI/CLI all the required parameters in self.params
         """
-        return dict(self.params)
+        return dict(self.in_params)
 
     def setOutParam(self, params: Dict[str, Param]) -> None:
         """

@@ -12,7 +12,6 @@ date: June 06, 2024
 author: Nhan H. Nguyen
 """
 
-import configparser
 import os
 import pathlib
 from typing import Any, List
@@ -30,20 +29,20 @@ from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
 
 class Segmentation(ImageAnalysis):
-    __analysis_name__ = "segmentation"    
+    __analysis_name__ = "segmentation"
 
     def __init__(self, images: List[Image], th: int):
         super.__init__(self)
 
+        # selects a model from the list to be used in this analysis 
         self.models = {
-            'pome_fruit-v1_0': {
-                'url': 'https://osf.io/dqzyn/download',
-                'path': './granny-v1_0-pome_fruit-v1_0.pt'
+            "pome_fruit-v1_0": {
+                "url": "https://osf.io/dqzyn/download",
+                "name": "granny-v1_0-pome_fruit-v1_0.pt"
             }
         }
 
-        # name of the model to be used in this analysis (this could be changed to take user's input)
-        self.model_name = "granny-v1_0-pome_fruit-v1_0.pt"
+        self.model_name = "pome_fruit-v1_0"
 
         # download trained ML models from https://osf.io to the current directory
         self.local_model_path = os.path.join(f"{pathlib.Path(__file__).parent}", self.model_name)
@@ -81,25 +80,22 @@ class Segmentation(ImageAnalysis):
             "masked_image", 
             "The list of images after segementation."
         )
-        self.addOutParam(masked_image)
 
         segmented_images = ImageListParam(
             "segmented_images", 
             "segmented_images", 
             "The list of images after segmentation."
         )
-        self.addOutParam(segmented_images)
+        self.addOutParam(masked_image, segmented_images)
 
     def getModelUrl(self, model_name: str):
         """
         Parses the config file 'config/granny-v1_0/segmentation.ini' to retrieves
         segmentation ML model URl using model_name as key.
         """
-        config = configparser.ConfigParser()
-        config.read(os.path.join(f"{pathlib.Path(__file__).parent}", CONFIG_PATH))
         model_url = ""
         try:
-            model_url = config["Models"][model_name]
+            model_url = self.models[self.model_name]["url"]
             print(f"Model URL: {model_url}")
         except KeyError:
             print(f"Key '{model_name}' not found in configuration.")
