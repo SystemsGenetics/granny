@@ -230,7 +230,7 @@ color: rgb(0, 0, 0);
 background-color: rgb(145, 184, 201);</string>
     </property>
     <property name="title">
-     <string>Parameters</string>
+     <string>Valueeters</string>
     </property>
     <widget class="QListWidget" name="zipList_2">
      <property name="geometry">

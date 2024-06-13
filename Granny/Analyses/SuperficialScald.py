@@ -12,7 +12,7 @@ from typing import List, Tuple, cast
 import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
-from Granny.Analyses.Parameter import FloatParam, IntParam
+from Granny.Analyses.Values import FloatValue, IntValue
 from Granny.Models.Images.Image import Image
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
@@ -29,12 +29,12 @@ class SuperficialScald(Analysis):
         # to distinguish between the brown scald regions and the green
         # peel color. By default this threshold is determined automatically
         # but we will allow the user to manually set it if they want.
-        threshold = IntParam(
-            "th", "threshold", "The green color threhsold that distinguishes non-scald regions."
+        threshold = IntValue(
+            "th", "threshold", "The green color threshold that distinguishes non-scald regions."
         )
         threshold.setMin(0)
         threshold.setMax(255)
-        self.addParam(threshold)
+        self.addValue(threshold)
 
     def smoothMask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -204,13 +204,13 @@ class SuperficialScald(Analysis):
         # saves the output image
         image_io.saveImage(binarized_image, self.__analysis_name__)
 
-        rating = FloatParam(
+        rating = FloatValue(
             name="score",
             label="score",
             help="Granny rating of the image",
         )
         rating.setValue(score)
-        self.addParam(rating)
+        self.addValue(rating)
 
         return image_instance
 

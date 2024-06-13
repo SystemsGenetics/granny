@@ -5,7 +5,8 @@ from urllib import request
 
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
-from Granny.Analyses.Parameter import StringParam
+from Granny.Analyses.Values import StringValue
+from Granny.Analyses.Values import ImageListValue
 from Granny.Models.AIModel.AIModel import AIModel
 from Granny.Models.AIModel.YoloModel import YoloModel
 from Granny.Models.Images.Image import Image
@@ -28,19 +29,10 @@ class ImageAnalysis(Analysis):
         """
         super().__init__()
         self.images: List[Image] = []
-
-    def addParams(self):
-        """
-        Adds the default parameters for all analyses.
-        """
-        self.input_dir = StringParam(
-            "in", "input", "Input folder containing image files for the analysis."
+       
+        image_list = ImageListValue(
+            "input", 
+            "input", 
+            "The directory where input images are located."
         )
-        self.output_dir = StringParam(
-            "out", "output", "Output folder to export the analysis's results."
-        )
-        self.output_dir.setValue(
-            os.path.join(Path(__file__).parent.parent.as_posix(), "results/")
-        )  # Granny/results/
-
-        self.addInParam(self.input_dir, self.output_dir)
+        self.addParam(image_list)

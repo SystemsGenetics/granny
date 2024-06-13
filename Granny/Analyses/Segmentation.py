@@ -19,7 +19,7 @@ from urllib import request
 
 import numpy as np
 from Granny.Analyses.ImageAnalysis import ImageAnalysis
-from Granny.Analyses.Parameter import ImageListParam
+from Granny.Analyses.Values import FileNameValue, ImageListValue
 from Granny.Models.AIModel.AIModel import AIModel
 from Granny.Models.AIModel.YoloModel import YoloModel
 from Granny.Models.Images.Image import Image
@@ -27,6 +27,7 @@ from Granny.Models.Images.RGBImage import RGBImage
 from Granny.Models.IO.ImageIO import ImageIO
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
+
 
 class Segmentation(ImageAnalysis):
     __analysis_name__ = "segmentation"
@@ -44,51 +45,16 @@ class Segmentation(ImageAnalysis):
 
         self.model_name = "pome_fruit-v1_0"
 
-        # download trained ML models from https://osf.io to the current directory
-        self.local_model_path = os.path.join(f"{pathlib.Path(__file__).parent}", self.model_name)
-
-        if not os.path.exists(self.local_model_path):
-            self.model_url = self.getModelUrl(self.model_name)
-            self.downloadTrainedWeights(self.model_url)
-
-        # loads segmentation model
-        self.AIModel: AIModel = YoloModel(self.local_model_path)
-        self.AIModel.loadModel()
-        self.segmentation_model = self.AIModel.getModel()
-
-        self.addInParams()
-
-    def addInParams(self):
-        """
-        Adds all of the parameters that the Segmentation analysis needs.
-        """
-        model_param = ImageListParam(
+        model = FileNameValue(
             "model", "model", "Specifies the model that should be used for segmentation. The " +
               "model can be specified in one of three ways. First, if a known model name is provided " +
               "(e.g. 'pome_fruit-v1_0') then Granny will automatically retrieve the model.  If " +
               "a URL is provided then Granny will download the model from the URL you provided. " +
               "Otherwise the value must be a path to where the model is stored on the local file system."
         )
-        self.addInParam(model_param)
+        self.addParam(model)
 
-    def addOutParams(self):
-        """
-        Adds all of the parameters that the Segmentation analysis needs.
-        """
-        masked_image = ImageListParam(
-            "masked_image", 
-            "masked_image", 
-            "The list of images after segementation."
-        )
-
-        segmented_images = ImageListParam(
-            "segmented_images", 
-            "segmented_images", 
-            "The list of images after segmentation."
-        )
-        self.addOutParam(masked_image, segmented_images)
-
-    def getModelUrl(self, model_name: str):
+    def _getModelUrl(self, model_name: str):
         """
         Parses the config file 'config/granny-v1_0/segmentation.ini' to retrieves
         segmentation ML model URl using model_name as key.
@@ -101,8 +67,9 @@ class Segmentation(ImageAnalysis):
             print(f"Key '{model_name}' not found in configuration.")
         return model_url
 
-    def downloadTrainedWeights(self, model_url: str, verbose: int = 1):
-        """Download YOLO8 trained weights from Granny GitHub repository:
+    def _downloadTrainedWeights(self, model_url: str, verbose: int = 1):
+        """
+        Download YOLO8 trained weights from Granny GitHub repository:
         https://github.com/SystemsGenetics/granny/tree/dev-MVC/Granny/Analyses/config/segmentation/
 
         @param local_model_path: local path of the trained weights
@@ -113,7 +80,7 @@ class Segmentation(ImageAnalysis):
         if verbose > 0:
             print("... done downloading pretrained model!")
 
-    def segmentInstances(self, image: NDArray[np.uint8]) -> List[Any]:
+    def _segmentInstances(self, image: NDArray[np.uint8]) -> List[Any]:
         """
         Uses instance segmentation model to predict instances in the image. Instances could be
         tray_info, apples, pears, cross-sections, etc.
@@ -132,7 +99,7 @@ class Segmentation(ImageAnalysis):
 
         return results
 
-    def extractFeature(self, tray_image: Image) -> List[Image]:
+    def _extractFeature(self, tray_image: Image) -> List[Image]:
         """
         From the given full 'tray_image', using the binary masks stored in 'results', performs
         instance segmentation to extract each YOLO-detected feature.
@@ -169,9 +136,23 @@ class Segmentation(ImageAnalysis):
         """
         {@inheritdoc}
         """
+
+
+        # download trained ML models from https://osf.io to the current directory
+        self.local_model_path = os.path.join(f"{pathlib.Path(__file__).parent}", self.model_name)
+
+        if not os.path.exists(self.local_model_path):
+            self.model_url = self.getModelUrl(self.model_name)
+            self._downloadTrainedWeights(self.model_url)
+
+        # loads segmentation model
+        self.AIModel: AIModel = YoloModel(self.local_model_path)
+        self.AIModel.loadModel()
+        self.segmentation_model = self.AIModel.getModel()
+
         # initiates user's input
-        # self.input_dir: StringParam = self.params.get(self.input_dir.getName())  # type:ignore
-        # self.output_dir: StringParam = self.params.get(self.output_dir.getName())  # type:ignore
+        # self.input_dir: StringValue = self.params.get(self.input_dir.getName())  # type:ignore
+        # self.output_dir: StringValue = self.params.get(self.output_dir.getName())  # type:ignore
 
         # initiates Granny.Model.Images.Image instances for the analysis
         self.images = self.params.get('input').getValue()
@@ -189,7 +170,7 @@ class Segmentation(ImageAnalysis):
             image.loadImage(image_io=self.image_io)
 
             # predicts fruit instances in the image
-            result = self.segmentInstances(image.getImage())
+            result = self._segmentInstances(image.getImage())
 
             # sets segmentation result
             image.setSegmentationResults(results=result)
@@ -198,4 +179,17 @@ class Segmentation(ImageAnalysis):
         # replaces the image list with the images containing the segmentation result
         self.images = image_instances
 
-        image_instances = self.extractFeature(self.images[0])
+        image_instances = self._extractFeature(self.images[0])
+
+        masked_image = ImageListValue(
+            "masked_image", 
+            "masked_image", 
+            "The list of images after segmentation."
+        )
+
+        segmented_images = ImageListValue(
+            "segmented_images", 
+            "segmented_images", 
+            "The list of images after segmentation."
+        )
+        self.addRetValue(masked_image, segmented_images)

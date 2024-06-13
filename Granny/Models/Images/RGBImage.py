@@ -2,7 +2,7 @@ from typing import Any, List
 
 import cv2
 import numpy as np
-from Granny.Analyses.Parameter import Param
+from Granny.Analyses.Values import Value
 from Granny.Models.Images.Image import Image
 from Granny.Models.Images.MetaData import MetaData
 from Granny.Models.IO.ImageIO import ImageIO
@@ -50,7 +50,7 @@ class RGBImage(Image):
         """
         image_io.saveImage(self.image, folder)
 
-    def updateMetaData(self, params: List[Param]):
+    def updateMetaData(self, params: List[Value]):
         """
         {@inheritdoc}
         """

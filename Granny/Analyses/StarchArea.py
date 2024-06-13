@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
 from Granny.Analyses.ImageAnalysis import ImageAnalysis
-from Granny.Analyses.Parameter import FloatParam, IntParam, StringParam
+from Granny.Analyses.Values import FloatValue, IntValue, StringValue
 from Granny.Models.Images.Image import Image
 from Granny.Models.IO.ImageIO import ImageIO
 from Granny.Models.IO.RGBImageFile import RGBImageFile
@@ -20,20 +20,24 @@ class StarchArea(ImageAnalysis):
     def __init__(self):
         super().__init__()
 
-        self.compatibility = {"segmentation": {"segmented_images": "input"}}
+        self.compatibility = {
+            "segmentation": {
+                "segmented_images": "input"
+            }
+        }
 
         # sets up default threshold parameter
-        threshold = IntParam(
+        threshold = IntValue(
             "th",
             "threshold",
-            "The color threhsold, acting as initial anchor, that distinguishes iodine-stained "
+            "The color threshold, acting as initial anchor, that distinguishes iodine-stained "
             + "starch regions",
         )
         threshold.setMin(0)
         threshold.setMax(255)
         threshold.setValue(172)
 
-        # metadata_file = StringParam(
+        # metadata_file = StringValue(
         #     "m",
         #     "metadata",
         #     "Output metadata file to export the analysis' metadata and ratings.",
@@ -41,7 +45,7 @@ class StarchArea(ImageAnalysis):
         # metadata_file.setValue(os.path.join(self.output_dir.getValue(), "ratings.csv"))
 
         # adds parameters for argument parsing
-        self.addInParam(threshold)
+        self.addInValue(threshold)
 
     def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -152,7 +156,7 @@ class StarchArea(ImageAnalysis):
         self.image_io.saveImage(result_img, os.path.join(output_dir, self.__analysis_name__))
 
         # saves the calculated score to the image_instance as a parameter
-        rating = FloatParam("rating", "rating", "Granny calculated rating of total starch area.")
+        rating = FloatValue("rating", "rating", "Granny calculated rating of total starch area.")
         rating.setMin(0.0)
         rating.setMax(1.0)
         rating.setValue(score)
@@ -166,9 +170,9 @@ class StarchArea(ImageAnalysis):
         {@inheritdoc}
         """
         # initiates user's input
-        self.input_dir: StringParam = self.in_params.get(self.input_dir.getName())  # type:ignore
-        self.output_dir: StringParam = self.in_params.get(self.output_dir.getName())  # type:ignore
-        self.threshold: IntParam = self.in_params.get(self.threshold.getName())  # type:ignore
+        self.input_dir: StringValue = self.in_params.get(self.input_dir.getName())  # type:ignore
+        self.output_dir: StringValue = self.in_params.get(self.output_dir.getName())  # type:ignore
+        self.threshold: IntValue = self.in_params.get(self.threshold.getName())  # type:ignore
 
         # initiates an ImageIO for image input/output
         self.image_io: ImageIO = RGBImageFile()
@@ -196,7 +200,7 @@ class StarchArea(ImageAnalysis):
             sep = ","
             for image_instance in image_instances:
                 output = ""
-                for param in image_instance.getMetaData().getParameters():
+                for param in image_instance.getMetaData().getValueeters():
                     output = output + str(param.getValue()) + sep
                 file.writelines(f"{image_instance.getImageName()}{sep}{output}")
                 file.writelines("\n")

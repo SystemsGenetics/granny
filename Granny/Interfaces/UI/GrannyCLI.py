@@ -88,8 +88,8 @@ class GrannyCLI(GrannyUI):
         These parameters are not required to run the program, but if there is no value provided by
         the user, the value is set to the default value by the analysis class.
         """
-        # calls analysis.getParams() for additional parameters of the analysis.
-        params = analysis.getParams()
+        # calls analysis.getValues() for additional parameters of the analysis.
+        params = analysis.getValues()
         # checks the list of parameters
         if len(params) > 0:
             # calls argparse to parse analysis arguments specified by the user
@@ -105,7 +105,7 @@ class GrannyCLI(GrannyUI):
             # @todo: validate the arguments before setting the value.
             # resets the parameter list in the analysis to update new parameter's values
             # from the user
-            analysis.setParam({})
+            analysis.setValue({})
             # loops through the parameter list to update new values using setValue()
             for param in params.values():
                 # if the user provide a value
@@ -121,4 +121,4 @@ class GrannyCLI(GrannyUI):
                         f"\t{param.getLabel():<{25}}: (default) {param.getValue()}",
                     )
                     param.setValue(param.getValue())
-                analysis.addParam(param)
+                analysis.addValue(param)

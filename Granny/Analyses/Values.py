@@ -6,27 +6,24 @@ from typing import Any, List
 from Granny.Models.Images.Image import Image
 from Granny.Models.Images.MetaData import MetaData
 from Granny.Models.Images.RGBImage import RGBImage
+from Granny.Models.IO.RGBImageFile import RGBImageFile
+from Granny.Models.IO.ImageIO import ImageIO
+
+# @todo: move this into the Models folder and separate the classes into
+# individual files.
 
 
-class Param(ABC):
+class Value(ABC):
     """
-    The base abstract class for a parameter used by Granny.
+    The base abstract class for a values used by Granny.
 
     This class is used by all Analysis objects for representing the
-    parameters that can be used to set how the analysis will perform.
+    values that can be used to set how the analysis will perform.
     """
 
     def __init__(self, name: str, label: str, help: str):
         """
-        Instantiates a Param object.
-
-        @param str name
-            The machine readable name for this parameter.
-        @param str label
-            The human readable name for this parameter.
-        @param str help
-            The help text that is displayed to the user that
-            describes how the paramter is used.
+        Instantiates a Value object.
         """
         self.name = name
         self.label = label
@@ -39,19 +36,19 @@ class Param(ABC):
     @abstractmethod
     def validate(self) -> bool:
         """
-        Validates the value matches the parameter constraints.
+        Validates the value matches the value constraints.
         """
         pass
 
     def getName(self) -> str:
         """
-        Gets the machine readable name for this parameter
+        Gets the machine readable name for this value
         """
         return self.name
 
     def getLabel(self) -> str:
         """
-        Gets the human readable label for this parameter
+        Gets the human readable label for this value
         """
         return self.label
 
@@ -60,60 +57,72 @@ class Param(ABC):
 
     def getType(self):
         """
-        Gets the Python type for this parameter.
+        Gets the Python type for this value.
         """
         return self.type
 
     def setValue(self, value: Any):
         """
-        Sets the current value of the parameter.
+        Sets the current value of the value.
         """
         self.value = value
         self.is_set = True
 
     def isSet(self):
         """
-        Indicates if the user set this parameter.
+        Indicates if the user set this value.
 
-        If the paramter is not set then the getValue() function
+        If the value is not set then the getValue() function
         will return the default value.
         """
         return self.is_set
 
     def getValue(self) -> Any:
         """
-        Returns the current value of the paramter.
+        Returns the current value of the value.
         """
         if not self.is_set:
             return self.default_value
         else:
             return self.value
+    
+    def readValue(self, *args):
+        """
+        Reads the value from the storage system.
+        """
+        pass
+
+    def writeValue(self, *args):
+        """
+        writes the value to the storage system.
+        """
+        pass
 
     @abstractmethod
     def getDefaultValue(self) -> Any:
         """
-        Gets the default value for the parameter.
+        Gets the default value for the value.
         """
         pass
 
     @abstractmethod
     def setDefaultValue(self, value: Any):
         """
-        Gets the default value for the parameter.
+        Gets the default value for the value.
         """
         pass
 
 
-class NumericParam(Param):
+class NumericValue(Value):
     """
-    The base parameter class for a numeric paramter type
+    The base value class for a numeric value type
     """
 
     def __init__(self, name: str, label: str, help: str):
         """
         {@inheritdoc}
         """
-        Param.__init__(self, name, label, help)
+        super().__init__(self, name, label, help)
         self.type = Any
         self.max_value = math.inf
         self.min_value = -math.inf
@@ -121,28 +130,28 @@ class NumericParam(Param):
     @abstractmethod
     def setMax(self, value: Any):
         """
-        Sets the maximum numeric value that this paramter can be set to.
+        Sets the maximum numeric value that this value can be set to.
         """
         pass
 
     @abstractmethod
     def setMin(self, value: Any):
         """
-        Sets the minimum numeric value that this parameter can be set to.
+        Sets the minimum numeric value that this value can be set to.
         """
         pass
 
 
-class BoolParam(Param):
+class BoolValue(Value):
     """
-    Class for a boolean paramter.
+    Class for a boolean value.
     """
 
     def __init__(self, name: str, label: str, help: str):
         """
         {@inheritdoc}
         """
-        Param.__init__(self, name, label, help)
+        super().__init__(self, name, label, help)
         self.type = bool
 
     def validate(self) -> bool:
@@ -164,16 +173,16 @@ class BoolParam(Param):
         self.default_value = value
 
 
-class IntParam(NumericParam):
+class IntValue(NumericValue):
     """
-    Class for an integer paramter.
+    Class for an integer value.
     """
 
     def __init__(self, name: str, label: str, help: str):
         """
         {@inheritdoc}
         """
-        NumericParam.__init__(self, name, label, help)
+        super().__init__(self, name, label, help)
         self.type = int
         self.value_values: list[int] = []
         self.value: int = 0
@@ -192,19 +201,19 @@ class IntParam(NumericParam):
 
     def setDefaultValue(self, value: int):
         """
-        Gets the default value for the parameter.
+        Gets the default value for the value.
         """
         self.default_value = value
 
     def setValidValues(self, values: list[int]):
         """
-        Provides a list of valid values for this integer parameter.
+        Provides a list of valid values for this integer value.
         """
         self.valid_values = values
 
     def getValidValues(self) -> List[int]:
         """
-        Gets the list of valid values for this integer parameter.
+        Gets the list of valid values for this integer value.
         """
         return self.value_values
 
@@ -221,16 +230,16 @@ class IntParam(NumericParam):
         return self.default_value
 
 
-class FloatParam(NumericParam):
+class FloatValue(NumericValue):
     """
-    Class for a float parameter.
+    Class for a float value.
     """
 
     def __init__(self, name: str, label: str, help: str):
         """
         {@inheritdoc}
         """
-        NumericParam.__init__(self, name, label, help)
+        super().__init__(self, name, label, help)
         self.type = float
         self.value_values: List[float] = []
         self.value: float = 0
@@ -249,25 +258,25 @@ class FloatParam(NumericParam):
 
     def setDefaultValue(self, value: float):
         """
-        Sets the default value for the parameter.
+        Sets the default value for the value.
         """
         self.default_value = value
 
     def getDefaultValue(self) -> float:
         """
-        Gets the default value for the parameter.
+        Gets the default value for the value.
         """
         return self.default_value
 
     def setValidValues(self, values: List[float]):
         """
-        Provides a list of valid values for this integer parameter.
+        Provides a list of valid values for this integer value.
         """
         self.valid_values = values
 
     def getValidValues(self) -> List[float]:
         """
-        Gets the list of valid values for this integer parameter.
+        Gets the list of valid values for this integer value.
         """
         return self.value_values
 
@@ -278,16 +287,16 @@ class FloatParam(NumericParam):
         return True
 
 
-class StringParam(Param):
+class StringValue(Value):
     """
-    Class for a string parameter.
+    Class for a string value.
     """
 
     def __init__(self, name: str, label: str, help: str):
         """
         {@inheritdoc}
         """
-        Param.__init__(self, name, label, help)
+        super().__init__(self, name, label, help)
         self.type = str
         self.value_values: List[str] = []
 
@@ -299,7 +308,7 @@ class StringParam(Param):
 
     def getValidValues(self) -> List[str]:
         """
-        Gets the list of valid values for this string paramter.
+        Gets the list of valid values for this string value.
         """
         return self.value_values
 
@@ -322,12 +331,12 @@ class StringParam(Param):
         self.default_value = value
 
 
-class FileNameParam(Param):
+class FileNameValue(Value):
     def __init__(self, name: str, label: str, help: str):
         """
         {@inheritdoc}
         """
-        Param.__init__(self, name, label, help)
+        super().__init__(self, name, label, help)
         self.type = str
 
     def validate(self) -> bool:
@@ -349,12 +358,12 @@ class FileNameParam(Param):
         self.default_value = value
 
 
-class FileDirParam(Param):
+class FileDirValue(Value):
     def __init__(self, name: str, label: str, help: str):
         """
         {@inheritdoc}
         """
-        Param.__init__(self, name, label, help)
+        super().__init__(self, name, label, help)
         self.type = str
 
     def validate(self) -> bool:
@@ -367,13 +376,20 @@ class FileDirParam(Param):
         return True
 
 
-class ImageListParam(FileDirParam):
+class ImageListValue(FileDirValue):
+    """
+    A value that stores the directory where images are kept.
+
+    The readValue() and writeValue() functions will read and write 
+    the images that are in the directory provided as the value.
+    """
     def __init__(self, name: str, label: str, help: str):
         """
         {@inheritdoc}
         """
-        Param.__init__(self, name, label, help)
+        super().__init__(self, name, label, help)
         self.type = List[Image]
+        self.images: List[Image] = []
 
         self.IMAGE_EXTENSION = (
             ".JPG",
@@ -386,30 +402,47 @@ class ImageListParam(FileDirParam):
             ".TIFF".lower(),
         )
 
-    def setValue(self, value: Any):
+    def readValue(self):
         """
-        Finds all images in a directory and returns an image list.
-
-        Returns to the user the list of Granny.Models.Images.Image instances
         """
-        super().setValue(value)
-
         # reads image files from the input directory
         image_files: List[str] = os.listdir(self.value)  # type: ignore
         images = []
 
         for image_file in image_files:
             if image_file.endswith(self.IMAGE_EXTENSION):
-
-                # initiates MetaData class to store analysis' parameters
-                analysis_metadata = MetaData()
-                analysis_metadata.updateParameters(list(self.getParams().values()))
-
-                # initiates RGBImage instance for each image
                 rgb_image = RGBImage(os.path.join(self.value, image_file))
-
-                # updates the image instance with the metadata
-                rgb_image.setMetaData(analysis_metadata)
                 images.append(rgb_image)
 
-        self.value = images
+        self.images = images
+    
+    def writeValue(self, suffix: str):
+        """
+        """
+        image_io: ImageIO = RGBImageFile()     
+        for image in self.images:
+            image.saveImage(image_io)
+        # @todo write the metadata for the image that 
+        # lives along side of the image.
+
+
+class MetaDataValue(FileNameValue):
+    """
+    A value that stores the file name where the metadata are kept.
+
+    The readValue() and writeValue() functions will read and write 
+    the metadata into the filename of the value.
+    """
+    def __init__(self, name: str, label: str, help: str):
+        super().__init__(self, name, label, help)
+
+    def readValue(self, suffix: str):
+        """
+        """
+        pass  
+
+    def writeValue(self, suffix: str):
+        """
+        """
+        pass
+

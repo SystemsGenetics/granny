@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, List
 
 import numpy as np
-from Granny.Analyses.Parameter import Param
+from Granny.Analyses.Values import Value
 from Granny.Models.Images.MetaData import MetaData
 from Granny.Models.IO.ImageIO import ImageIO
 from Granny.Models.IO.MetaDataFile import MetaDataFile
@@ -34,7 +34,25 @@ class Image(ABC):
         self.filepath: str = os.path.abspath(filepath)
         self.results: Any = None  # type: ultralytics.engine.results.Results
         self.image: NDArray[np.uint8]
-        self.metadata: MetaData
+        self.metadata: Dict[str, Value] = {}
+
+    def addValue(self, Value: Value):
+        """
+        Adding a new metadata value to an image.
+        """
+        pass
+
+    def getValue(self, key: str):
+        """
+        Gets the value of a single metadata value for the image.
+        """
+        pass
+
+    def getValues(self, key: str):
+        """
+        Gets all of the metadata values.
+        """
+        return self.metadata
 
     def getFilePath(self) -> str:
         """
@@ -55,12 +73,12 @@ class Image(ABC):
         return Path(self.filepath).name
 
     @abstractmethod
-    def updateMetaData(self, params: List[Param]):
+    def updateMetaData(self, params: List[Value]):
         """
         Updates the metadata of the image with the given list of parameters.
 
         Args:
-            params (List[Param]): A list of parameters to update the metadata.
+            params (List[Value]): A list of parameters to update the metadata.
         """
         pass
 
