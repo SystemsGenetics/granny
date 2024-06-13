@@ -5,6 +5,7 @@ from typing import Tuple, cast
 import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
+from Granny.Analyses.ImageAnalysis import ImageAnalysis
 from Granny.Analyses.Parameter import FloatParam, IntParam, StringParam
 from Granny.Models.Images.Image import Image
 from Granny.Models.IO.ImageIO import ImageIO
@@ -12,18 +13,14 @@ from Granny.Models.IO.RGBImageFile import RGBImageFile
 from numpy.typing import NDArray
 
 
-class StarchArea(Analysis):
+class StarchArea(ImageAnalysis):
 
     __analysis_name__ = "starch"
 
     def __init__(self):
-        Analysis.__init__(self)
+        super().__init__()
 
-        self.compatibility = {
-            'segmentation': {
-                'segmented_images': 'input'
-            }
-        }
+        self.compatibility = {"segmentation": {"segmented_images": "input"}}
 
         # sets up default threshold parameter
         threshold = IntParam(
@@ -44,7 +41,7 @@ class StarchArea(Analysis):
         # metadata_file.setValue(os.path.join(self.output_dir.getValue(), "ratings.csv"))
 
         # adds parameters for argument parsing
-        self.addParam(threshold)
+        self.addInParam(threshold)
 
     def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -151,7 +148,7 @@ class StarchArea(Analysis):
         score, result_img = self.calculateStarch(img)
 
         # calls IO to save the image
-        output_dir = self.params.get(self.output_dir.getName()).getValue()  # type:ignore
+        output_dir = self.in_params.get(self.output_dir.getName()).getValue()  # type:ignore
         self.image_io.saveImage(result_img, os.path.join(output_dir, self.__analysis_name__))
 
         # saves the calculated score to the image_instance as a parameter
@@ -169,9 +166,9 @@ class StarchArea(Analysis):
         {@inheritdoc}
         """
         # initiates user's input
-        self.input_dir: StringParam = self.params.get(self.input_dir.getName())  # type:ignore
-        self.output_dir: StringParam = self.params.get(self.output_dir.getName())  # type:ignore
-        self.threshold: IntParam = self.params.get(self.threshold.getName())  # type:ignore
+        self.input_dir: StringParam = self.in_params.get(self.input_dir.getName())  # type:ignore
+        self.output_dir: StringParam = self.in_params.get(self.output_dir.getName())  # type:ignore
+        self.threshold: IntParam = self.in_params.get(self.threshold.getName())  # type:ignore
 
         # initiates an ImageIO for image input/output
         self.image_io: ImageIO = RGBImageFile()

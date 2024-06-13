@@ -3,6 +3,10 @@ import os
 from abc import ABC, abstractmethod
 from typing import Any, List
 
+from Granny.Models.Images.Image import Image
+from Granny.Models.Images.MetaData import MetaData
+from Granny.Models.Images.RGBImage import RGBImage
+
 
 class Param(ABC):
     """
@@ -98,7 +102,6 @@ class Param(ABC):
         Gets the default value for the parameter.
         """
         pass
-
 
 
 class NumericParam(Param):
@@ -320,28 +323,40 @@ class StringParam(Param):
 
 
 class FileNameParam(Param):
-
     def __init__(self, name: str, label: str, help: str):
         """
         {@inheritdoc}
         """
         Param.__init__(self, name, label, help)
+        self.type = str
 
     def validate(self) -> bool:
         """
         Makes sure that the filename is valid as either a file or a directory.
         """
         return True
-    
+
+    def getDefaultValue(self) -> str:
+        """
+        {@inheritdoc}
+        """
+        return self.default_value
+
+    def setDefaultValue(self, value: str):
+        """
+        {@inheritdoc}
+        """
+        self.default_value = value
+
 
 class FileDirParam(Param):
-
     def __init__(self, name: str, label: str, help: str):
         """
         {@inheritdoc}
         """
         Param.__init__(self, name, label, help)
-   
+        self.type = str
+
     def validate(self) -> bool:
         """
         Checks that the value provided is a valid directory on the file system
@@ -353,12 +368,12 @@ class FileDirParam(Param):
 
 
 class ImageListParam(FileDirParam):
-
     def __init__(self, name: str, label: str, help: str):
         """
         {@inheritdoc}
         """
         Param.__init__(self, name, label, help)
+        self.type = List[Image]
 
         self.IMAGE_EXTENSION = (
             ".JPG",
@@ -370,7 +385,7 @@ class ImageListParam(FileDirParam):
             ".TIFF",
             ".TIFF".lower(),
         )
-    
+
     def setValue(self, value: Any):
         """
         Finds all images in a directory and returns an image list.
@@ -378,20 +393,20 @@ class ImageListParam(FileDirParam):
         Returns to the user the list of Granny.Models.Images.Image instances
         """
         super().setValue(value)
-    
+
         # reads image files from the input directory
-        image_files: List[str] = os.listdir(self.value)
+        image_files: List[str] = os.listdir(self.value)  # type: ignore
         images = []
 
         for image_file in image_files:
             if image_file.endswith(self.IMAGE_EXTENSION):
 
-                # # initiates MetaData class to store analysis' parameters
-                # analysis_metadata = MetaData()
-                # analysis_metadata.updateParameters(list(self.getParams().values()))
+                # initiates MetaData class to store analysis' parameters
+                analysis_metadata = MetaData()
+                analysis_metadata.updateParameters(list(self.getParams().values()))
 
                 # initiates RGBImage instance for each image
-                rgb_image = RGBImage(os.path.join(input_dir, image_file))
+                rgb_image = RGBImage(os.path.join(self.value, image_file))
 
                 # updates the image instance with the metadata
                 rgb_image.setMetaData(analysis_metadata)

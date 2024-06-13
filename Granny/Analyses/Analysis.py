@@ -11,7 +11,7 @@ import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 from Granny.Analyses.Parameter import Param, StringParam
 from Granny.Models.Images.Image import Image
@@ -33,8 +33,6 @@ class Analysis(ABC):
         """
         self.in_params: Dict[str, Param] = {}
         self.out_params: Dict[str, Param] = {}
-
-        self.compatibility = {}
 
     def setInParam(self, params: Dict[str, Param]) -> None:
         """
@@ -73,7 +71,7 @@ class Analysis(ABC):
         Returns to the GUI/CLI all the required parameters in self.params
         """
         return dict(self.out_params)
-        
+
     def getDefaultMetadata(self):
         """
         Generates general metadata for the analysis, including: date and time, analysis name, id.
@@ -86,7 +84,7 @@ class Analysis(ABC):
         id = StringParam("id", "identifier", "Unique identifier for the analysis")
         id.setDefaultValue(str(uuid.uuid4()))
 
-        self.addParam(time, id)
+        self.addInParam(time, id)
 
     @abstractmethod
     def performAnalysis(self) -> Any:

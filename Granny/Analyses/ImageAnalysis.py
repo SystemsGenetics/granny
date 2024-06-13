@@ -1,4 +1,5 @@
-
+import os
+from pathlib import Path
 from typing import Any, List
 from urllib import request
 
@@ -25,25 +26,21 @@ class ImageAnalysis(Analysis):
 
         @return GRANNY.Analyses.Analysis.Analysis object.
         """
-        super.__init__(self)
+        super().__init__()
         self.images: List[Image] = []
-        
+
     def addParams(self):
         """
         Adds the default parameters for all analyses.
         """
         self.input_dir = StringParam(
-            "in", 
-            "input", 
-            "Input folder containing image files for the analysis."
+            "in", "input", "Input folder containing image files for the analysis."
         )
         self.output_dir = StringParam(
-            "out", 
-            "output", 
-            "Output folder to export the analysis's results."
+            "out", "output", "Output folder to export the analysis's results."
         )
         self.output_dir.setValue(
             os.path.join(Path(__file__).parent.parent.as_posix(), "results/")
         )  # Granny/results/
 
-        self.addParam(self.input_dir, self.output_dir)
+        self.addInParam(self.input_dir, self.output_dir)

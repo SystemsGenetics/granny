@@ -17,7 +17,5 @@ class BlushColor(Analysis):
     def getParams(self) -> List[Param]:
         return self.params
 
-    
-
     def performAnalysis(self) -> None:
         pass
