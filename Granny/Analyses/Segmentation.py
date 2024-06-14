@@ -1,11 +1,12 @@
 """
-This class perform instance segmentation on the user provided image files. The analysis will be
-carried out in the following manner:
-    1. retrieves the machine learning (instance segmentation) trained models from https://osf.io/.
-    to the current directory 'Analyses/'. The machine learning models are uploaded manually and should be
-    named in this convention: granny-v{granny_version}-{model_name}-v{model_version}.pt
-    2. parses user's input for image folder, initiates a list of Granny.Models.Images.Image,
-    then runs YOLOv8 on the images.
+This class perform instance segmentation on the user provided image files. 
+The analysis will be carried out in the following manner:
+    1. retrieves the machine learning (instance segmentation) trained models 
+       from https://osf.io/. to the current directory 'Analyses/'. The machine 
+       learning models are uploaded manually and should be named in this 
+       convention: granny-v{granny_version}-{model_name}-v{model_version}.pt
+    2. parses user's input for image folder, initiates a list of Granny.Models.
+       Images.Image, then runs YOLOv8 on the images.
     3. Todo: visualize results and segment individual images
 
 date: June 06, 2024
