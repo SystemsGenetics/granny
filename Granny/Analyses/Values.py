@@ -4,10 +4,9 @@ from abc import ABC, abstractmethod
 from typing import Any, List
 
 from Granny.Models.Images.Image import Image
-from Granny.Models.Images.MetaData import MetaData
 from Granny.Models.Images.RGBImage import RGBImage
-from Granny.Models.IO.RGBImageFile import RGBImageFile
 from Granny.Models.IO.ImageIO import ImageIO
+from Granny.Models.IO.RGBImageFile import RGBImageFile
 
 # @todo: move this into the Models folder and separate the classes into
 # individual files.
@@ -85,16 +84,16 @@ class Value(ABC):
             return self.default_value
         else:
             return self.value
-    
-    def readValue(self, *args):
+
+    def readValue(self):
         """
         Reads the value from the storage system.
         """
         pass
 
-    def writeValue(self, *args):
+    def writeValue(self):
         """
-        writes the value to the storage system.
+        Writes the value to the storage system.
         """
         pass
 
@@ -122,7 +121,7 @@ class NumericValue(Value):
         """
         {@inheritdoc}
         """
-        super().__init__(self, name, label, help)
+        super().__init__(name, label, help)
         self.type = Any
         self.max_value = math.inf
         self.min_value = -math.inf
@@ -151,7 +150,7 @@ class BoolValue(Value):
         """
         {@inheritdoc}
         """
-        super().__init__(self, name, label, help)
+        super().__init__(name, label, help)
         self.type = bool
 
     def validate(self) -> bool:
@@ -182,7 +181,7 @@ class IntValue(NumericValue):
         """
         {@inheritdoc}
         """
-        super().__init__(self, name, label, help)
+        super().__init__(name, label, help)
         self.type = int
         self.value_values: list[int] = []
         self.value: int = 0
@@ -239,7 +238,7 @@ class FloatValue(NumericValue):
         """
         {@inheritdoc}
         """
-        super().__init__(self, name, label, help)
+        super().__init__(name, label, help)
         self.type = float
         self.value_values: List[float] = []
         self.value: float = 0
@@ -296,7 +295,7 @@ class StringValue(Value):
         """
         {@inheritdoc}
         """
-        super().__init__(self, name, label, help)
+        super().__init__(name, label, help)
         self.type = str
         self.value_values: List[str] = []
 
@@ -336,7 +335,7 @@ class FileNameValue(Value):
         """
         {@inheritdoc}
         """
-        super().__init__(self, name, label, help)
+        super().__init__(name, label, help)
         self.type = str
 
     def validate(self) -> bool:
@@ -363,7 +362,7 @@ class FileDirValue(Value):
         """
         {@inheritdoc}
         """
-        super().__init__(self, name, label, help)
+        super().__init__(name, label, help)
         self.type = str
 
     def validate(self) -> bool:
@@ -380,14 +379,15 @@ class ImageListValue(FileDirValue):
     """
     A value that stores the directory where images are kept.
 
-    The readValue() and writeValue() functions will read and write 
+    The readValue() and writeValue() functions will read and write
     the images that are in the directory provided as the value.
     """
+
     def __init__(self, name: str, label: str, help: str):
         """
         {@inheritdoc}
         """
-        super().__init__(self, name, label, help)
+        super().__init__(name, label, help)
         self.type = List[Image]
         self.images: List[Image] = []
 
@@ -402,9 +402,8 @@ class ImageListValue(FileDirValue):
             ".TIFF".lower(),
         )
 
-    def readValue(self):
-        """
-        """
+    def readValue(self, folder: str):
+        """ """
         # reads image files from the input directory
         image_files: List[str] = os.listdir(self.value)  # type: ignore
         images = []
@@ -415,14 +414,13 @@ class ImageListValue(FileDirValue):
                 images.append(rgb_image)
 
         self.images = images
-    
-    def writeValue(self, suffix: str):
-        """
-        """
-        image_io: ImageIO = RGBImageFile()     
+
+    def writeValue(self):
+        """ """
+        image_io: ImageIO = RGBImageFile()
         for image in self.images:
             image.saveImage(image_io)
-        # @todo write the metadata for the image that 
+        # @todo write the metadata for the image that
         # lives along side of the image.
 
 
@@ -430,19 +428,17 @@ class MetaDataValue(FileNameValue):
     """
     A value that stores the file name where the metadata are kept.
 
-    The readValue() and writeValue() functions will read and write 
+    The readValue() and writeValue() functions will read and write
     the metadata into the filename of the value.
     """
+
     def __init__(self, name: str, label: str, help: str):
-        super().__init__(self, name, label, help)
+        super().__init__(name, label, help)
 
-    def readValue(self, suffix: str):
-        """
-        """
-        pass  
-
-    def writeValue(self, suffix: str):
-        """
-        """
+    def readValue(self):
+        """ """
         pass
 
+    def writeValue(self):
+        """ """
+        pass
