@@ -1,13 +1,11 @@
 import os
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, List
+from typing import Any, Dict, List
 
 import numpy as np
-from Granny.Analyses.Values import Value
-from Granny.Models.Images.MetaData import MetaData
 from Granny.Models.IO.ImageIO import ImageIO
-from Granny.Models.IO.MetaDataFile import MetaDataFile
+from Granny.Models.Values.Value import Value
 from numpy.typing import NDArray
 
 
@@ -36,17 +34,17 @@ class Image(ABC):
         self.image: NDArray[np.uint8]
         self.metadata: Dict[str, Value] = {}
 
-    def addValue(self, Value: Value):
+    def addValue(self, value: Value):
         """
         Adding a new metadata value to an image.
         """
-        pass
+        self.metadata[value.getName()] = value
 
     def getValue(self, key: str):
         """
         Gets the value of a single metadata value for the image.
         """
-        pass
+        return self.metadata[key]
 
     def getValues(self, key: str):
         """
@@ -71,16 +69,6 @@ class Image(ABC):
             str: The file name extracted from the file path.
         """
         return Path(self.filepath).name
-
-    @abstractmethod
-    def updateMetaData(self, params: List[Value]):
-        """
-        Updates the metadata of the image with the given list of parameters.
-
-        Args:
-            params (List[Value]): A list of parameters to update the metadata.
-        """
-        pass
 
     @abstractmethod
     def loadImage(self, image_io: ImageIO):
@@ -124,7 +112,7 @@ class Image(ABC):
         pass
 
     @abstractmethod
-    def getMetaData(self) -> MetaData:
+    def getMetaData(self) -> Dict[str, Value]:
         """
         Retrieves the metadata associated with the image.
 
@@ -134,12 +122,12 @@ class Image(ABC):
         pass
 
     @abstractmethod
-    def setMetaData(self, metadata: MetaData):
+    def setMetaData(self, metadata: List[Value]):
         """
         Sets the metadata for the image.
 
         Args:
-            metadata (MetaData): The metadata to set for the image.
+            metadata (List[Value]): The metadata to set for the image.
         """
         pass
 

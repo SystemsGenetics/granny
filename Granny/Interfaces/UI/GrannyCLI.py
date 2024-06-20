@@ -65,6 +65,8 @@ class GrannyCLI(GrannyUI):
                 # Performs the analysis with a newly updated set of parameters provided by the user
                 analysis.performAnalysis()
 
+                analysis.getRetValues()
+
     def addProgramArgs(self) -> None:
         """
         Parses the following command-line arguments: analysis, image directory, metadata directory,

@@ -1,41 +1,50 @@
 import os
 from multiprocessing import Pool
-from typing import Tuple, cast
+from pathlib import Path
+from typing import List, Tuple, cast
 
 import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
-from Granny.Analyses.ImageAnalysis import ImageAnalysis
-from Granny.Analyses.Values import FloatValue, IntValue, StringValue
 from Granny.Models.Images.Image import Image
 from Granny.Models.IO.ImageIO import ImageIO
 from Granny.Models.IO.RGBImageFile import RGBImageFile
+from Granny.Models.Values.FloatValue import FloatValue
+from Granny.Models.Values.ImageListValue import ImageListValue
+from Granny.Models.Values.IntValue import IntValue
+from Granny.Models.Values.StringValue import StringValue
 from numpy.typing import NDArray
 
 
-class StarchArea(ImageAnalysis):
+class StarchArea(Analysis):
 
     __analysis_name__ = "starch"
 
     def __init__(self):
         super().__init__()
 
-        self.compatibility = {
-            "segmentation": {
-                "segmented_images": "input"
-            }
-        }
+        # self.compatibility = {"segmentation": {"segmented_images": "input"}}
+
+        self.images: List[Image] = []
+
+        self.input_images = ImageListValue(
+            "input", "input", "The directory where input images are located."
+        )
+        self.output_images = ImageListValue(
+            "output", "output", "The output directory where analysis' images are written."
+        )
+        self.addInParam(self.input_images)
 
         # sets up default threshold parameter
-        threshold = IntValue(
+        self.threshold = IntValue(
             "th",
             "threshold",
             "The color threshold, acting as initial anchor, that distinguishes iodine-stained "
             + "starch regions",
         )
-        threshold.setMin(0)
-        threshold.setMax(255)
-        threshold.setValue(172)
+        self.threshold.setMin(0)
+        self.threshold.setMax(255)
+        self.threshold.setValue(172)
 
         # metadata_file = StringValue(
         #     "m",
@@ -45,9 +54,9 @@ class StarchArea(ImageAnalysis):
         # metadata_file.setValue(os.path.join(self.output_dir.getValue(), "ratings.csv"))
 
         # adds parameters for argument parsing
-        self.addInValue(threshold)
+        self.addInParam(self.threshold)
 
-    def drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
+    def _drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
         Overlays a binary mask on an image.
 
@@ -66,7 +75,7 @@ class StarchArea(ImageAnalysis):
             )
         return result
 
-    def calculateStarch(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
+    def _calculateStarch(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
         """
         Calculates the starch content in the given image and return the modified image.
 
@@ -115,11 +124,11 @@ class StarchArea(ImageAnalysis):
         gray = adjustImage(gray, low, high)
 
         # create thresholded matrices
-        image_threshold = self.threshold.getValue()  # type:ignore
+        image_threshold = self.threshold.getValue()
         mask = np.logical_and((gray > 0), (gray <= image_threshold)).astype(np.uint8)
 
         # creates new image using threshold matrices
-        new_img = self.drawMask(new_img, mask)
+        new_img = self._drawMask(new_img, mask)
 
         ground_truth = np.count_nonzero(
             cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)) > 0
@@ -128,7 +137,7 @@ class StarchArea(ImageAnalysis):
 
         return starch / ground_truth, new_img
 
-    def rateImageInstance(self, image_instance: Image) -> Image:
+    def _rateImageInstance(self, image_instance: Image) -> Image:
         """
         1. Loads and performs analysis on the provided Image instance.
         2. Saves the instance to result directory
@@ -149,11 +158,10 @@ class StarchArea(ImageAnalysis):
         img = image_instance.getImage()
 
         # performs starch percentage calculation
-        score, result_img = self.calculateStarch(img)
+        score, result_img = self._calculateStarch(img)
 
         # calls IO to save the image
-        output_dir = self.in_params.get(self.output_dir.getName()).getValue()  # type:ignore
-        self.image_io.saveImage(result_img, os.path.join(output_dir, self.__analysis_name__))
+        self.image_io.saveImage(result_img, os.path.join("results/", self.__analysis_name__))
 
         # saves the calculated score to the image_instance as a parameter
         rating = FloatValue("rating", "rating", "Granny calculated rating of total starch area.")
@@ -161,7 +169,7 @@ class StarchArea(ImageAnalysis):
         rating.setMax(1.0)
         rating.setValue(score)
 
-        image_instance.updateMetaData([rating])
+        image_instance.addValue(rating)
 
         return image_instance
 
@@ -170,37 +178,22 @@ class StarchArea(ImageAnalysis):
         {@inheritdoc}
         """
         # initiates user's input
-        self.input_dir: StringValue = self.in_params.get(self.input_dir.getName())  # type:ignore
-        self.output_dir: StringValue = self.in_params.get(self.output_dir.getName())  # type:ignore
+        self.input_images: ImageListValue = self.in_params.get(self.input_images.getName())  # type: ignore
         self.threshold: IntValue = self.in_params.get(self.threshold.getName())  # type:ignore
 
         # initiates an ImageIO for image input/output
         self.image_io: ImageIO = RGBImageFile()
 
-        # # initiates a MetaDataIO for results
-        # self.metadata_io: MetaDataIO = MetaDataFile()
-
         # initiates Granny.Model.Images.Image instances for the analysis using the user's input
-        self.images = self.getImages()
-
-        # generate metadata of the analysis
-        self.generateAnalysisMetadata()
+        self.input_images.readValue()
+        self.images = self.input_images.getImageList()
 
         # perform analysis with multiprocessing
         num_cpu = os.cpu_count()
         cpu_count = int(num_cpu * 0.8) or 1  # type: ignore
         with Pool(cpu_count) as pool:
-            image_instances = pool.map(self.rateImageInstance, self.images)
+            image_instances = pool.map(self._rateImageInstance, self.images)
 
-        # todo: move IO to MetaDataFile
-        with open(
-            os.path.join(f"{self.output_dir.getValue()}", self.__analysis_name__, "ratings.csv"),
-            "w",
-        ) as file:
-            sep = ","
-            for image_instance in image_instances:
-                output = ""
-                for param in image_instance.getMetaData().getValueeters():
-                    output = output + str(param.getValue()) + sep
-                file.writelines(f"{image_instance.getImageName()}{sep}{output}")
-                file.writelines("\n")
+        self.output_images.setImageList(image_instances)
+
+        self.addRetValue(self.output_images)

@@ -12,9 +12,10 @@ from typing import List, Tuple, cast
 import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
-from Granny.Analyses.Values import FloatValue, IntValue
 from Granny.Models.Images.Image import Image
 from Granny.Models.IO.RGBImageFile import RGBImageFile
+from Granny.Models.Values.FloatValue import FloatValue
+from Granny.Models.Values.IntValue import IntValue
 from numpy.typing import NDArray
 
 
@@ -34,7 +35,7 @@ class SuperficialScald(Analysis):
         )
         threshold.setMin(0)
         threshold.setMax(255)
-        self.addValue(threshold)
+        self.addInParam(threshold)
 
     def smoothMask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -210,7 +211,7 @@ class SuperficialScald(Analysis):
             help="Granny rating of the image",
         )
         rating.setValue(score)
-        self.addValue(rating)
+        self.addInParam(rating)
 
         return image_instance
 
@@ -218,9 +219,6 @@ class SuperficialScald(Analysis):
         """
         {@inheritdoc}
         """
-        # generate metadata of the analysis
-        self.generateAnalysisMetadata()
-
         # perform analysis with multiprocessing
         num_cpu = os.cpu_count()
         cpu_count = int(num_cpu * 0.8) or 1  # type: ignore

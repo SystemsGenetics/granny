@@ -1,7 +1,7 @@
 from typing import List
 
-from Granny.Analyses.Values import Value
 from Granny.Models.IO.MetaDataIO import MetaDataIO
+from Granny.Models.Values.Value import Value
 
 
 class MetaDataFile(MetaDataIO):

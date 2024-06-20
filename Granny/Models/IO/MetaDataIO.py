@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from Granny.Analyses.Values import Value
+from Granny.Models.Values.Value import Value
 
 
 class MetaDataIO(ABC):

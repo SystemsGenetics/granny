@@ -1,3 +1,6 @@
+import os
+from typing import Any
+
 from Granny.Models.Values.Value import Value
 
 
@@ -8,6 +11,19 @@ class FileDirValue(Value):
         """
         super().__init__(name, label, help)
         self.type = str
+        self.value: str = ""
+
+    def setDefaultValue(self, value: Any):
+        """ """
+        return super().setDefaultValue(value)
+
+    def getDefaultValue(self) -> Any:
+        """s"""
+        return super().getDefaultValue()
+
+    def setValue(self, value: str):
+        """ """
+        self.value = value
 
     def validate(self) -> bool:
         """
@@ -16,4 +32,4 @@ class FileDirValue(Value):
         @returns boolean
             returns True if the directory is valid, False otherwise.
         """
-        return True
+        return os.path.isdir(self.value)
