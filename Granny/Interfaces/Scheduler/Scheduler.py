@@ -1,5 +1,7 @@
-from Granny.Analyses.Analysis import Analysis
 from collections import defaultdict, deque
+from typing import List
+
+from Granny.Analyses.Analysis import Analysis
 
 
 class Scheduler(object):
@@ -18,7 +20,7 @@ class Scheduler(object):
         # that the an analysis.
         self.in_degree = defaultdict(int)
 
-    def add_analysis(self, analysis: Analysis, dependencies=None):
+    def add_analysis(self, analysis: Analysis, dependencies: List[Analysis]):
         """
         Adds an analysis to the scheduler.
 
@@ -29,10 +31,10 @@ class Scheduler(object):
         dependencies = dependencies or []
 
         # Get the ID of the analysis object and store it.
-        analysis_id = id(analysis)  
+        analysis_id = id(analysis)
         self.analyses[analysis_id] = analysis
-        
-        # For each dependency of the analysis, store the ID of its parent 
+
+        # For each dependency of the analysis, store the ID of its parent
         # in the graph.
         for dependency in dependencies:
             dependency_id = id(dependency)
@@ -55,7 +57,9 @@ class Scheduler(object):
             ValueError: If there is a cycle in the dependencies.
         """
         # Use a queue to manage analyses with no dependencies.
-        queue = deque([analysis_id for analysis_id in self.analyses if self.in_degree[analysis_id] == 0])
+        queue = deque(
+            [analysis_id for analysis_id in self.analyses if self.in_degree[analysis_id] == 0]
+        )
         order = []
 
         while queue:
@@ -68,9 +72,9 @@ class Scheduler(object):
 
         if len(order) != len(self.analyses):
             raise ValueError("There is a cycle in the dependencies.")
-        
+
         return order
-    
+
     def run(self):
         """
         Run the analyses in the scheduled order.
@@ -83,6 +87,5 @@ class Scheduler(object):
             analysis: Analysis = self.analyses[analysis_id]
             analysis.performAnalysis()
 
-            # @todo get the return values from the analysis and feed those 
-            # into the dependency.            
-    
+            # @todo get the return values from the analysis and feed those
+            # into the dependency.

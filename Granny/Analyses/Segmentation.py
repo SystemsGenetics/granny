@@ -1,9 +1,9 @@
 """
-This class perform instance segmentation on the user provided image files. 
+This class perform instance segmentation on the user provided image files.
 The analysis will be carried out in the following manner:
-    1. retrieves the machine learning (instance segmentation) trained models 
-       from https://osf.io/. to the current directory 'Analyses/'. The machine 
-       learning models are uploaded manually and should be named in this 
+    1. retrieves the machine learning (instance segmentation) trained models
+       from https://osf.io/. to the current directory 'Analyses/'. The machine
+       learning models are uploaded manually and should be named in this
        convention: granny-v{granny_version}-{model_name}-v{model_version}.pt
     2. parses user's input for image folder, initiates a list of Granny.Models.
        Images.Image, then runs YOLOv8 on the images.
@@ -34,26 +34,28 @@ class Segmentation(ImageAnalysis):
     __analysis_name__ = "segmentation"
 
     def __init__(self, images: List[Image], th: int):
-        super.__init__(self)
+        super().__init__()
 
-        # selects a model from the list to be used in this analysis 
+        # selects a model from the list to be used in this analysis
         self.models = {
             "pome_fruit-v1_0": {
                 "url": "https://osf.io/dqzyn/download",
-                "name": "granny-v1_0-pome_fruit-v1_0.pt"
+                "name": "granny-v1_0-pome_fruit-v1_0.pt",
             }
         }
 
         self.model_name = "pome_fruit-v1_0"
 
         model = FileNameValue(
-            "model", "model", "Specifies the model that should be used for segmentation. The " +
-              "model can be specified in one of three ways. First, if a known model name is provided " +
-              "(e.g. 'pome_fruit-v1_0') then Granny will automatically retrieve the model.  If " +
-              "a URL is provided then Granny will download the model from the URL you provided. " +
-              "Otherwise the value must be a path to where the model is stored on the local file system."
+            "model",
+            "model",
+            "Specifies the model that should be used for segmentation. The "
+            + "model can be specified in one of three ways. First, if a known model name is provided "
+            + "(e.g. 'pome_fruit-v1_0') then Granny will automatically retrieve the model.  If "
+            + "a URL is provided then Granny will download the model from the URL you provided. "
+            + "Otherwise the value must be a path to where the model is stored on the local file system.",
         )
-        self.addParam(model)
+        self.addInParam(model)
 
     def _getModelUrl(self, model_name: str):
         """
@@ -138,7 +140,6 @@ class Segmentation(ImageAnalysis):
         {@inheritdoc}
         """
 
-
         # download trained ML models from https://osf.io to the current directory
         self.local_model_path = os.path.join(f"{pathlib.Path(__file__).parent}", self.model_name)
 
@@ -156,7 +157,7 @@ class Segmentation(ImageAnalysis):
         # self.output_dir: StringValue = self.params.get(self.output_dir.getName())  # type:ignore
 
         # initiates Granny.Model.Images.Image instances for the analysis
-        self.images = self.params.get('input').getValue()
+        self.images = self.params.get("input").getValue()
 
         # initiates ImageIO
         self.image_io: ImageIO = RGBImageFile()
@@ -183,14 +184,10 @@ class Segmentation(ImageAnalysis):
         image_instances = self._extractFeature(self.images[0])
 
         masked_image = ImageListValue(
-            "masked_image", 
-            "masked_image", 
-            "The list of images after segmentation."
+            "masked_image", "masked_image", "The list of images after segmentation."
         )
 
         segmented_images = ImageListValue(
-            "segmented_images", 
-            "segmented_images", 
-            "The list of images after segmentation."
+            "segmented_images", "segmented_images", "The list of images after segmentation."
         )
         self.addRetValue(masked_image, segmented_images)
