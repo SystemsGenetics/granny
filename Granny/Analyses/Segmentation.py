@@ -49,13 +49,17 @@ class Segmentation(Analysis):
             "model",
             "Specifies the model that should be used for segmentation. The "
             + "model can be specified using a known model name (e.g. 'pome_fruit-v1_0'), "
-            + "and Granny will automatically retrieve the model from the online archive. "
+            + "and Granny will automatically retrieve the model from the online "
+            + "https://osf.io. "
             + "Otherwise the value must be a path to where the model is stored on the local "
             + "file system.",
         )
         self.model.setValue("pome_fruit-v1_0")
         self.input_images: ImageListValue = ImageListValue(
             "input", "input", "The directory where input images are located."
+        )
+        self.output_images = ImageListValue(
+            "output", "output", "The output directory where analysis' images are written."
         )
         self.addInParam(self.model, self.input_images)
 
@@ -84,7 +88,7 @@ class Segmentation(Analysis):
         if verbose > 0:
             print("... done downloading pretrained model!")
 
-    def _segmentInstances(self, image: NDArray[np.uint8]) -> List[Any]:
+    def _segmentInstances(self, image: NDArray[np.uint8], device: str = "cpu") -> List[Any]:
         """
         Uses instance segmentation model to predict instances in the image. Instances could be
         tray_info, apples, pears, cross-sections, etc.
@@ -99,7 +103,7 @@ class Segmentation(Analysis):
         including: masks, boxes, xyxy's, classes, confident scores
         """
         # detects instances on the image
-        results = self.segmentation_model.predict(image, retina_masks=True)  # type: ignore
+        results = self.segmentation_model.predict(image, device=device, retina_masks=True)  # type: ignore
 
         return results
 
@@ -183,11 +187,12 @@ class Segmentation(Analysis):
             image.setSegmentationResults(results=result)
             output_images.append(image)
 
-        # gets individual (segmented) images
+        output_image_list: List[Image] = []
+        # gets individual (segmented) images from mask and full-size image
         for output_image in output_images:
             image_instances = self._extractFeature(output_image)
+            output_image_list.extend(image_instances)
 
-        # output_images = ImageListValue(
-        #     "output", "output", "The list of images after segmentation."
-        # )
+        self.output_images.setImageList(output_image_list)
+
         # self.addRetValue(segmented_images)

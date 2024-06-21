@@ -33,6 +33,7 @@ class StarchArea(Analysis):
         self.output_images = ImageListValue(
             "output", "output", "The output directory where analysis' images are written."
         )
+        self.output_images.setValue("")
         self.addInParam(self.input_images)
 
         # sets up default threshold parameter
