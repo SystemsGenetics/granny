@@ -114,8 +114,8 @@ class Segmentation(Analysis):
         """
         # gets bounding boxes, binary masks, and the original full-tray image array
         [results] = tray_image.getSegmentationResults()
-        boxes: NDArray[np.float32] = results.boxes.data.numpy()  # type: ignore
-        masks: NDArray[np.float32] = results.masks.data.numpy()  # type: ignore
+        boxes: NDArray[np.float32] = results.boxes.data.cpu().numpy()  # type: ignore
+        masks: NDArray[np.float32] = results.masks.data.cpu().numpy()  # type: ignore
         tray_image_array: NDArray[np.uint8] = tray_image.getImage()
 
         # sorts boxes and masks based on y-coordinates
