@@ -54,9 +54,8 @@ class ImageListValue(FileDirValue):
         """ """
         image_io: ImageIO = RGBImageFile()
         for image in self.images:
-            image.saveImage(image_io)
-        # @todo write the metadata for the image that
-        # lives along side of the image.
+            image_io.setFilePath(image.getFilePath())
+            image_io.saveImage(image.getImage(), self.getValue())
 
     def getImageList(self):
         """ """
@@ -65,15 +64,3 @@ class ImageListValue(FileDirValue):
     def setImageList(self, images: List[Image]):
         """ """
         self.images = images
-
-    def getDefaultValue(self) -> str:
-        """
-        {@inheritdoc}
-        """
-        return self.default_value
-
-    def setDefaultValue(self, value: str):
-        """
-        {@inheritdoc}
-        """
-        self.default_value = value

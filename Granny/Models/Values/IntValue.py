@@ -29,12 +29,6 @@ class IntValue(NumericValue):
         """
         self.min_value = value
 
-    def setDefaultValue(self, value: int):
-        """
-        Gets the default value for the value.
-        """
-        self.default_value = value
-
     def setValidValues(self, values: list[int]):
         """
         Provides a list of valid values for this integer value.
@@ -52,9 +46,3 @@ class IntValue(NumericValue):
         {@inheritdoc}
         """
         return True
-
-    def getDefaultValue(self) -> int:
-        """
-        {@inheritdoc}
-        """
-        return self.default_value

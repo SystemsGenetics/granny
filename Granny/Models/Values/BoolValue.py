@@ -18,15 +18,3 @@ class BoolValue(Value):
         {@inheritdoc}
         """
         return True
-
-    def getDefaultValue(self) -> bool:
-        """
-        {@inheritdoc}
-        """
-        return self.default_value
-
-    def setDefaultValue(self, value: bool):
-        """
-        {@inheritdoc}
-        """
-        self.default_value = value

@@ -7,7 +7,7 @@ The analysis will be carried out in the following manner:
        convention: granny-v{granny_version}-{model_name}-v{model_version}.pt
     2. parses user's input for image folder, initiates a list of Granny.Models.
        Images.Image, then runs YOLOv8 on the images.
-    3. Todo: visualize results and segment individual images
+    3.
 
 date: June 06, 2024
 author: Nhan H. Nguyen
@@ -141,7 +141,7 @@ class Segmentation(Analysis):
         # returns a list of individual instances
         return individual_images
 
-    def performAnalysis(self):
+    def performAnalysis(self) -> List[Image]:
         """
         {@inheritdoc}
         """
@@ -193,6 +193,7 @@ class Segmentation(Analysis):
             image_instances = self._extractFeature(output_image)
             output_image_list.extend(image_instances)
 
-        self.output_images.setImageList(output_image_list)
+        return output_image_list
+        # self.output_images.setImageList(output_image_list)
 
-        # self.addRetValue(segmented_images)
+        # self.addRetValue(self.output_images)

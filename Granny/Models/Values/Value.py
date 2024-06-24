@@ -17,7 +17,6 @@ class Value(ABC):
         self.name = name
         self.label = label
         self.help = help
-        self.default_value = None
         self.type = Any
         self.value = None
         self.is_set = False
@@ -70,10 +69,7 @@ class Value(ABC):
         """
         Returns the current value of the value.
         """
-        if not self.is_set:
-            return self.default_value
-        else:
-            return self.value
+        return self.value
 
     def readValue(self):
         """
@@ -84,19 +80,5 @@ class Value(ABC):
     def writeValue(self):
         """
         Writes the value to the storage system.
-        """
-        pass
-
-    @abstractmethod
-    def getDefaultValue(self) -> Any:
-        """
-        Gets the default value for the value.
-        """
-        pass
-
-    @abstractmethod
-    def setDefaultValue(self, value: Any):
-        """
-        Gets the default value for the value.
         """
         pass

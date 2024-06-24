@@ -29,18 +29,6 @@ class FloatValue(NumericValue):
         """
         self.min_value = value
 
-    def setDefaultValue(self, value: float):
-        """
-        Sets the default value for the value.
-        """
-        self.default_value = value
-
-    def getDefaultValue(self) -> float:
-        """
-        Gets the default value for the value.
-        """
-        return self.default_value
-
     def setValidValues(self, values: List[float]):
         """
         Provides a list of valid values for this integer value.

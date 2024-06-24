@@ -63,9 +63,7 @@ class GrannyCLI(GrannyUI):
                 self.addAnalysisArgs(analysis=analysis)
 
                 # Performs the analysis with a newly updated set of parameters provided by the user
-                analysis.performAnalysis()
-
-                analysis.getRetValues()
+                result_images = analysis.performAnalysis()
 
     def addProgramArgs(self) -> None:
         """

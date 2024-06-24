@@ -16,7 +16,7 @@ from Granny.Models.Values.StringValue import StringValue
 from numpy.typing import NDArray
 
 
-class StarchScales(object):
+class StarchScales:
     HONEY_CRISP: Dict[str, List[float]] = {
         "index": [1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0],
         "rating": [
@@ -157,13 +157,6 @@ class StarchArea(Analysis):
         self.threshold.setMax(255)
         self.threshold.setValue(172)
 
-        # metadata_file = StringValue(
-        #     "m",
-        #     "metadata",
-        #     "Output metadata file to export the analysis' metadata and ratings.",
-        # )
-        # metadata_file.setValue(os.path.join(self.output_dir.getValue(), "ratings.csv"))
-
         # adds parameters for argument parsing
         self.addInParam(self.threshold)
 
@@ -284,7 +277,7 @@ class StarchArea(Analysis):
 
         return image_instance
 
-    def performAnalysis(self):
+    def performAnalysis(self) -> List[Image]:
         """
         {@inheritdoc}
         """
@@ -305,6 +298,7 @@ class StarchArea(Analysis):
         with Pool(cpu_count) as pool:
             image_instances = pool.map(self._rateImageInstance, self.images)
 
+        return image_instances
         self.output_images.setImageList(image_instances)
 
         self.addRetValue(self.output_images)

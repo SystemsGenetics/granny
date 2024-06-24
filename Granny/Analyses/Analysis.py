@@ -103,7 +103,7 @@ class Analysis(ABC):
         self.ret_values = {}
 
     @abstractmethod
-    def performAnalysis(self):
+    def performAnalysis(self) -> List[Image]:
         """
         Once all required parameters have been set, this function is used
         to perform the analysis.

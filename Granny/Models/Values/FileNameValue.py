@@ -21,15 +21,3 @@ class FileNameValue(StringValue):
         Makes sure that the filename is valid as a file.
         """
         return os.path.isfile(self.value)
-
-    def getDefaultValue(self) -> str:
-        """
-        {@inheritdoc}
-        """
-        return self.default_value
-
-    def setDefaultValue(self, value: str):
-        """
-        {@inheritdoc}
-        """
-        self.default_value = value
