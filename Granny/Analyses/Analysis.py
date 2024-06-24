@@ -103,7 +103,7 @@ class Analysis(ABC):
         self.ret_values = {}
 
     @abstractmethod
-    def performAnalysis(self) -> Any:
+    def performAnalysis(self):
         """
         Once all required parameters have been set, this function is used
         to perform the analysis.

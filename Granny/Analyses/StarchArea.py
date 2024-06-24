@@ -1,7 +1,7 @@
 import os
 from multiprocessing import Pool
 from pathlib import Path
-from typing import List, Tuple, cast
+from typing import Dict, List, Tuple, cast
 
 import cv2
 import numpy as np
@@ -16,6 +16,117 @@ from Granny.Models.Values.StringValue import StringValue
 from numpy.typing import NDArray
 
 
+class StarchScales(object):
+    HONEY_CRISP: Dict[str, List[float]] = {
+        "index": [1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0],
+        "rating": [
+            0.998998748,
+            0.947464712,
+            0.868898986,
+            0.783941273,
+            0.676589664,
+            0.329929925,
+            0.024131710,
+        ],
+    }
+    WA38_1: Dict[str, List[float]] = {
+        "index": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+        "rating": [
+            0.893993948,
+            0.855859903,
+            0.757963861,
+            0.597765822,
+            0.164192649,
+            0.080528335,
+        ],
+    }
+    WA38_2: Dict[str, List[float]] = {
+        "index": [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0],
+        "rating": [
+            0.950925926,
+            0.912917454,
+            0.839858059,
+            0.749211356,
+            0.770660718,
+            0.634160550,
+            0.571832210,
+            0.522944438,
+            0.178909419,
+            0.017493382,
+            0.075675075,
+        ],
+    }
+    ALLAN_BROS: Dict[str, List[float]] = {
+        "index": [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+        "rating": [
+            0.997783524,
+            0.988769830,
+            0.951909478,
+            0.877526853,
+            0.721066082,
+            0.673838851,
+            0.417864608,
+            0.091652858,
+        ],
+    }
+    GOLDEN_DELICIOUS: Dict[str, List[float]] = {
+        "index": [1.0, 1.2, 1.5, 1.8, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0],
+        "rating": [
+            0.998544220,
+            0.981819854,
+            0.974722333,
+            0.902015343,
+            0.893566670,
+            0.784215902,
+            0.780621478,
+            0.607040963,
+            0.717128225,
+            0.485321449,
+            0.279959478,
+            0.068212979,
+        ],
+    }
+    GRANNY_SMITH: Dict[str, List[float]] = {
+        "index": [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+        "rating": [
+            0.920742836,
+            0.890332499,
+            0.808227909,
+            0.721813109,
+            0.595806394,
+            0.278299256,
+            0.104111379,
+        ],
+    }
+    JONAGOLD: Dict[str, List[float]] = {
+        "index": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
+        "rating": [
+            0.898336414,
+            0.859494456,
+            0.806417832,
+            0.742177914,
+            0.653981582,
+            0.483778570,
+            0.387202327,
+            0.284663986,
+            0.175593498,
+        ],
+    }
+    CORNELL: Dict[str, List[float]] = {
+        "index": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0],
+        "rating": [
+            0.990554095,
+            0.915430492,
+            0.822470328,
+            0.726896529,
+            0.610745795,
+            0.338955981,
+            0.150869695,
+            0.041547982,
+        ],
+    }
+
+
 class StarchArea(Analysis):
 
     __analysis_name__ = "starch"
@@ -23,9 +134,8 @@ class StarchArea(Analysis):
     def __init__(self):
         super().__init__()
 
-        # self.compatibility = {"segmentation": {"segmented_images": "input"}}
-
         self.images: List[Image] = []
+        self.starch_scales = StarchScales()
 
         self.input_images = ImageListValue(
             "input", "input", "The directory where input images are located."
