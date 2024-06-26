@@ -16,6 +16,7 @@ class MetaDataValue(FileNameValue):
 
     def __init__(self, name: str, label: str, help: str):
         super().__init__(name, label, help)
+        self.images: List[Image] = []
 
     def readValue(self):
         """ """
@@ -28,9 +29,10 @@ class MetaDataValue(FileNameValue):
             "w",
         ) as file:
             sep = ","
-            for image_instance in images:
+            for image_instance in self.images:
                 output = ""
-                for param in image_instance.getMetaData().getValues():
+                for metadata in image_instance.getMetaData().values():
+                    param = metadata.getValue()
                     output = output + str(param.getValue()) + sep
                 file.writelines(f"{image_instance.getImageName()}{sep}{output}")
                 file.writelines("\n")

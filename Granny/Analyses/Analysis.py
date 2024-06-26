@@ -59,9 +59,9 @@ class Analysis(ABC):
         id.setValue(str(uuid.uuid4()))
         self.metadata.append(id)
 
-        # current directory
+        # Current directory
         path = StringValue("path", "cur_dir", "Absolute file path of the current directory.")
-        path.setValue(os.path.abspath(Path(__file__).parent.parent))
+        path.setValue(os.path.abspath(os.curdir))
         self.metadata.append(path)
 
     def addInParam(self, *params: Value):

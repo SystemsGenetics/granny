@@ -61,6 +61,7 @@ class Segmentation(Analysis):
         self.output_images = ImageListValue(
             "output", "output", "The output directory where analysis' images are written."
         )
+        self.output_images.setValue(os.path.join(os.curdir, self.__analysis_name__, "results"))
         self.addInParam(self.model, self.input_images)
 
     def _getModelUrl(self, model_name: str):
@@ -193,7 +194,10 @@ class Segmentation(Analysis):
             image_instances = self._extractFeature(output_image)
             output_image_list.extend(image_instances)
 
-        return output_image_list
-        # self.output_images.setImageList(output_image_list)
+        # 1. sets the output ImageListValue with the list of segmented images
+        # 2. writes the segmented images to a folder
+        self.output_images.setImageList(output_image_list)
+        self.output_images.writeValue()
+        self.addRetValue(self.output_images)
 
-        # self.addRetValue(self.output_images)
+        return output_image_list

@@ -16,7 +16,7 @@ class FileDirValue(Value):
         """ """
         self.value = value
         if not self.validate():
-            ValueError("Please specify a directory.")
+            ValueError("Not a directory. Please specify a directory.")
 
     def validate(self) -> bool:
         """

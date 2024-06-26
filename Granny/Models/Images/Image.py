@@ -46,12 +46,6 @@ class Image(ABC):
         """
         return self.metadata[key]
 
-    def getValues(self, key: str):
-        """
-        Gets all of the metadata values.
-        """
-        return self.metadata
-
     def getFilePath(self) -> str:
         """
         Returns the absolute file path of the image.
@@ -122,7 +116,7 @@ class Image(ABC):
         pass
 
     @abstractmethod
-    def setMetaData(self, metadata: List[Value]):
+    def setMetaData(self, metadata: Dict[str, Value]):
         """
         Sets the metadata for the image.
 

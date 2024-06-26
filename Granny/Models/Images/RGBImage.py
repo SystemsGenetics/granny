@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import numpy as np
 from Granny.Models.Images.Image import Image
@@ -47,11 +47,11 @@ class RGBImage(Image):
         """
         image_io.saveImage(self.image, folder)
 
-    def setMetaData(self, metadata: List[Value]):
+    def setMetaData(self, metadata: Dict[str, Value]):
         """
         {@inheritdoc}
         """
-        for value in metadata:
+        for value in metadata.values():
             self.metadata[value.getName()] = value
 
     def getMetaData(self) -> Dict[str, Value]:
