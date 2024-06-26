@@ -1,4 +1,4 @@
-from argparse import ArgumentParser, _SubParsersAction  # type: ignore
+from argparse import ArgumentParser  # type: ignore
 
 from Granny.Analyses.Analysis import Analysis
 from Granny.Analyses.BlushColor import BlushColor
@@ -65,7 +65,6 @@ class GrannyCLI(GrannyUI):
                 # Performs the analysis with a newly updated set of parameters provided by the user
                 result_images = analysis.performAnalysis()
 
-
     def addProgramArgs(self) -> None:
         """
         Parses the following command-line arguments: analysis, image directory, metadata directory,
@@ -103,7 +102,6 @@ class GrannyCLI(GrannyUI):
                 )
             analysis_args, _ = self.parser.parse_known_args()
             args_dict = analysis_args.__dict__
-            # @todo: validate the arguments before setting the value.
             # resets the parameter list in the analysis to update new parameter's values
             # from the user
             analysis.resetInParams()

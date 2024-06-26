@@ -143,7 +143,7 @@ class StarchArea(Analysis):
         self.output_images = ImageListValue(
             "output", "output", "The output directory where analysis' images are written."
         )
-        self.output_images.setValue("")
+        self.output_images.setValue(os.path.join(os.curdir, self.__analysis_name__, "results"))
         self.addInParam(self.input_images)
 
         # sets up default threshold parameter
@@ -157,7 +157,7 @@ class StarchArea(Analysis):
         self.threshold.setMax(255)
         self.threshold.setValue(172)
 
-        # adds parameters for argument parsing
+        # adds parameters for argument parser
         self.addInParam(self.threshold)
 
     def _drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
