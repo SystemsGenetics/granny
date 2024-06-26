@@ -1,25 +1,21 @@
 Granny
 ======
-
 **Granny** is going to rate your fruits!
 
-In the collaboration with `Honaas lab 
-<https://www.ars.usda.gov/pacific-west-area/wenatchee-wa/physiology-and-pathology-of-tree-fruits-research/people/loren-honaas/>`_
-at the USDA Agricultural Research Service, the `Ficklin Research Program <http://ficklinlab.cahnrs.wsu.edu/>`_ at Washington State University has
-developed **Granny**, an image analysis software that uses an instance segmentation algorithm to identify individual fruit in
-photos, and then process the images to extract individual fruit sub-images and remove the background for downstream
-analyses. **Granny**, aiming to assist in post-harvest fruit maturity index experiments, generates useful results from
-RGB images for determining superficial disorders and maturity in many apple and pear cultivars. 
+.. figure:: _static/granny_logo_transparent.png
+   :width: 50%
+   :align: center
+   :alt: Granny rating software logo
 
-Acknowledgments
----------------
-Development of Granny was funded by the Washington Tree Fruit Research Commission under project AP-22-101A.
+
+Granny is an image analysis software that uses AI to segmentation images of individual fruit in photos, and then process the images to extract individual ratings. Granny, aims to provide an open-source, freely available tool for post-harvest fruit quality assessment. 
+
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents: 
-
-   installation
-   usage
-   contributors
+   
+   users_guide/index
+   dev_guide/index
+   acknowledgements

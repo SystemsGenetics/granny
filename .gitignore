@@ -17,7 +17,6 @@ _build/
 *.gif
 *.jpg
 *.jpeg
-*.png
 *.pyc
 *.out
 *.pptx
