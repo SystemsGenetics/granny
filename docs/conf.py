@@ -35,9 +35,9 @@ copyright = "2023, Washington State University"
 author = "Nhan Nguyen, Stephen Ficklin"
 
 # The short X.Y version
-version = f"{metadata.version('granny')}"
+version = u'1.0'
 # The full version, including alpha/beta/rc tags
-release = f"{metadata.version('granny')}"
+release = u'1.0a0'
 
 
 # -- General configuration ---------------------------------------------------

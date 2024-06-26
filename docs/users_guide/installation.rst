@@ -6,6 +6,19 @@ Granny was built using Python3 and can be run on any modern operating system inc
 Opening the terminal
 --------------------
 
+Ubuntu 22.04 Linux
+``````````````````
+The command-line interface for Granny can be opened by clicking on Ubuntu icon on the task bar:
+
+.. figure:: ../_static/users_guide/install_ubuntu_icon.png
+
+Search for "terminal" in the search box that appears.  Click the icon with the title "terminal" and the terminal should appear:
+
+.. figure:: ../_static/users_guide/install_ubuntu_terminal.png
+
+Within the terminal you can type the commands to install Granny.
+
+
 Windows
 ```````
 .. note::
@@ -19,28 +32,8 @@ OS X
 
     Instructions will be added here.
 
-Ubuntu 22.04 Linux
-``````````````````
-The command-line interface for Granny can be opened by clicking on Ubuntu icon on the task bar:
-
-.. figure:: _static/install_ubuntu_icon.png
-
-Search for "terminal" in the search box that appears.  Click the icon with the title "terminal" and the terminal should appear:
-
-.. figure:: _static/install_ubuntu_terminal.png
-
-Within the terminal you can type the commands to install Granny.
-
-
 Install the Most Recent Release
 -------------------------------
-Windows
-```````
-
-.. note::
-
-    Instructions will be added here.
-
 
 Linux: Ubuntu 22.04
 ```````````````````
@@ -56,6 +49,14 @@ You will see output printed to the terminal as the installation progresses. If s
 
     Installing collected packages: granny
     Successfully installed granny-1.0a0
+
+
+Windows
+```````
+
+.. note::
+
+    Instructions will be added here.
 
 
 Mac OS X

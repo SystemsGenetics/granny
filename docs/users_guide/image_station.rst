@@ -1,14 +1,14 @@
 Imaging Station
 ===============
-For best performance with Granny, it is recommended to use an imaging station to capture high-quality images with consistent lighting.  The following provides a description of a design and standard operating procedures. 
+For best performance with Granny, it is recommended to use an imaging station to capture high-quality images with consistent lighting.  The following provides a description of a design and standard operating procedures. This protocol is versioned:
+
+:Protocol and Template Version:
+    1.2
 
 :Updated: 
     19 September 2023
     Honaas Lab – USDA-ARS TFRL
-
-:Setup Version:
-    1.0
-
+    
 :Questions:    
     Heidi Hargarten – USDA-ARS TFRL (Concepts/Design): heidi.hargarten@usda.gov
     Loren Honaas – USDA-ARS TFRL (Principal Investigator): loren.honaas@usda.gov
@@ -20,27 +20,35 @@ The following is a list of items you will need to construct the imaging station.
 
 Image Station Template
 ``````````````````````
-.. figure:: ../_static/image_station5.png
+To aid image processing for Granny, an image station template mat has been created. it has different section specifically for placing a color card, black and white balance cards, written annotations and a tray of fruit. A powerpoint file is available with the template, including specific dimensions that can be provided to a printing company for printing.  The following image shows how the template looks.
+
+:Download:
+
+    `ImageStationTemplate_V1.2.pptx <../_static/users_guide/ImageStationTemplate_V1.2.pptx>`_
+
+.. figure:: ../_static/users_guide/image_station5.png
+
 
 Color Card
 ```````````
-.. figure:: ../_static/image_station6.jpg
+.. figure:: ../_static/users_guide/image_station6.jpg
 
 White and Black Balance Cards
 `````````````````````````````
-.. figure:: ../_static/image_station7.png
+.. figure:: ../_static/users_guide/image_station7.png
 
-Annotation Plate 2 
-``````````````````
-Includes spaces for white and black balance cards.
-.. figure:: ../_static/image_station8.png
+Annotation Plate 
+````````````````
+The annotation plate, includes spaces for white and black balance cards.
+
+.. figure:: ../_static/users_guide/image_station8.png
 
 
 Block 
 `````
 Used to elevate Color Card so fruit or tray do not cast shadows on the Color Card.
 
-.. figure:: ../_static/image_station9.jpg
+.. figure:: ../_static/users_guide/image_station9.jpg
 
 Not Pictured
 ````````````
@@ -58,7 +66,7 @@ Place Image Station Template in imaging station so the boxes that say, ‘Color 
 
 Example: View if user is standing in front of image station
 
-.. figure:: ../_static/image_station1.jpg
+.. figure:: ../_static/users_guide/image_station1.jpg
 
 
 Step 2: Place Fruit
@@ -97,13 +105,13 @@ Place Annotation Plate with Sample Information in the light grey box that says, 
 
 The following figure demonstrates the orientation of color card and annotation plate:
 
-.. figure:: ../_static/image_station2.png
+.. figure:: ../_static/users_guide/image_station2.png
 
 Step 5: Check Setup
 ```````````````````
 Ensure all components (tray of fruit, Color Card, and Annotation Plate) are inside their respective boxes and oriented properly within the camera view finder. The following image shows the proper orientation of all components
 
-.. figure:: ../_static/image_station3.jpg
+.. figure:: ../_static/users_guide/image_station3.jpg
 
 
 Step 6: Image Collection
@@ -129,7 +137,7 @@ Image Station ‘Best’ Practices
 - Record image number on data sheet or within a digital record keeping system. 
 - Download images to a computer or upload to a cloud-based server at the end of every imaging session.
 
-.. figure:: ../_static/image_station4.png
+.. figure:: ../_static/users_guide/image_station4.png
 
 Color Checker Card Care
 -----------------------

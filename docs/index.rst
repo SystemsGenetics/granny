@@ -15,8 +15,7 @@ Granny is an image analysis software that uses AI to segmentation images of indi
 .. toctree::
    :maxdepth: 1
    :caption: Contents: 
-
-   installation
+   
    users_guide/index
    dev_guide/index
    acknowledgements
