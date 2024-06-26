@@ -1,24 +1,24 @@
 Installation
 ============
+Granny was built using Python3 and can be run on any modern operating system including Windows, variants of Linux and OS X. Follow the installation instructions that match the operating system you are using
 
-Want to try on your own dataset? You can install our model to get started. First, it is recommended to use a package
-manager such as `conda <https://www.anaconda.com/>`_ or `virtualenv <https://pypi.org/project/virtualenv/>`_ to create a seperate, independent environment for **Granny**. An description of the package installation using conda is provided below.
+Install the Most Recent Release
+-------------------------------
+Windows
+```````
+.  
 
-Granny uses `this Mask R-CNN module <https://github.com/matterport/Mask_RCNN/tree/v2.1>`_, written in
-TensorFlow 1.15. Due to the TensorFlow limitation, it is required to have Python version be **less than or equal** to
-3.7::
+Linux: Ubuntu 22.04
+```````````````````
+Python3 comes pre-installed on Ubuntu. You can install Granny along with all its dependencies using `pip`
 
-    conda create -n <venv> python==3.7 -y
+.. code:: bash
 
-where ``<venv>`` is the name of the virtual environment. 
-To activate the environment::
+    pip3 install granny
 
-    conda activate <venv>
+Mac OS X
+```````
 
-Now that you are inside the environment, run the following to set up command line interfaces::
+The Development Version
+-----------------------
 
-    pip install --upgrade granny
-
-Notes
------
-More ways to install **Granny** is coming!!! 
