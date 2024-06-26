@@ -36,3 +36,4 @@ test_perf.py
 *.lock
 *.ini
 *.vscode
+*.png
