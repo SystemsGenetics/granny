@@ -53,6 +53,7 @@ class ImageListValue(FileDirValue):
     def writeValue(self):
         """ """
         image_io: ImageIO = RGBImageFile()
+        print(len(self.images))
         for image in self.images:
             image_io.setFilePath(image.getFilePath())
             image_io.saveImage(image.getImage(), self.getValue())

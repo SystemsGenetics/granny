@@ -20,7 +20,6 @@ from typing import Any, List
 from urllib import request
 
 import numpy as np
-import torch
 from Granny.Analyses.Analysis import Analysis
 from Granny.Models.AIModel.AIModel import AIModel
 from Granny.Models.AIModel.YoloModel import YoloModel
