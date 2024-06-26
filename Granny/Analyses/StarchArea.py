@@ -248,6 +248,8 @@ class StarchArea(Analysis):
 
         return starch / ground_truth, new_img
 
+    def calculateIndex(self, )
+
     def _rateImageInstance(self, image_instance: Image) -> Image:
         """
         1. Loads and performs analysis on the provided Image instance.

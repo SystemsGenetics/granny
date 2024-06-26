@@ -12,6 +12,7 @@ dist/
 *logs/
 test*/
 _build/
+*result*/
 
 # Files
 *.gif
