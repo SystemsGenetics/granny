@@ -13,6 +13,7 @@ from Granny.Models.IO.RGBImageFile import RGBImageFile
 from Granny.Models.Values.FloatValue import FloatValue
 from Granny.Models.Values.ImageListValue import ImageListValue
 from Granny.Models.Values.IntValue import IntValue
+from Granny.Models.Values.MetaDataValue import MetaDataValue
 from numpy.typing import NDArray
 
 
@@ -138,21 +139,29 @@ class StarchArea(Analysis):
 
         self.images: List[Image] = []
         self.starch_scales = StarchScales
+
+        # sets up input and output directory
         self.input_images = ImageListValue(
             "input", "input", "The directory where input images are located."
         )
+        self.input_images.setIsRequired(True)
         self.output_images = ImageListValue(
             "output", "output", "The output directory where analysis' images are written."
         )
-        self.output_images.setValue(
-            os.path.join(
-                os.curdir,
-                "results",
-                self.__analysis_name__,
-                datetime.now().strftime("%Y-%m-%d-%H-%M"),
-            )
+        result_dir = os.path.join(
+            os.curdir,
+            "results",
+            self.__analysis_name__,
+            datetime.now().strftime("%Y-%m-%d-%H-%M"),
         )
+        self.output_images.setValue(result_dir)
         self.addInParam(self.input_images)
+
+        # sets up output result directory
+        self.output_results = MetaDataValue(
+            "results", "results", "The output directory where analysis' results are written."
+        )
+        self.output_results.setValue(result_dir)
 
         # sets up default threshold parameter
         self.threshold = IntValue(
@@ -164,6 +173,7 @@ class StarchArea(Analysis):
         self.threshold.setMin(0)
         self.threshold.setMax(255)
         self.threshold.setValue(172)
+        self.threshold.setIsRequired(False)
 
         # adds parameters for argument parser
         self.addInParam(self.threshold)
@@ -311,8 +321,8 @@ class StarchArea(Analysis):
         # adds each starch scale's index into the image instance
         for scale_name, index in starch_indices.items():
             card_rating = FloatValue(
-                scale_name.lower(),
-                scale_name.lower(),
+                scale_name,
+                scale_name,
                 "Starch scale index that cross-section is classified.",
             )
             card_rating.setValue(index)
@@ -344,11 +354,13 @@ class StarchArea(Analysis):
         with Pool(cpu_count) as pool:
             results = pool.map(self._rateImageInstance, self.images)
 
-        # adds the result list to self.output_images
+        # adds the result list to self.output_images then writes the resulting images to folder
         self.output_images.setImageList(results)
-
-        # writes the segmented images to a folder
         self.output_images.writeValue()
+
+        # adds the result list to self.output_results then writes the resulting results to folder
+        self.output_results.setImageList(results)
+        self.output_results.writeValue()
 
         self.addRetValue(self.output_images)
 

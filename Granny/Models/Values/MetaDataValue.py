@@ -1,6 +1,7 @@
 import os
 from typing import List
 
+import pandas as pd
 from Granny.Models.Images.Image import Image
 from Granny.Models.Values.FileNameValue import FileNameValue
 from Granny.Models.Values.Value import Value
@@ -24,15 +25,21 @@ class MetaDataValue(FileNameValue):
 
     def writeValue(self):
         """ """
-        with open(
-            os.path.join(f"{self.getValue()}"),
-            "w",
-        ) as file:
-            sep = ","
-            for image_instance in self.images:
-                output = ""
-                for metadata in image_instance.getMetaData().values():
-                    param = metadata.getValue()
-                    output = output + str(param.getValue()) + sep
-                file.writelines(f"{image_instance.getImageName()}{sep}{output}")
-                file.writelines("\n")
+        df: pd.DataFrame = pd.DataFrame()
+        for i, image_instance in enumerate(self.images):
+            if i == 0:
+                df = pd.DataFrame(columns=["Name"] + list(image_instance.getMetaData().keys()))
+            output = [image_instance.getImageName()]
+            for metadata in image_instance.getMetaData().values():
+                output.append(str(metadata.getValue()))
+            df.loc[i + 1] = output
+        df = df.sort_values(by="Name").reset_index(drop=True)
+        df.to_csv(os.path.join(self.value, "results.csv"), header=True, index=False)
+
+    def getImageList(self):
+        """ """
+        return self.images
+
+    def setImageList(self, images: List[Image]):
+        """ """
+        self.images = images

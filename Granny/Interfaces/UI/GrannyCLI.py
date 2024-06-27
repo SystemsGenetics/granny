@@ -59,12 +59,11 @@ class GrannyCLI(GrannyUI):
                 # Performs the analysis with a newly updated set of parameters provided by the user
                 result_images = analysis.performAnalysis()
 
-
     def addProgramArgs(self) -> None:
         """
         Adds to the argparser the set of arguments required by the CLI.
 
-        This will include the arguments of the analyses as well if 
+        This will include the arguments of the analyses as well if
         the user specified the type of analysis.
         """
 
@@ -86,13 +85,13 @@ class GrannyCLI(GrannyUI):
         # provided by the user and run the performAnalysis() function.
         analysis_name = program_args.analysis
         analyses = Analysis.__subclasses__()
-        analysis = None     
+        analysis = None
         for aclass in analyses:
             if analysis_name == aclass.__analysis_name__:
                 analysis = aclass()
         if analysis is None:
             return
-        
+
         # Create an argument group for this analysis.
         analysis_grp = self.parser.add_argument_group("{} args".format(analysis_name))
 
@@ -102,13 +101,12 @@ class GrannyCLI(GrannyUI):
         for param in params.values():
             analysis_grp.add_argument(
                 f"--{param.getLabel()}",
-                type=param.getType(),  
+                type=param.getType(),
                 required=param.getIsRequired(),
                 help=param.getHelp(),
             )
 
     def _setAnalysisParams(self, analysis: Analysis) -> None:
-
         """
         Sets the analysis's parameters using the user provided arguments.
         """
@@ -116,7 +114,7 @@ class GrannyCLI(GrannyUI):
         analysis_args, _ = self.parser.parse_known_args()
         args_dict = analysis_args.__dict__
 
-        # loops through the parameter list to set values.        
+        # loops through the parameter list to set values.
         params = analysis.getInParams()
         analysis.resetInParams()
         for param in params.values():

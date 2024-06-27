@@ -54,7 +54,7 @@ class Segmentation(Analysis):
             + "https://osf.io. "
             + "Otherwise the value must be a path to where the model is stored on the local "
             + "file system. If no model is specified then the default model will be used.",
-        )        
+        )
         self.model.setValue("pome_fruit-v1_0")
         self.model.setIsRequired(False)
 
