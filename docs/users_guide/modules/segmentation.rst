@@ -11,7 +11,7 @@ This step will extract each individual apple from the tray into a folder ``resul
 .. raw:: html
 
     <div align="center">
-      <img src="/Users/Greg/Documents/granny/demo/cross_section_images/cross_section_tray/cross_section_demo_image.jpeg" width="500px" />
+      <img src="../../../demo/cross_section_images/cross_section_tray/cross_section_demo_image.jpeg" width="500px" />
       <p> </p>
     </div>
 Example of an image that will get segmented.
