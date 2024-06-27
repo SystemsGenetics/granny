@@ -303,11 +303,11 @@ class StarchArea(Analysis):
         img = image_instance.getImage()
 
         # performs starch percentage calculation
-        score, result_img = self._calculateStarch(img)
+        score, result = self._calculateStarch(img)
 
         # initiate a result Image instance with a rating and sets the NDArray to the result
-        result: Image = RGBImage(image_instance.getImageName())
-        result.setImage(result_img)
+        result_img: Image = RGBImage(image_instance.getImageName())
+        result_img.setImage(result)
 
         # saves the calculated score to the image_instance as a parameter
         rating = FloatValue("rating", "rating", "Granny calculated rating of total starch area.")
@@ -326,12 +326,12 @@ class StarchArea(Analysis):
                 "Starch scale index that cross-section is classified.",
             )
             card_rating.setValue(index)
-            result.addValue(card_rating)
+            result_img.addValue(card_rating)
 
         # adds rating to result
-        result.addValue(rating)
+        result_img.addValue(rating)
 
-        return result
+        return result_img
 
     def performAnalysis(self) -> List[Image]:
         """

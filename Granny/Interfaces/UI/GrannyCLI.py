@@ -1,5 +1,4 @@
 import argparse
-from argparse import ArgumentParser, _SubParsersAction  # type: ignore
 
 from Granny.Analyses.Analysis import Analysis
 from Granny.Analyses.BlushColor import BlushColor

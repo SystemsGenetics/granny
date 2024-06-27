@@ -6,6 +6,7 @@ Date: May 21, 2024
 """
 
 import os
+from datetime import datetime
 from multiprocessing import Pool
 from typing import List, Tuple, cast
 
@@ -13,9 +14,13 @@ import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
 from Granny.Models.Images.Image import Image
+from Granny.Models.Images.RGBImage import RGBImage
+from Granny.Models.IO.ImageIO import ImageIO
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from Granny.Models.Values.FloatValue import FloatValue
+from Granny.Models.Values.ImageListValue import ImageListValue
 from Granny.Models.Values.IntValue import IntValue
+from Granny.Models.Values.MetaDataValue import MetaDataValue
 from numpy.typing import NDArray
 
 
@@ -24,18 +29,30 @@ class SuperficialScald(Analysis):
     __analysis_name__ = "scald"
 
     def __init__(self):
-        Analysis.__init__(self)
+        super().__init__()
 
-        # This analysis will allow the user to manually set a threshold
-        # to distinguish between the brown scald regions and the green
-        # peel color. By default this threshold is determined automatically
-        # but we will allow the user to manually set it if they want.
-        threshold = IntValue(
-            "th", "threshold", "The green color threshold that distinguishes non-scald regions."
+        # sets up input and output directory
+        self.input_images = ImageListValue(
+            "input", "input", "The directory where input images are located."
         )
-        threshold.setMin(0)
-        threshold.setMax(255)
-        self.addInParam(threshold)
+        self.input_images.setIsRequired(True)
+        self.output_images = ImageListValue(
+            "output", "output", "The output directory where analysis' images are written."
+        )
+        result_dir = os.path.join(
+            os.curdir,
+            "results",
+            self.__analysis_name__,
+            datetime.now().strftime("%Y-%m-%d-%H-%M"),
+        )
+        self.output_images.setValue(result_dir)
+        self.addInParam(self.input_images)
+
+        # sets up output result directory
+        self.output_results = MetaDataValue(
+            "results", "results", "The output directory where analysis' results are written."
+        )
+        self.output_results.setValue(result_dir)
 
     def smoothMask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -61,7 +78,7 @@ class SuperficialScald(Analysis):
         )  # type: ignore
         return bin_mask
 
-    def removeScald(self, img: NDArray[np.uint8]) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
+    def _removeScald(self, img: NDArray[np.uint8]) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
         """
         Remove the scald region from the individual apple images.
         Note that the stem could have potentially been removed during the process.
@@ -70,7 +87,7 @@ class SuperficialScald(Analysis):
         new_img = img.copy()
         lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_RGB2LAB))
 
-        def calculate_threshold_from_hist(hist: NDArray[np.int8]) -> int:
+        def _calculate_threshold_from_hist(hist: NDArray[np.int8]) -> int:
             hist_range = 255 - (hist[::-1] != 0).argmax() - (hist != 0).argmax()
             threshold = np.max(np.argsort(hist)[-10:])
             threshold = int(threshold - 1 / 3 * hist_range)
@@ -79,7 +96,7 @@ class SuperficialScald(Analysis):
 
         # create binary matrices
         hist, _ = np.histogram(lab_img[:, :, 1], bins=256, range=(0, 255))
-        threshold_value = calculate_threshold_from_hist(hist)
+        threshold_value = _calculate_threshold_from_hist(hist)
         threshold_1 = np.logical_and((lab_img[:, :, 0] >= 1), (lab_img[:, :, 0] <= 255))
         threshold_2 = np.logical_and(
             (lab_img[:, :, 1] >= 1), (lab_img[:, :, 1] <= threshold_value)
@@ -99,7 +116,7 @@ class SuperficialScald(Analysis):
             new_img[:, :, i] = new_img[:, :, i] * th123
         return th123, new_img
 
-    def removeTrayResidue(self, img: NDArray[np.uint8]) -> NDArray[np.uint8]:
+    def _removeTrayResidue(self, img: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
         Remove the surrounding purple from the individual apples using YCrCb color space.
         This function helps remove the unwanted regions for more precise calculation of the scald area.
@@ -123,7 +140,7 @@ class SuperficialScald(Analysis):
             new_img[:, :, i] = new_img[:, :, i] * th123
         return new_img
 
-    def score_image(
+    def _score_image(
         self, img: NDArray[np.uint8]
     ) -> Tuple[NDArray[np.uint8], NDArray[np.uint8], NDArray[np.uint8]]:
         """
@@ -132,18 +149,18 @@ class SuperficialScald(Analysis):
         Clean up individual image (remove purple area of the tray), and remove scald
         """
         # removes the residue tray background
-        img = self.removeTrayResidue(img)
+        img = self._removeTrayResidue(img)
         nopurple_img = img.copy()
 
         # Image smoothing
         img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0))
 
         # Removal of scald regions
-        bw, img = self.removeScald(img)
+        bw, img = self._removeScald(img)
 
         return nopurple_img, img, bw
 
-    def calculateScald(self, bw: NDArray[np.uint8], img: NDArray[np.uint8]) -> float:
+    def _calculateScald(self, bw: NDArray[np.uint8], img: NDArray[np.uint8]) -> float:
         """
         Calculate scald region by counting all non zeros area
 
@@ -168,18 +185,18 @@ class SuperficialScald(Analysis):
             return 0
         return fraction
 
-    def rateSuperficialScald(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
+    def _rateSuperficialScald(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
         """
         Calls self.calculateScald function to calculate the scald portion of the image array.
         """
         # returns apple image with no scald
-        nopurple_img, binarized_image, _ = self.score_image(img)
+        nopurple_img, binarized_image, _ = self._score_image(img)
 
         # calculate the scald region and save image
-        score = self.calculateScald(binarized_image, nopurple_img)
+        score = self._calculateScald(binarized_image, nopurple_img)
         return score, binarized_image
 
-    def rateImageInstance(self, image_instance: Image) -> Image:
+    def _rateImageInstance(self, image_instance: Image) -> Image:
         """
         1. Loads and performs analysis on the provided Image instance.
         2. Saves the instance to result directory
@@ -191,36 +208,60 @@ class SuperficialScald(Analysis):
             score: rating for the instance
         """
         # initiates ImageIO
-        image_io = RGBImageFile(image_instance.getFilePath())
+        self.image_io.setFilePath(image_instance.getFilePath())
 
         # loads image from file system with RGBImageFile(ImageIO)
-        image_instance.loadImage(image_io=image_io)
+        image_instance.loadImage(image_io=self.image_io)
 
         # gets the image array
         img = image_instance.getImage()
 
         # performs superficial scald calculation
-        score, binarized_image = self.rateSuperficialScald(img)
+        score, binarized_image = self._rateSuperficialScald(img)
 
-        # saves the output image
-        image_io.saveImage(binarized_image, self.__analysis_name__)
+        # initiate a result Image instance with a rating and sets the NDArray to the result
+        result_img: Image = RGBImage(image_instance.getImageName())
+        result_img.setImage(binarized_image)
 
-        rating = FloatValue(
-            name="score",
-            label="score",
-            help="Granny rating of the image",
-        )
+        # saves the calculated score to the image_instance as a parameter
+        rating = FloatValue("rating", "rating", "Granny calculated rating of total starch area.")
+        rating.setMin(0.0)
+        rating.setMax(1.0)
         rating.setValue(score)
-        self.addInParam(rating)
 
-        return image_instance
+        # adds rating to result
+        result_img.addValue(rating)
 
-    def performAnalysis(self):
+        return result_img
+
+    def performAnalysis(self) -> List[Image]:
         """
         {@inheritdoc}
         """
+        # initiates user's input
+        self.input_images: ImageListValue = self.in_params.get(self.input_images.getName())  # type: ignore
+
+        # initiates an ImageIO for image input/output
+        self.image_io: ImageIO = RGBImageFile()
+
+        # initiates Granny.Model.Images.Image instances for the analysis using the user's input
+        self.input_images.readValue()
+        self.images = self.input_images.getImageList()
+
         # perform analysis with multiprocessing
         num_cpu = os.cpu_count()
         cpu_count = int(num_cpu * 0.8) or 1  # type: ignore
         with Pool(cpu_count) as pool:
-            pool.map(self.rateImageInstance, self.images)
+            results = pool.map(self._rateImageInstance, self.images)
+
+        # adds the result list to self.output_images then writes the resulting images to folder
+        self.output_images.setImageList(results)
+        self.output_images.writeValue()
+
+        # adds the result list to self.output_results then writes the resulting results to folder
+        self.output_results.setImageList(results)
+        self.output_results.writeValue()
+
+        self.addRetValue(self.output_images)
+
+        return self.output_images.getImageList()
