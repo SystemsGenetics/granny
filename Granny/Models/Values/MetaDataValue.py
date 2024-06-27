@@ -34,6 +34,7 @@ class MetaDataValue(FileNameValue):
                 output.append(str(metadata.getValue()))
             df.loc[i + 1] = output
         df = df.sort_values(by="Name").reset_index(drop=True)
+        df["TrayName"] = df["Name"].str.extract(r"^(.*?)(?:_\d+)?\.(?:png|jpg|jpeg)$")
         df.to_csv(os.path.join(self.value, "results.csv"), header=True, index=False)
 
     def getImageList(self):
