@@ -8,16 +8,13 @@ This step will extract each individual apple from the tray into a folder ``resul
     granny --action segmentation --image_dir <your_image_dir>
     
 
-.. raw:: html
-
-    <div align="center">
-      <img src="../../../demo/cross_section_images/cross_section_tray/cross_section_demo_image.jpeg" width="500px" />
-      <p> </p>
-    </div>
-Example of an image that will get segmented.
+.. figure:: ../../../demo/cross_section_images/cross_section_tray/cross_section_demo_image.jpeg" width="500px" />
+    :width: 500
+    :align: "center"
+    Example of an image that will get segmented before rating the fruit.
 
 
-The results folder will contain images like the ones listed below:
+The ``results`` folder will contain images like the ones listed below:
 
 1st row:
 
