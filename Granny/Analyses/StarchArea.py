@@ -17,6 +17,8 @@ from numpy.typing import NDArray
 
 
 class StarchScales:
+    """ """
+
     HONEY_CRISP: Dict[str, List[float]] = {
         "index": [1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0],
         "rating": [
@@ -135,8 +137,7 @@ class StarchArea(Analysis):
         super().__init__()
 
         self.images: List[Image] = []
-        self.starch_scales = StarchScales()
-
+        self.starch_scales = StarchScales
         self.input_images = ImageListValue(
             "input", "input", "The directory where input images are located."
         )
@@ -248,7 +249,28 @@ class StarchArea(Analysis):
 
         return starch / ground_truth, new_img
 
-    def calculateIndex(self, )
+    def calculateIndex(self, target: float) -> Dict[str, float]:
+        """ """
+        # unpacks StarchScales constants as a dictionary
+        scales = {
+            name: value
+            for name, value in vars(self.starch_scales).items()
+            if not name.startswith("_")
+        }
+        # results to be returned in the form of dictionary, something like this:
+        # e.g. {HONEY_CRISP : 1.0, GRANNY_SMITH : 1.5,}
+        results: Dict[str, float] = {}
+        for name, data in scales.items():
+            # rating and index list
+            rating_list = data["rating"]
+            index_list = data["index"]
+            # difference in rating list
+            diffs = [abs(i - target) for i in rating_list]
+            # finds closest index according to the diffs
+            closest_index = min(range(len(diffs)), key=lambda i: diffs[i])
+            # adds the starch scale to the resulting dictionary
+            results[name] = index_list[closest_index]
+        return results
 
     def _rateImageInstance(self, image_instance: Image) -> Image:
         """
@@ -273,15 +295,28 @@ class StarchArea(Analysis):
         # performs starch percentage calculation
         score, result_img = self._calculateStarch(img)
 
+        # initiate a result Image instance with a rating and sets the NDArray to the result
+        result: Image = RGBImage(image_instance.getImageName())
+        result.setImage(result_img)
+
         # saves the calculated score to the image_instance as a parameter
         rating = FloatValue("rating", "rating", "Granny calculated rating of total starch area.")
         rating.setMin(0.0)
         rating.setMax(1.0)
         rating.setValue(score)
 
-        # initiate a result Image instance with a rating and sets the NDArray to the result
-        result: Image = RGBImage(image_instance.getImageName())
-        result.setImage(result_img)
+        # calculates the closest index of the image to each StarchScale
+        starch_indices = self.calculateIndex(score)
+
+        # adds each starch scale's index into the image instance
+        for scale_name, index in starch_indices.items():
+            card_rating = FloatValue(
+                scale_name.lower(),
+                scale_name.lower(),
+                "Starch scale index that cross-section is classified.",
+            )
+            card_rating.setValue(index)
+            result.addValue(card_rating)
 
         # adds rating to result
         result.addValue(rating)

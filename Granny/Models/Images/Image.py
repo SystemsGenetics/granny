@@ -34,11 +34,12 @@ class Image(ABC):
         self.image: NDArray[np.uint8]
         self.metadata: Dict[str, Value] = {}
 
-    def addValue(self, value: Value):
+    def addValue(self, *values: Value):
         """
         Adding a new metadata value to an image.
         """
-        self.metadata[value.getName()] = value
+        for value in values:
+            self.metadata[value.getName()] = value
 
     def getValue(self, key: str):
         """
