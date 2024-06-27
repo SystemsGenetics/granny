@@ -5,7 +5,7 @@ from argparse import ArgumentParser
 class GrannyUI(ABC):
     def __init__(self, parser: ArgumentParser):
         """
-        Initalizes the GrannUI object.
+        Initializes the GrannyUI object.
 
         @param ArgumentParser parser
           Used to add arguments that this UI will need for calling

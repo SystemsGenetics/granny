@@ -20,6 +20,7 @@ class Value(ABC):
         self.type = Any
         self.value = None
         self.is_set = False
+        self.required = False
 
     @abstractmethod
     def validate(self) -> bool:
@@ -82,3 +83,15 @@ class Value(ABC):
         Writes the value to the storage system.
         """
         pass
+
+    def setIsRequired(self, is_required: bool):
+        """
+        Sets if the value is required.
+        """
+        self.is_required = is_required
+
+    def getIsRequired(self):
+        """
+        Returns if this value is required or not.
+        """
+        return self.is_required

@@ -47,17 +47,21 @@ class Segmentation(Analysis):
         self.model = FileNameValue(
             "model",
             "model",
-            "Specifies the model that should be used for segmentation. The "
+            "Specifies the model that should be used for segmentation to identify fruit. The "
             + "model can be specified using a known model name (e.g. 'pome_fruit-v1_0'), "
             + "and Granny will automatically retrieve the model from the online "
             + "https://osf.io. "
             + "Otherwise the value must be a path to where the model is stored on the local "
-            + "file system.",
-        )
+            + "file system. If no model is specified then the default model will be used.",
+        )        
         self.model.setValue("pome_fruit-v1_0")
+        self.model.setIsRequired(False)
+
         self.input_images: ImageListValue = ImageListValue(
             "input", "input", "The directory where input images are located."
         )
+        self.input_images.setIsRequired(True)
+
         self.output_images = ImageListValue(
             "output", "output", "The output directory where analysis' images are written."
         )
