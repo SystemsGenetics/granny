@@ -15,6 +15,7 @@ author: Nhan H. Nguyen
 
 import os
 import pathlib
+from datetime import datetime
 from typing import Any, List
 from urllib import request
 
@@ -65,7 +66,14 @@ class Segmentation(Analysis):
         self.output_images = ImageListValue(
             "output", "output", "The output directory where analysis' images are written."
         )
-        self.output_images.setValue(os.path.join(os.curdir, self.__analysis_name__, "results"))
+        self.output_images.setValue(
+            os.path.join(
+                os.curdir,
+                "results",
+                self.__analysis_name__,
+                datetime.now().strftime("%Y-%m-%d-%H-%M"),
+            )
+        )
         self.addInParam(self.model, self.input_images)
 
     def _getModelUrl(self, model_name: str):
@@ -93,7 +101,7 @@ class Segmentation(Analysis):
         if verbose > 0:
             print("... done downloading pretrained model!")
 
-    def _segmentInstances(self, image: NDArray[np.uint8], device: str = "cpu") -> List[Any]:
+    def _segmentInstances(self, image: NDArray[np.uint8]) -> List[Any]:
         """
         Uses instance segmentation model to predict instances in the image. Instances could be
         tray_info, apples, pears, cross-sections, etc.
@@ -108,7 +116,7 @@ class Segmentation(Analysis):
         including: masks, boxes, xyxy's, classes, confident scores
         """
         # detects instances on the image
-        results = self.segmentation_model.predict(image, device=device, retina_masks=True)  # type: ignore
+        results = self.segmentation_model.predict(image, retina_masks=True)  # type: ignore
 
         return results
 
@@ -138,7 +146,7 @@ class Segmentation(Analysis):
             mask = sorted_masks[i]
             for channel in range(3):
                 individual_image[:, :, channel] = tray_image_array[y1:y2, x1:x2, channel] * mask[y1:y2, x1:x2]  # type: ignore
-            image_name = pathlib.Path(tray_image.getImageName()).stem + str(i) + ".png"
+            image_name = pathlib.Path(tray_image.getImageName()).stem + f"_{i+1}" + ".png"
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
             individual_images.append(image_instance)
@@ -178,6 +186,7 @@ class Segmentation(Analysis):
 
         # performs segmentation on each image one-by-one
         output_images: List[Image] = []
+        segmented_images: List[Image] = []
         for image in self.images:
             # set ImageIO with specific file path
             self.image_io.setFilePath(image.getFilePath())
@@ -187,21 +196,20 @@ class Segmentation(Analysis):
 
             # predicts fruit instances in the image
             result = self._segmentInstances(image.getImage())
+            print(f"Image: {image.getImageName()}")
 
             # sets segmentation result
             image.setSegmentationResults(results=result)
+            try:
+                image_instances = self._extractFeature(image)
+                segmented_images.extend(image_instances)
+            except:
+                AttributeError("Skipping segmentation due to no detection.")
             output_images.append(image)
 
-        output_image_list: List[Image] = []
-        # gets individual (segmented) images from mask and full-size image
-        for output_image in output_images:
-            image_instances = self._extractFeature(output_image)
-            output_image_list.extend(image_instances)
+            # 1. sets the output ImageListValue with the list of segmented images
+            # 2. writes the segmented images to a folder
+            self.output_images.setImageList(segmented_images)
+            self.output_images.writeValue()
 
-        # 1. sets the output ImageListValue with the list of segmented images
-        # 2. writes the segmented images to a folder
-        self.output_images.setImageList(output_image_list)
-        self.output_images.writeValue()
-        self.addRetValue(self.output_images)
-
-        return output_image_list
+        return segmented_images

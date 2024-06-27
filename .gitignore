@@ -12,6 +12,7 @@ dist/
 *logs/
 test*/
 _build/
+*result*/
 
 # Files
 *.gif
@@ -36,3 +37,4 @@ test_perf.py
 *.lock
 *.ini
 *.vscode
+*.png

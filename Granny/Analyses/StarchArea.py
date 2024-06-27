@@ -1,22 +1,24 @@
 import os
+from datetime import datetime
 from multiprocessing import Pool
-from pathlib import Path
 from typing import Dict, List, Tuple, cast
 
 import cv2
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
 from Granny.Models.Images.Image import Image
+from Granny.Models.Images.RGBImage import RGBImage
 from Granny.Models.IO.ImageIO import ImageIO
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from Granny.Models.Values.FloatValue import FloatValue
 from Granny.Models.Values.ImageListValue import ImageListValue
 from Granny.Models.Values.IntValue import IntValue
-from Granny.Models.Values.StringValue import StringValue
 from numpy.typing import NDArray
 
 
 class StarchScales:
+    """ """
+
     HONEY_CRISP: Dict[str, List[float]] = {
         "index": [1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0],
         "rating": [
@@ -135,15 +137,21 @@ class StarchArea(Analysis):
         super().__init__()
 
         self.images: List[Image] = []
-        self.starch_scales = StarchScales()
-
+        self.starch_scales = StarchScales
         self.input_images = ImageListValue(
             "input", "input", "The directory where input images are located."
         )
         self.output_images = ImageListValue(
             "output", "output", "The output directory where analysis' images are written."
         )
-        self.output_images.setValue("")
+        self.output_images.setValue(
+            os.path.join(
+                os.curdir,
+                "results",
+                self.__analysis_name__,
+                datetime.now().strftime("%Y-%m-%d-%H-%M"),
+            )
+        )
         self.addInParam(self.input_images)
 
         # sets up default threshold parameter
@@ -157,7 +165,7 @@ class StarchArea(Analysis):
         self.threshold.setMax(255)
         self.threshold.setValue(172)
 
-        # adds parameters for argument parsing
+        # adds parameters for argument parser
         self.addInParam(self.threshold)
 
     def _drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
@@ -241,6 +249,29 @@ class StarchArea(Analysis):
 
         return starch / ground_truth, new_img
 
+    def calculateIndex(self, target: float) -> Dict[str, float]:
+        """ """
+        # unpacks StarchScales constants as a dictionary
+        scales = {
+            name: value
+            for name, value in vars(self.starch_scales).items()
+            if not name.startswith("_")
+        }
+        # results to be returned in the form of dictionary, something like this:
+        # e.g. {HONEY_CRISP : 1.0, GRANNY_SMITH : 1.5,}
+        results: Dict[str, float] = {}
+        for name, data in scales.items():
+            # rating and index list
+            rating_list = data["rating"]
+            index_list = data["index"]
+            # difference in rating list
+            diffs = [abs(i - target) for i in rating_list]
+            # finds closest index according to the diffs
+            closest_index = min(range(len(diffs)), key=lambda i: diffs[i])
+            # adds the starch scale to the resulting dictionary
+            results[name] = index_list[closest_index]
+        return results
+
     def _rateImageInstance(self, image_instance: Image) -> Image:
         """
         1. Loads and performs analysis on the provided Image instance.
@@ -264,8 +295,9 @@ class StarchArea(Analysis):
         # performs starch percentage calculation
         score, result_img = self._calculateStarch(img)
 
-        # calls IO to save the image
-        self.image_io.saveImage(result_img, os.path.join("results/", self.__analysis_name__))
+        # initiate a result Image instance with a rating and sets the NDArray to the result
+        result: Image = RGBImage(image_instance.getImageName())
+        result.setImage(result_img)
 
         # saves the calculated score to the image_instance as a parameter
         rating = FloatValue("rating", "rating", "Granny calculated rating of total starch area.")
@@ -273,9 +305,23 @@ class StarchArea(Analysis):
         rating.setMax(1.0)
         rating.setValue(score)
 
-        image_instance.addValue(rating)
+        # calculates the closest index of the image to each StarchScale
+        starch_indices = self.calculateIndex(score)
 
-        return image_instance
+        # adds each starch scale's index into the image instance
+        for scale_name, index in starch_indices.items():
+            card_rating = FloatValue(
+                scale_name.lower(),
+                scale_name.lower(),
+                "Starch scale index that cross-section is classified.",
+            )
+            card_rating.setValue(index)
+            result.addValue(card_rating)
+
+        # adds rating to result
+        result.addValue(rating)
+
+        return result
 
     def performAnalysis(self) -> List[Image]:
         """
@@ -296,9 +342,14 @@ class StarchArea(Analysis):
         num_cpu = os.cpu_count()
         cpu_count = int(num_cpu * 0.8) or 1  # type: ignore
         with Pool(cpu_count) as pool:
-            image_instances = pool.map(self._rateImageInstance, self.images)
+            results = pool.map(self._rateImageInstance, self.images)
 
-        return image_instances
-        self.output_images.setImageList(image_instances)
+        # adds the result list to self.output_images
+        self.output_images.setImageList(results)
+
+        # writes the segmented images to a folder
+        self.output_images.writeValue()
 
         self.addRetValue(self.output_images)
+
+        return self.output_images.getImageList()

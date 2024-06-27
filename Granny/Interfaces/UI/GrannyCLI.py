@@ -16,13 +16,30 @@ class GrannyCLI(GrannyUI):
         {@inheritdoc}
         """
         GrannyUI.__init__(self, parser)
-        self.analysis: str = ""    
+        self.analysis: str = ""
+
+    def checkArgs(self) -> bool:
+        """
+        Checks the incoming command-line arguments.
+
+        Ensures that the command-line arguments are appropriate for the
+        image collection and analyses to be performed.  When arguments
+        do not pass a test, then error messages are printed to STDERR
+        and False is returned.
+
+        @return bool
+          True if all argument are good, FALSE otherwsie.
+        """
+        analyses = Analysis.__subclasses__()
+        for aclass in analyses:
+            if self.analysis == aclass.__analysis_name__:
+                return True
+        return False
 
     def run(self):
         """
         {@inheritdoc}
         """
-        # Get the input arguments.
         program_args, _ = self.parser.parse_known_args()
         self.analysis = program_args.analysis
 
@@ -39,9 +56,9 @@ class GrannyCLI(GrannyUI):
                 # be set up, then adds CLI's argument for each parameter
                 self._setAnalysisParams(analysis=analysis)
 
-                # Performs the analysis with a newly updated set of parameters
-                # provided by the user.
-                analysis.performAnalysis()
+                # Performs the analysis with a newly updated set of parameters provided by the user
+                result_images = analysis.performAnalysis()
+
 
     def addProgramArgs(self) -> None:
         """
