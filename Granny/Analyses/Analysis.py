@@ -10,7 +10,7 @@ import os
 import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Dict, List
 
 from Granny.Models.Images.Image import Image
 from Granny.Models.Values.StringValue import StringValue

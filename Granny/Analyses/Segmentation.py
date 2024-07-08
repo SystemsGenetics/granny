@@ -149,6 +149,7 @@ class Segmentation(Analysis):
             image_name = pathlib.Path(tray_image.getImageName()).stem + f"_{i+1}" + ".png"
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
+            # image_instance.toBGR()
             individual_images.append(image_instance)
 
         # returns a list of individual instances
@@ -158,16 +159,18 @@ class Segmentation(Analysis):
         """
         {@inheritdoc}
         """
-        self.model_name = self.in_params.get(self.model.getName()).getValue()  # type:ignore
+        self.model_name: str = self.in_params.get(self.model.getName()).getValue()  # type:ignore
 
         # download trained ML models from https://osf.io to the current directory
-        self.local_model_path = os.path.join(
-            f"{pathlib.Path(__file__).parent}", self.models[self.model_name]["full_name"]
-        )
-
-        if not os.path.exists(self.local_model_path):
-            self.model_url: str = self._getModelUrl(self.model_name)  # type: ignore
-            self._downloadTrainedWeights(self.model_url)
+        if self.model_name.endswith(".pt"):
+            self.local_model_path = self.model_name
+        else:
+            self.local_model_path = os.path.join(
+                f"{pathlib.Path(__file__).parent}", self.models[self.model_name]["full_name"]
+            )
+            if not os.path.exists(self.local_model_path):
+                model_url: str = self._getModelUrl(self.model_name)  # type: ignore
+                self._downloadTrainedWeights(model_url)
 
         # loads segmentation model
         self.AIModel: AIModel = YoloModel(self.local_model_path)
@@ -196,7 +199,6 @@ class Segmentation(Analysis):
 
             # predicts fruit instances in the image
             result = self._segmentInstances(image.getImage())
-            print(f"Image: {image.getImageName()}")
 
             # sets segmentation result
             image.setSegmentationResults(results=result)

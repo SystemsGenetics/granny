@@ -83,9 +83,9 @@ class SuperficialScald(Analysis):
         Remove the scald region from the individual apple images.
         Note that the stem could have potentially been removed during the process.
         """
-        # convert from RGB to Lab color space
+        # convert from BGR to Lab color space
         new_img = img.copy()
-        lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_RGB2LAB))
+        lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2LAB))
 
         def _calculate_threshold_from_hist(hist: NDArray[np.int8]) -> int:
             hist_range = 255 - (hist[::-1] != 0).argmax() - (hist != 0).argmax()
@@ -121,9 +121,9 @@ class SuperficialScald(Analysis):
         Remove the surrounding purple from the individual apples using YCrCb color space.
         This function helps remove the unwanted regions for more precise calculation of the scald area.
         """
-        # convert RGB to YCrCb
+        # convert BGR to YCrCb
         new_img = img.copy()
-        ycc_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb))
+        ycc_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb))
 
         # create binary matrices
         threshold_1 = np.logical_and((ycc_img[:, :, 0] >= 0), (ycc_img[:, :, 0] <= 255))

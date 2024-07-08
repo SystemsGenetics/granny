@@ -1,5 +1,6 @@
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
+import cv2
 import numpy as np
 from Granny.Models.Images.Image import Image
 from Granny.Models.IO.ImageIO import ImageIO
@@ -46,6 +47,18 @@ class RGBImage(Image):
         {@inheritdoc}
         """
         image_io.saveImage(self.image, folder)
+
+    def toRGB(self):
+        """
+        Converts BGR image to the RGB format for input
+        """
+        self.image = cast(NDArray[np.uint8], cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB))
+
+    def toBGR(self):
+        """
+        Converts RGB image to the BGR format for output
+        """
+        self.image = cast(NDArray[np.uint8], cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR))
 
     def setMetaData(self, metadata: Dict[str, Value]):
         """

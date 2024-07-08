@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 from Granny.Models.IO.ImageIO import ImageIO
 from numpy.typing import NDArray
+from PIL import Image
 
 
 class RGBImageFile(ImageIO):
@@ -21,7 +22,8 @@ class RGBImageFile(ImageIO):
         """
         {@inheritdoc}
         """
-        image = cv2.cvtColor(cv2.imread(self.filepath, cv2.IMREAD_COLOR), cv2.COLOR_BGR2RGB)
+        # loads image in the BGR format (default to OpenCV)
+        image = cv2.imread(self.filepath, cv2.IMREAD_COLOR)
         return cast(NDArray[np.uint8], image)
 
     def saveImage(self, image: NDArray[np.uint8], output_path: str) -> None:
@@ -31,8 +33,7 @@ class RGBImageFile(ImageIO):
         if not os.path.exists(os.path.join(output_path)):
             os.makedirs(os.path.join(output_path), exist_ok=True)
         cv2.imwrite(
-            os.path.join(output_path, self.image_name),
-            cv2.cvtColor(image, cv2.COLOR_RGB2BGR),
+            os.path.join(output_path, self.image_name), image
         )
 
     def getType(self):

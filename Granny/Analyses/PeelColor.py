@@ -90,9 +90,9 @@ class PeelColor(Analysis):
         Remove the surrounding purple from the individual apples using YCrCb color space.
         This function helps remove the unwanted regions for more precise calculation of the scald area.
         """
-        # convert RGB to YCrCb
+        # convert BGR to YCrCb
         new_img = img.copy()
-        ycc_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb))
+        ycc_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb))
 
         # create binary matrices
         threshold_1 = np.logical_and((ycc_img[:, :, 0] >= 0), (ycc_img[:, :, 0] <= 255))
@@ -114,8 +114,8 @@ class PeelColor(Analysis):
         Get the mean pixel values from the images representing the amount of
         green and yellow in the CIELAB color space. Then, normalize the values to L = 50.
         """
-        # convert from RGB to Lab color space
-        lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_RGB2LAB))
+        # convert from BGR to Lab color space
+        lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2LAB))
 
         # create binary matrices
         threshold_1 = np.logical_and((lab_img[:, :, 0] > 0), (lab_img[:, :, 0] < 255))

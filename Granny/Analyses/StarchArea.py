@@ -239,7 +239,7 @@ class StarchArea(Analysis):
 
         # blurs the image to remove sharp noises, then converts it to gray scale
         img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (7, 7), 0))
-        gray = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_RGB2GRAY))
+        gray = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
 
         # re-adjusts the image to [0 255]
         low, high = extractImage(gray)
