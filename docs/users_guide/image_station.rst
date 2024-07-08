@@ -46,9 +46,15 @@ The annotation plate, includes spaces for white and black balance cards.
 
 Block 
 `````
-Used to elevate Color Card so fruit or tray do not cast shadows on the Color Card.
+Used to elevate Color Card so fruit or tray do not cast shadows on the Color Card. The block pictured here was constructed out of a 2cm thick pine wood board, cut to length (approximately 12.2 cm long and 6.3 cm wide). To increase the height of the block, two blocks can be glued and stacked together using a basic wood glue (creating a 4cm block). The wood block was cut to be smaller than the color card, so the wood block does not extend past the margins of the color card in the final image. Wood block edges were sanded and rounded out to reduce the risk of damage to fruit during set up or tray maniuplation.
+
+To attach the Color Card to the wood block, a simple 1 inch by 1 inch velcro type fastener can be adhered to the block and to the back (grey side) of the Color card. The fastner appearing in this user guid can be found `here <https://www.amazon.com/Scotch-Rfd7021-Extreme-Fasteners-12-Count/dp/B07FJNC3JG>`_ (date link provided: 27 June 2014).
 
 .. figure:: ../_static/users_guide/image_station9.jpg
+
+.. note::
+    
+    When attaching the adhesive fasteners to the wood block and the color card, you will need to pre-measure to make sure the fastner is centered on the block and the color card to ensure the wood block does not extend past the color card margins in the final image.
 
 Not Pictured
 ````````````
