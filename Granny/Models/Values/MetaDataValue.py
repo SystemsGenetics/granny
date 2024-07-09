@@ -25,17 +25,24 @@ class MetaDataValue(FileNameValue):
 
     def writeValue(self):
         """ """
-        df: pd.DataFrame = pd.DataFrame()
+        image_rating: pd.DataFrame = pd.DataFrame()
         for i, image_instance in enumerate(self.images):
             if i == 0:
-                df = pd.DataFrame(columns=["Name"] + list(image_instance.getMetaData().keys()))
+                image_rating = pd.DataFrame(
+                    columns=["Name"] + list(image_instance.getMetaData().keys())
+                )
             output = [image_instance.getImageName()]
             for metadata in image_instance.getMetaData().values():
-                output.append(str(metadata.getValue()))
-            df.loc[i + 1] = output
-        df = df.sort_values(by="Name").reset_index(drop=True)
-        df["TrayName"] = df["Name"].str.extract(r"^(.*?)(?:_\d+)?\.(?:png|jpg|jpeg)$")
-        df.to_csv(os.path.join(self.value, "results.csv"), header=True, index=False)
+                output.append(metadata.getValue())
+            image_rating.loc[i + 1] = output
+        image_rating = image_rating.sort_values(by="Name").reset_index(drop=True)
+        image_rating["TrayName"] = image_rating["Name"].str.extract(
+            r"^(.*?)(?:_\d+)?\.(?:png|jpg|jpeg)$"
+        )
+        image_rating.to_csv(os.path.join(self.value, "results.csv"), header=True, index=False)
+        tray_avg = image_rating.drop(columns=["Name"])
+        tray_avg = tray_avg.groupby("TrayName").mean().reset_index()
+        tray_avg.to_csv(os.path.join(self.value, "tray_summary.csv"), header=True, index=False)
 
     def getImageList(self):
         """ """
