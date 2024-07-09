@@ -20,7 +20,7 @@ The following is a list of items you will need to construct the imaging station.
 
 Image Station Template
 ``````````````````````
-To aid image processing for Granny, an image station template mat has been created. it has different section specifically for placing a color card, black and white balance cards, written annotations and a tray of fruit. A powerpoint file is available with the template, including specific dimensions that can be provided to a printing company for printing.  The following image shows how the template looks.
+To aid image processing for Granny, an image station template mat has been created. it has different section specifically for placing a color card, black and white balance cards, written annotations and a tray of fruit. A powerpoint file is available with the template, including specific dimensions that can be provided to a printing company for printing.  The following image shows how the template looks. The template pictured here was printed on 4mm Polystrene sign board, dimensions 18 inches by 24 inches. A matte option for printing may be recommended if available.
 
 :Download:
 
@@ -31,15 +31,20 @@ To aid image processing for Granny, an image station template mat has been creat
 
 Color Card
 ```````````
+This color card is a Calibrite ColorChecker Classic Mini color balance card embedded in an epoxy resin by a 3rd party, Keldan Lights. The resin embedded card is designed for underwater photography, so this product is suitable for a wet environment, and can be cleaned regularly with warm water and a soft microfiber towl. This resined color card can be purchased from Keldan directly `here <https://keldanlights.com/products/accessories/color-management/1558-color-checker-and-gray-card.html>`_ (date link provided: 09 July 2024) or from other 3rd party vendors (ex. Backscatter Underwater Video and Photo `here <https://www.backscatter.com/Keldan-Color-Checker-and-Gray-Card>`_ (date link provided: 09 July 2024))
+
+
 .. figure:: ../_static/users_guide/image_station6.jpg
 
 White and Black Balance Cards
 `````````````````````````````
+The white and black balance cards are standard white and black balance cards for photography. The set pictured here are the DGK Color Tools Standard White Balance Card Set, purchased from Adorama `here <https://www.adorama.com/dgk1.html>`_ (date link provided: 09 July 2024).
+
 .. figure:: ../_static/users_guide/image_station7.png
 
 Annotation Plate 
 ````````````````
-The annotation plate, includes spaces for white and black balance cards.
+The annotation plate, includes spaces for white and black balance cards. The annotation plate pictured here was printed on 1mm Polystrene laminated sign board, dimensions here are 2.86 inches by 17.86 inches.
 
 .. figure:: ../_static/users_guide/image_station8.png
 
@@ -58,9 +63,9 @@ To attach the Color Card to the wood block, a simple 1 inch by 1 inch velcro typ
 
 Not Pictured
 ````````````
-- Microfiber Cloth
+- Microfiber Cloth (example `here <https://www.amazon.com/Microfiber-Cleaning-Cloth-Towel-Cars/dp/B08BWLHMCZ/ref=sr_1_6?crid=2G6CS2Q6URJ9I&dib=eyJ2IjoiMSJ9.b0tzGlOtk14Nl_CwwVII0dof7OoWyW217nNOFLVy6q96R0D2GLEmZ7BNG_CFL1QE8XSjhHDf4EZ7rRM6dV2PsrZ3Ozb3nMc0O50VkTQ4yLPDDYJS_054TDYRhyFMUM1I2iRPq3oYJ8m3P30dgSnMy-xU3cqrs-16J6oaaCxuyXahj3w-Ad_ek5h_G3NeXi1hPShCZBzLU9rnkhyCy5--6Jbp8PyGhry6Y4vIRx5kepBLq1qwvKvr1xvKjGV96g4QD2LB04-NKmLoNsFptlmF45nVh3eZ3WgiHuS6xaYI1So._664PZ9ZOwvPLwtNjPQ4sf2H770yLa299UHGRyn9uVo&dib_tag=se&keywords=microfiber+cloth&qid=1720544999&s=home-garden&sprefix=microfiber+cloth%2Cgarden%2C183&sr=1-6>`_ (date link provided: 09 July 2024))
 - 4cm Block
-- Calibrite Color Checker Classic Target
+- Calibrite Color Checker Classic Target (link `here <https://calibrite.com/us/product/colorchecker-classic-mini/>`_ (date linke provided: 09 July 2024))
  
 
 Image Station Standard Operating Procedures
@@ -102,7 +107,7 @@ Place Annotation Plate with Sample Information in the light grey box that says, 
 
 .. note::
     
-    Sample information can be written directly onto ONLY the thinner, laminated Annotation Plate using a dry erase marker.
+    Sample information may be written directly onto the laminated Annotation Plate using a dry erase marker. We strongly recommend testing a small area of any printed template/annotation plate material with dry erase marker to ensure it can be removed before writing full informaiton.
 
 .. note::
     
