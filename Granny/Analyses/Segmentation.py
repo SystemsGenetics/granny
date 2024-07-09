@@ -16,7 +16,7 @@ author: Nhan H. Nguyen
 import os
 import pathlib
 from datetime import datetime
-from typing import Any, List
+from typing import Any, Dict, List
 from urllib import request
 
 import numpy as np
@@ -32,19 +32,25 @@ from Granny.Models.Values.ImageListValue import ImageListValue
 from numpy.typing import NDArray
 
 
+class SegmentationConfig:
+    CLASSES: Dict[str, int] = {"fruits": 0, "tray_info": 1}
+    MODELS: Dict[str, Dict[str, str]] = {
+        "pome_fruit-v1_0": {
+            "full_name": "granny-v1_0-pome_fruit-v1_0.pt",
+            "url": "https://osf.io/dqzyn/download/",
+        }
+    }
+
+
 class Segmentation(Analysis):
     __analysis_name__ = "segmentation"
 
     def __init__(self):
         super().__init__()
+        self.config = SegmentationConfig
 
         # selects a model from the list to be used in this analysis
-        self.models = {
-            "pome_fruit-v1_0": {
-                "full_name": "granny-v1_0-pome_fruit-v1_0.pt",
-                "url": "https://osf.io/dqzyn/download/",
-            }
-        }
+        self.models = self.config.MODELS
         self.model = FileNameValue(
             "model",
             "model",
@@ -62,18 +68,7 @@ class Segmentation(Analysis):
             "input", "input", "The directory where input images are located."
         )
         self.input_images.setIsRequired(True)
-
-        self.output_images = ImageListValue(
-            "output", "output", "The output directory where analysis' images are written."
-        )
-        self.output_images.setValue(
-            os.path.join(
-                os.curdir,
-                "results",
-                self.__analysis_name__,
-                datetime.now().strftime("%Y-%m-%d-%H-%M"),
-            )
-        )
+        self.analysis_time = datetime.now().strftime("%Y-%m-%d-%H-%M")
         self.addInParam(self.model, self.input_images)
 
     def _getModelUrl(self, model_name: str):
@@ -120,15 +115,52 @@ class Segmentation(Analysis):
 
         return results
 
-    def _extractFeature(self, tray_image: Image) -> List[Image]:
+    def _extractTrayInfo(self, tray_image: Image) -> List[Image]:
         """
         From the given full 'tray_image', using the binary masks stored in 'results', performs
         instance segmentation to extract each YOLO-detected feature.
         """
+        tray_cls = SegmentationConfig.CLASSES["tray_info"]
         # gets bounding boxes, binary masks, and the original full-tray image array
         [results] = tray_image.getSegmentationResults()
-        boxes: NDArray[np.float32] = results.boxes.data.cpu().numpy()  # type: ignore
-        masks: NDArray[np.float32] = results.masks.data.cpu().numpy()  # type: ignore
+        boxes = results.boxes.cpu().numpy()
+        masks = results.masks.cpu().numpy()
+        tray_idx: int = np.where(boxes.cls == tray_cls)  # type: ignore
+        boxes: NDArray[np.float32] = boxes[tray_idx].data
+        masks: NDArray[np.float32] = masks[tray_idx].data
+        tray_image_array: NDArray[np.uint8] = tray_image.getImage()
+
+        # extracts instances based on bounding boxes and masks
+        tray_images: List[Image] = []
+        for i in range(len(masks)):
+            x1, y1, x2, y2, _, _ = boxes[i]
+            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            individual_image = np.zeros([y2 - y1, x2 - x1, 3], dtype=np.uint8)
+            mask = masks[i]
+            for channel in range(3):
+                individual_image[:, :, channel] = tray_image_array[y1:y2, x1:x2, channel] * mask[y1:y2, x1:x2]  # type: ignore
+            image_name = pathlib.Path(tray_image.getImageName()).stem + f"_{i+1}" + ".png"
+            image_instance: Image = RGBImage(image_name)
+            image_instance.setImage(individual_image)
+            tray_images.append(image_instance)
+
+        # returns a list of individual instances
+        return tray_images
+
+    def _extractImage(self, tray_image: Image) -> List[Image]:
+        """
+        From the given full 'tray_image', using the binary masks stored in 'results', performs
+        instance segmentation to extract each YOLO-detected image.
+        """
+        fruits_cls = SegmentationConfig.CLASSES["fruits"]
+
+        # gets bounding boxes, binary masks, and the original full-tray image array
+        [results] = tray_image.getSegmentationResults()
+        boxes = results.boxes.cpu().numpy()
+        masks = results.masks.cpu().numpy()
+        fruit_idx: int = np.where(boxes.cls == fruits_cls)  # type: ignore
+        boxes: NDArray[np.float32] = boxes[fruit_idx].data
+        masks: NDArray[np.float32] = masks[fruit_idx].data
         tray_image_array: NDArray[np.uint8] = tray_image.getImage()
 
         # sorts boxes and masks based on y-coordinates
@@ -149,7 +181,6 @@ class Segmentation(Analysis):
             image_name = pathlib.Path(tray_image.getImageName()).stem + f"_{i+1}" + ".png"
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
-            # image_instance.toBGR()
             individual_images.append(image_instance)
 
         # returns a list of individual instances
@@ -188,8 +219,8 @@ class Segmentation(Analysis):
         self.image_io: ImageIO = RGBImageFile()
 
         # performs segmentation on each image one-by-one
-        output_images: List[Image] = []
         segmented_images: List[Image] = []
+        tray_infos: List[Image] = []
         for image in self.images:
             # set ImageIO with specific file path
             self.image_io.setFilePath(image.getFilePath())
@@ -203,15 +234,43 @@ class Segmentation(Analysis):
             # sets segmentation result
             image.setSegmentationResults(results=result)
             try:
-                image_instances = self._extractFeature(image)
+                image_instances = self._extractImage(image)
+                tray_info = self._extractTrayInfo(image)
                 segmented_images.extend(image_instances)
+                tray_infos.extend(tray_info)
             except:
                 AttributeError("Skipping segmentation due to no detection.")
-            output_images.append(image)
 
-            # 1. sets the output ImageListValue with the list of segmented images
-            # 2. writes the segmented images to a folder
-            self.output_images.setImageList(segmented_images)
-            self.output_images.writeValue()
-
+        # 1. sets the output ImageListValue with the list of segmented images
+        # 2. writes the segmented images to a folder
+        output_images = ImageListValue(
+            "output", "output", "The output directory where analysis' images are written."
+        )
+        output_images.setValue(
+            os.path.join(
+                os.curdir,
+                "results",
+                self.__analysis_name__,
+                self.analysis_time,
+                "segmented_images",
+            )
+        )
+        output_images.setImageList(segmented_images)
+        output_images.writeValue()
+        tray_images = ImageListValue(
+            "info",
+            "info",
+            "The output directory where tray information of the analysis' images are written.",
+        )
+        tray_images.setValue(
+            os.path.join(
+                os.curdir,
+                "results",
+                self.__analysis_name__,
+                self.analysis_time,
+                "tray_infos",
+            )
+        )
+        tray_images.setImageList(tray_infos)
+        tray_images.writeValue()
         return segmented_images

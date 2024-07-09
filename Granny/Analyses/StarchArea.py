@@ -163,20 +163,20 @@ class StarchArea(Analysis):
         )
         self.output_results.setValue(result_dir)
 
-        # sets up default threshold parameter
-        self.threshold = IntValue(
-            "th",
-            "threshold",
-            "The color threshold, acting as initial anchor, that distinguishes iodine-stained "
-            + "starch regions",
-        )
-        self.threshold.setMin(0)
-        self.threshold.setMax(255)
-        self.threshold.setValue(172)
-        self.threshold.setIsRequired(False)
+        # # sets up default threshold parameter
+        # self.threshold = IntValue(
+        #     "th",
+        #     "threshold",
+        #     "The color threshold, acting as initial anchor, that distinguishes iodine-stained "
+        #     + "starch regions",
+        # )
+        # self.threshold.setMin(0)
+        # self.threshold.setMax(255)
+        # self.threshold.setValue(172)
+        # self.threshold.setIsRequired(False)
 
-        # adds parameters for argument parser
-        self.addInParam(self.threshold)
+        # # adds parameters for argument parser
+        # self.addInParam(self.threshold)
 
     def _drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -246,7 +246,7 @@ class StarchArea(Analysis):
         gray = adjustImage(gray, low, high)
 
         # create thresholded matrices
-        image_threshold = self.threshold.getValue()
+        image_threshold = 172
         mask = np.logical_and((gray > 0), (gray <= image_threshold)).astype(np.uint8)
 
         # creates new image using threshold matrices
@@ -267,8 +267,8 @@ class StarchArea(Analysis):
             for name, value in vars(self.starch_scales).items()
             if not name.startswith("_")
         }
-        # results to be returned in the form of dictionary, something like this:
-        # e.g. {HONEY_CRISP : 1.0, GRANNY_SMITH : 1.5,}
+        # results to be returned is in the form of dictionary, something like this:
+        # {HONEY_CRISP : 1.0, GRANNY_SMITH : 1.5,}
         results: Dict[str, float] = {}
         for name, data in scales.items():
             # rating and index list
@@ -339,7 +339,7 @@ class StarchArea(Analysis):
         """
         # initiates user's input
         self.input_images: ImageListValue = self.in_params.get(self.input_images.getName())  # type: ignore
-        self.threshold: IntValue = self.in_params.get(self.threshold.getName())  # type:ignore
+        # self.threshold: IntValue = self.in_params.get(self.threshol   d.getName())  # type:ignore
 
         # initiates an ImageIO for image input/output
         self.image_io: ImageIO = RGBImageFile()
