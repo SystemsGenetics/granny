@@ -13,12 +13,15 @@ date: June 06, 2024
 author: Nhan H. Nguyen
 """
 
+import colorsys
 import os
 import pathlib
+import random
 from datetime import datetime
 from typing import Any, Dict, List
 from urllib import request
 
+import matplotlib.pyplot as plt
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
 from Granny.Models.AIModel.AIModel import AIModel
@@ -29,6 +32,7 @@ from Granny.Models.IO.ImageIO import ImageIO
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from Granny.Models.Values.FileNameValue import FileNameValue
 from Granny.Models.Values.ImageListValue import ImageListValue
+from matplotlib import patches
 from numpy.typing import NDArray
 
 
@@ -48,6 +52,7 @@ class Segmentation(Analysis):
     def __init__(self):
         super().__init__()
         self.config = SegmentationConfig
+        self.analysis_time = datetime.now().strftime("%Y-%m-%d-%H-%M")
 
         # selects a model from the list to be used in this analysis
         self.models = self.config.MODELS
@@ -68,7 +73,49 @@ class Segmentation(Analysis):
             "input", "input", "The directory where input images are located."
         )
         self.input_images.setIsRequired(True)
-        self.analysis_time = datetime.now().strftime("%Y-%m-%d-%H-%M")
+        self.seg_images = ImageListValue(
+            "seg_img",
+            "segmented_images",
+            "The output directory where analysis' images are written.",
+        )
+        self.seg_images.setValue(
+            os.path.join(
+                os.curdir,
+                "results",
+                self.__analysis_name__,
+                self.analysis_time,
+                "segmented_images",
+            )
+        )
+        self.tray_infos = ImageListValue(
+            "info",
+            "tray_info",
+            "The output directory where tray information of the analysis' images are written.",
+        )
+        self.tray_infos.setValue(
+            os.path.join(
+                os.curdir,
+                "results",
+                self.__analysis_name__,
+                self.analysis_time,
+                "tray_infos",
+            )
+        )
+        self.full_images = ImageListValue(
+            "f_img",
+            "full_masked_image",
+            "The output directory where the full-masked images are written.",
+        )
+        self.full_images.setValue(
+            os.path.join(
+                os.curdir,
+                "results",
+                self.__analysis_name__,
+                self.analysis_time,
+                "full_masked_images",
+            )
+        )
+
         self.addInParam(self.model, self.input_images)
 
     def _getModelUrl(self, model_name: str):
@@ -114,6 +161,60 @@ class Segmentation(Analysis):
         results = self.segmentation_model.predict(image, retina_masks=True)  # type: ignore
 
         return results
+
+    def _writeMaskedImage(self, tray_image: Image) -> None:
+        """"""
+        [result] = tray_image.getSegmentationResults()
+        masks = result.masks.cpu()
+        boxes = result.boxes.cpu()
+        coords = boxes.xyxy.cpu().numpy()
+        confs = result.boxes.cpu().conf
+
+        img = tray_image.getImage()
+        result = img.copy()
+        alpha = 0.5
+        num_instances = masks.shape[0]
+        brightness = 1.0
+        hsv = [(i / num_instances, 1, brightness) for i in range(num_instances)]
+        colors = list(map(lambda c: colorsys.hsv_to_rgb(*c), hsv))
+        random.shuffle(colors)
+        fig, ax = plt.subplots()
+        for i in range(num_instances):
+            mask = masks.data[i].numpy()
+            for c in range(3):
+                result[:, :, c] = np.where(
+                    mask == 1,
+                    result[:, :, c] * (1 - alpha) + alpha * colors[i][c] * 255,
+                    result[:, :, c],
+                )
+
+            x1, y1, x2, y2 = coords[i]
+            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            ax.text(
+                x1, y1 + 10, "{:.3f}".format(confs[i]), color="w", size=7, backgroundcolor="none"
+            )
+            p = patches.Rectangle(
+                (x1, y1),
+                x2 - x1,
+                y2 - y1,
+                linewidth=1,
+                edgecolor=colors[i],
+                facecolor="none",
+                linestyle="dashed",
+            )
+            ax.add_patch(p)
+        plt.axis("off")
+        plt.imshow(result)
+        plt.tight_layout()
+        plt.savefig(
+            os.path.join(
+                self.full_images.getValue(),
+                tray_image.getImageName(),
+            ),
+            bbox_inches="tight",
+            pad_inches=0,
+            dpi=300,
+        )
 
     def _extractTrayInfo(self, tray_image: Image) -> List[Image]:
         """
@@ -220,7 +321,7 @@ class Segmentation(Analysis):
 
         # performs segmentation on each image one-by-one
         segmented_images: List[Image] = []
-        tray_infos: List[Image] = []
+        tray_images: List[Image] = []
         for image in self.images:
             # set ImageIO with specific file path
             self.image_io.setFilePath(image.getFilePath())
@@ -234,43 +335,22 @@ class Segmentation(Analysis):
             # sets segmentation result
             image.setSegmentationResults(results=result)
             try:
+                # extracts individual instances and tray information
                 image_instances = self._extractImage(image)
                 tray_info = self._extractTrayInfo(image)
                 segmented_images.extend(image_instances)
-                tray_infos.extend(tray_info)
+                tray_images.extend(tray_info)
+                # writes masked image
             except:
                 AttributeError("Skipping segmentation due to no detection.")
+            self._writeMaskedImage(image)
 
         # 1. sets the output ImageListValue with the list of segmented images
-        # 2. writes the segmented images to a folder
-        output_images = ImageListValue(
-            "output", "output", "The output directory where analysis' images are written."
-        )
-        output_images.setValue(
-            os.path.join(
-                os.curdir,
-                "results",
-                self.__analysis_name__,
-                self.analysis_time,
-                "segmented_images",
-            )
-        )
-        output_images.setImageList(segmented_images)
-        output_images.writeValue()
-        tray_images = ImageListValue(
-            "info",
-            "info",
-            "The output directory where tray information of the analysis' images are written.",
-        )
-        tray_images.setValue(
-            os.path.join(
-                os.curdir,
-                "results",
-                self.__analysis_name__,
-                self.analysis_time,
-                "tray_infos",
-            )
-        )
-        tray_images.setImageList(tray_infos)
-        tray_images.writeValue()
+        # 2. writes the segmented images to "segmented_images" folder
+        # 3. writes the tray information to "tray_info" folder
+        self.seg_images.setImageList(segmented_images)
+        self.seg_images.writeValue()
+
+        self.tray_infos.setImageList(tray_images)
+        self.tray_infos.writeValue()
         return segmented_images
