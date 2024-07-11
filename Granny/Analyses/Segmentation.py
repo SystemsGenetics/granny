@@ -18,12 +18,12 @@ import os
 import pathlib
 import random
 from datetime import datetime
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List, Tuple
 from urllib import request
 
-import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from Granny.Analyses.Analysis import Analysis
 from Granny.Models.AIModel.AIModel import AIModel
 from Granny.Models.AIModel.YoloModel import YoloModel
@@ -217,31 +217,75 @@ class Segmentation(Analysis):
             dpi=300,
         )
 
+    def _sortInstances(self, boxes: NDArray[np.float32], img_shape: Tuple[int, int]):
+        """
+        Helper function to sort the fruit tray using their center coordinates.
+
+        This sorting algorithm follows the numbering convention in demo/numbering_tray_convention.pdf
+        In an increasing order, sort by y-center coordinates then sort by x-center coordinates.
+        """
+        h, _ = img_shape
+        df = pd.DataFrame(boxes)
+        df.columns = ["x1", "y1", "x2", "y2", "conf", "cls"]
+        df["ycenter"] = ((df["y1"] + df["y2"]) / 2).astype(int)
+        df["xcenter"] = ((df["x1"] + df["x2"]) / 2).astype(int)
+        df["rows"] = 0
+        df["apple_id"] = 0
+        df["nums"] = df.index
+        df = df.sort_values("ycenter", ascending=True).reset_index(drop=True)
+        df["rows"] = (df["ycenter"].diff().abs().gt(h // 20).cumsum() + 1).fillna(1).astype(int)
+
+        df_list: List[pd.DataFrame] = []
+        apple_id = 1
+        increment = 1
+        for i in range(1, df["rows"].max() + 1):
+            dfx = (
+                df[df["rows"] == i].sort_values("xcenter", ascending=False).reset_index(drop=True)
+            )
+            dfx["apple_id"] = range(apple_id, apple_id + increment * len(dfx), increment)
+            df_list.append(dfx)
+            apple_id += increment * len(dfx)
+
+        combined_df = pd.concat(df_list, ignore_index=True)
+        return combined_df
+
     def _extractTrayInfo(self, tray_image: Image) -> List[Image]:
         """
         From the given full 'tray_image', using the binary masks stored in 'results', performs
         instance segmentation to extract each YOLO-detected feature.
         """
-        tray_cls = SegmentationConfig.CLASSES["tray_info"]
+        info_cls = SegmentationConfig.CLASSES["tray_info"]
+
         # gets bounding boxes, binary masks, and the original full-tray image array
         [results] = tray_image.getSegmentationResults()
         boxes = results.boxes.cpu().numpy()
         masks = results.masks.cpu().numpy()
-        tray_idx: int = np.where(boxes.cls == tray_cls)  # type: ignore
-        boxes: NDArray[np.float32] = boxes[tray_idx].data
-        masks: NDArray[np.float32] = masks[tray_idx].data
+        # checks for tray info class in segmentation results
+        if not info_cls in boxes.cls:
+            return []
+        tray_idx: NDArray[int] = np.where(boxes.cls == info_cls)  # type:ignore
+        boxes = boxes[tray_idx]
+        masks = masks[tray_idx]
         tray_image_array: NDArray[np.uint8] = tray_image.getImage()
+
+        # sorts boxes and masks based on xy-coordinates
+        sorted_df = self._sortInstances(boxes.data, boxes.orig_shape)
+        order: NDArray[np.float32] = sorted_df["nums"].to_numpy()
+        sorted_boxes = boxes.data[order]  # type: ignore
+        sorted_masks = masks.data[order]  # type: ignore
 
         # extracts instances based on bounding boxes and masks
         tray_images: List[Image] = []
-        for i in range(len(masks)):
-            x1, y1, x2, y2, _, _ = boxes[i]
+        for i in range(len(sorted_masks)):
+            x1, y1, x2, y2, _, _ = sorted_boxes[i]
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
             individual_image = np.zeros([y2 - y1, x2 - x1, 3], dtype=np.uint8)
-            mask = masks[i]
+            mask = sorted_masks[i]
             for channel in range(3):
                 individual_image[:, :, channel] = tray_image_array[y1:y2, x1:x2, channel] * mask[y1:y2, x1:x2]  # type: ignore
-            image_name = pathlib.Path(tray_image.getImageName()).stem + f"_{i+1}" + ".png"
+            image_name = (
+                pathlib.Path(tray_image.getImageName()).stem + f"_tray_info_{i+1}" + ".png"
+            )
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
             tray_images.append(image_instance)
@@ -254,22 +298,25 @@ class Segmentation(Analysis):
         From the given full 'tray_image', using the binary masks stored in 'results', performs
         instance segmentation to extract each YOLO-detected image.
         """
-        fruits_cls = SegmentationConfig.CLASSES["fruits"]
+        fruit_cls = SegmentationConfig.CLASSES["fruits"]
 
         # gets bounding boxes, binary masks, and the original full-tray image array
         [results] = tray_image.getSegmentationResults()
         boxes = results.boxes.cpu().numpy()
         masks = results.masks.cpu().numpy()
-        fruit_idx: int = np.where(boxes.cls == fruits_cls)  # type: ignore
-        boxes: NDArray[np.float32] = boxes[fruit_idx].data
-        masks: NDArray[np.float32] = masks[fruit_idx].data
+        # checks for fruit class in segmentation results
+        if not fruit_cls in boxes.cls:
+            return []
+        fruit_idx = np.where(boxes.cls == fruit_cls)  # type: ignore
+        boxes = boxes[fruit_idx]
+        masks = masks[fruit_idx]
         tray_image_array: NDArray[np.uint8] = tray_image.getImage()
 
-        # sorts boxes and masks based on y-coordinates
-        # todo: sort them using both x and y coordinates as numbering convention
-        y_order = boxes[:, 1].argsort()  # type: ignore
-        sorted_boxes = boxes[y_order]  # type: ignore
-        sorted_masks = masks[y_order]  # type: ignore
+        # sorts boxes and masks based on xy-coordinates
+        sorted_df = self._sortInstances(boxes.data, boxes.orig_shape)
+        order: NDArray[np.float32] = sorted_df["nums"].to_numpy()
+        sorted_boxes = boxes.data[order]  # type: ignore
+        sorted_masks = masks.data[order]  # type: ignore
 
         # extracts instances based on bounding boxes and masks
         individual_images: List[Image] = []
@@ -280,7 +327,7 @@ class Segmentation(Analysis):
             mask = sorted_masks[i]
             for channel in range(3):
                 individual_image[:, :, channel] = tray_image_array[y1:y2, x1:x2, channel] * mask[y1:y2, x1:x2]  # type: ignore
-            image_name = pathlib.Path(tray_image.getImageName()).stem + f"_{i+1}" + ".png"
+            image_name = pathlib.Path(tray_image.getImageName()).stem + f"_fruit_{i+1}" + ".png"
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
             individual_images.append(image_instance)
@@ -340,6 +387,7 @@ class Segmentation(Analysis):
 
             # sets segmentation result
             image_instance.setSegmentationResults(results=result)
+
             try:
                 # extracts individual instances and tray information
                 image_instances = self._extractImage(image_instance)
@@ -349,7 +397,7 @@ class Segmentation(Analysis):
                 # writes masked image
                 self._writeMaskedImage(image_instance)
             except:
-                AttributeError("Skipping segmentation due to no detection.")
+                AttributeError("Error with the results.")
 
         # 1. sets the output ImageListValue with the list of segmented images
         # 2. writes the segmented images to "segmented_images" folder
