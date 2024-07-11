@@ -18,9 +18,10 @@ import os
 import pathlib
 import random
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, cast
 from urllib import request
 
+import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from Granny.Analyses.Analysis import Analysis
@@ -178,7 +179,7 @@ class Segmentation(Analysis):
         hsv = [(i / num_instances, 1, brightness) for i in range(num_instances)]
         colors = list(map(lambda c: colorsys.hsv_to_rgb(*c), hsv))
         random.shuffle(colors)
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
         for i in range(num_instances):
             mask = masks.data[i].numpy()
             for c in range(3):
@@ -322,28 +323,33 @@ class Segmentation(Analysis):
         # performs segmentation on each image one-by-one
         segmented_images: List[Image] = []
         tray_images: List[Image] = []
-        for image in self.images:
+        for image_instance in self.images:
             # set ImageIO with specific file path
-            self.image_io.setFilePath(image.getFilePath())
+            self.image_io.setFilePath(image_instance.getFilePath())
 
             # loads image from file system with RGBImageFile(ImageIO)
-            image.loadImage(image_io=self.image_io)
+            image_instance.loadImage(image_io=self.image_io)
+
+            # rotates the image to landscape if the orientation is portrait
+            h, w, _ = image_instance.getShape()
+            if h > w:
+                image_instance.rotateImage()
 
             # predicts fruit instances in the image
-            result = self._segmentInstances(image.getImage())
+            result = self._segmentInstances(image=image_instance.getImage())
 
             # sets segmentation result
-            image.setSegmentationResults(results=result)
+            image_instance.setSegmentationResults(results=result)
             try:
                 # extracts individual instances and tray information
-                image_instances = self._extractImage(image)
-                tray_info = self._extractTrayInfo(image)
+                image_instances = self._extractImage(image_instance)
+                tray_info = self._extractTrayInfo(image_instance)
                 segmented_images.extend(image_instances)
                 tray_images.extend(tray_info)
                 # writes masked image
+                self._writeMaskedImage(image_instance)
             except:
                 AttributeError("Skipping segmentation due to no detection.")
-            self._writeMaskedImage(image)
 
         # 1. sets the output ImageListValue with the list of segmented images
         # 2. writes the segmented images to "segmented_images" folder

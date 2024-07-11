@@ -1,7 +1,7 @@
 import os
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 from Granny.Models.IO.ImageIO import ImageIO
@@ -65,6 +65,12 @@ class Image(ABC):
         """
         return Path(self.filepath).name
 
+    def getShape(self):
+        """
+        Retrieves the image's shape
+        """
+        return self.image.shape
+
     @abstractmethod
     def loadImage(self, image_io: ImageIO):
         """
@@ -103,6 +109,13 @@ class Image(ABC):
 
         Args:
             image (NDArray[np.uint8]): The image data to set.
+        """
+        pass
+
+    @abstractmethod
+    def rotateImage(self):
+        """
+        Rotates the image by 90 degrees
         """
         pass
 

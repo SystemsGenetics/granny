@@ -12,7 +12,6 @@ from Granny.Models.IO.ImageIO import ImageIO
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from Granny.Models.Values.FloatValue import FloatValue
 from Granny.Models.Values.ImageListValue import ImageListValue
-from Granny.Models.Values.IntValue import IntValue
 from Granny.Models.Values.MetaDataValue import MetaDataValue
 from numpy.typing import NDArray
 

@@ -5,7 +5,6 @@ import cv2
 import numpy as np
 from Granny.Models.IO.ImageIO import ImageIO
 from numpy.typing import NDArray
-from PIL import Image
 
 
 class RGBImageFile(ImageIO):
@@ -32,9 +31,7 @@ class RGBImageFile(ImageIO):
         """
         if not os.path.exists(os.path.join(output_path)):
             os.makedirs(os.path.join(output_path), exist_ok=True)
-        cv2.imwrite(
-            os.path.join(output_path, self.image_name), image
-        )
+        cv2.imwrite(os.path.join(output_path, self.image_name), image)
 
     def getType(self):
         """

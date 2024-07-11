@@ -24,6 +24,12 @@ class RGBImage(Image):
     def __init__(self, filepath: str):
         super().__init__(filepath)
 
+    def rotateImage(self):
+        """
+        {@inheritdoc}
+        """
+        self.image = cast(NDArray[np.uint8], cv2.rotate(self.image, cv2.ROTATE_90_CLOCKWISE))
+
     def getImage(self) -> NDArray[np.uint8]:
         """
         {@inheritdoc}
