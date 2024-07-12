@@ -1,11 +1,12 @@
-# "**Granny** is going to rate your fruits!"
+# **Granny** is going to rate your fruits!
 
 [![Documentation Status](https://readthedocs.org/projects/granny/badge/?version=latest)](https://granny.readthedocs.io/en/latest/?badge=latest)
 
-![alt tag](https://raw.githubusercontent.com/SystemsGenetics/granny/main/docs/_static/granny_logo_transparent.png)
-
-
 ## About
+
+<img src="https://raw.githubusercontent.com/SystemsGenetics/granny/main/docs/_static/granny_logo_transparent.png" alt="drawing" width="200" style="float: right"/>
+
+
 Quality assessment of pome fruits (i.e. apples and pears) is crucial for determining the optimal harvest time, and the progression of fruit-quality attributes during storage. This evaluation often includes careful visual assessments of fruit for apparent defects and physiological symptoms. A general best practice for quality assessment is to rate fruit using the same individual rater or group of individuals raters to reduce bias. However, such consistency across labs, facilities, and experiments is often not feasible or attainable. Visual human assessments are coarse-grained and lack consistent objective criteria. 
 
 Granny, is a designed for rating fruit using machine-learning and image-processing to address rater bias and improve resolution. Granny also provides ratings compatible with long-established standards and references, promoting continuity. 
