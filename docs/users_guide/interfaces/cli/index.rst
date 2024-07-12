@@ -21,7 +21,7 @@ You should see output similar to the following:
 
 ::
 
-    Granny 1.0a0
+    Granny 1.0a1
 
 Program Arguments
 -----------------

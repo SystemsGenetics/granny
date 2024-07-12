@@ -48,7 +48,7 @@ You will see output printed to the terminal as the installation progresses. If s
 ::
 
     Installing collected packages: granny
-    Successfully installed granny-1.0a0
+    Successfully installed granny-1.0a1
 
 
 Windows Installation
@@ -73,7 +73,7 @@ You will see output printed to the terminal as the installation progresses. If s
 ::
 
     Installing collected packages: granny
-    Successfully installed granny-1.0a0
+    Successfully installed granny-1.0a1
 
 
 Install the Development Version

@@ -7,7 +7,7 @@ Before fruit can be rated, each piece of fruit on a tray needs to be in its own 
    :align: center
    :width: 50%
 
-   Demo image for segmentation.
+   Demo image for segmentation. This image can be later used for the starch analysis.
 
 .. note::
 

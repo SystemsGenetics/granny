@@ -14,5 +14,5 @@ After segmentation, you can perform ratings of fruit quality. Granny provides fo
    :maxdepth: 1
    :caption: Rating Modules for Pears
 
-   pears/blush_rating
    pears/pear_color_rating
+   pears/blush_rating
