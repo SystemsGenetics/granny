@@ -3,7 +3,7 @@ Base abstract Analysis class for the analyses to be called by either the command
 or the graphical user interface.
 
 Author: Nhan Nguyen
-Date: May 21, 2024
+Date: July 12, 2024
 """
 
 import os
@@ -18,12 +18,24 @@ from Granny.Models.Values.Value import Value
 
 
 class Analysis(ABC):
+    """
+    Abstract base class for different types of analyses. This class provides the structure
+    and common functionality for performing analyses, including handling input parameters,
+    return values, and metadata.
+
+    Attributes:
+        in_params (Dict[str, Value]): Dictionary to store input parameters for the analysis.
+        ret_values (Dict[str, Value]): Dictionary to store return values from the analysis.
+        compatibility (Dict[str, Dict[str, str]]): Dictionary to define compatibility with other analyses.
+        metadata (List[Value]): List to store metadata about the analysis.
+    """
 
     __analysis_name__ = "analysis"
 
     def __init__(self):
         """
-        Initializes an instance of an Analysis object
+        Initializes an instance of an Analysis object, setting up the initial metadata
+        and preparing structures for input parameters and return values.
 
         @param GRANNY.Models.Images.Image An instance of an Image object
 
@@ -64,39 +76,52 @@ class Analysis(ABC):
 
     def addInParam(self, *params: Value):
         """
-        Adds a parameter to the parameter dictionary
+        Adds one or more parameters to the input parameter dictionary.
+
+        Args:
+            *params (Value): One or more Value instances to add as input parameters.
         """
         for param in params:
             self.in_params[param.getName()] = param
 
     def getInParams(self) -> Dict[str, Value]:
         """
-        Returns to the GUI/CLI all the required parameters in self.params
+        Retrieves all input parameters for the analysis.
+
+        Returns:
+            Dict[str, Value]: A dictionary of input parameters.
         """
+
         return dict(self.in_params)
 
     def resetInParams(self):
         """
-        Resets the list of input parameter
+        Resets the list of input parameters, clearing all current input parameters.
         """
         self.in_params = {}
 
     def addRetValue(self, *values: Value):
         """
-        Adds a value to the return parameter dictionary
+        Adds one or more values to the return value dictionary.
+
+        Args:
+            *values (Value): One or more Value instances to add as return values.
         """
         for value in values:
             self.ret_values[value.getName()] = value
 
     def getRetValues(self) -> Dict[str, Value]:
         """
-        Returns to the GUI/CLI all the required parameters in self.params
+        Retrieves all return values from the analysis.
+
+        Returns:
+            Dict[str, Value]: A dictionary of return values.
         """
         return dict(self.ret_values)
 
     def resetRetValues(self):
         """
-        Resets the list of input parameter
+        Resets the list of return values, clearing all current return values.
         """
         self.ret_values = {}
 

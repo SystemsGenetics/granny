@@ -1,3 +1,14 @@
+"""
+This module performs pear blush calculation on pear image files.
+The analysis is conducted as follows:
+    1. loads input images from a specified directory.
+    2. calculates the percentage and visually marks the blush regions in the input image.
+    3. saves the analyzed images and results, and returns a list of Image instances.
+
+date: July 12, 2024
+author: Nhan H. Nguyen
+"""
+
 import os
 from datetime import datetime
 from multiprocessing import Pool
@@ -18,6 +29,27 @@ from numpy.typing import NDArray
 
 
 class BlushColor(Analysis):
+    """
+    Analysis class to detect and quantify blush color regions on pear fruit images.
+
+    Inherits from Analysis class.
+
+    Attributes:
+        images : List[Image]
+            A list to store instances of Image objects for analysis.
+
+        input_images : ImageListValue
+            Input parameter representing the directory containing input images.
+
+        output_images : ImageListValue
+            Output parameter representing the directory where analyzed images are saved.
+
+        output_results : MetaDataValue
+            Output parameter representing the directory where analysis results are saved.
+
+        threshold : IntValue
+            Threshold parameter used to distinguish blush regions based on the A channel in LAB color space.
+    """
 
     __analysis_name__ = "blush"
 
@@ -66,7 +98,17 @@ class BlushColor(Analysis):
         self.addInParam(self.threshold)
 
     def _calculateBlush(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
-        """ """
+        """
+        Calculate the percentage of blush area on the pear fruit image using LAB color space.
+
+        Args:
+            img : NDArray[np.uint8]
+                The input image in BGR format.
+
+        Returns:
+            Tuple[float, NDArray[np.uint8]]:
+                Tuple containing the percentage of blush area and the processed image with marked blush regions.
+        """
         # convert from BGR to Lab color space
         new_img = img.copy()
         lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2LAB))
@@ -131,7 +173,9 @@ class BlushColor(Analysis):
         return result_img
 
     def performAnalysis(self) -> List[Image]:
-        """ """
+        """
+        {@inheritdoc}
+        """
         # initiates user's input
         self.input_images: ImageListValue = self.in_params.get(self.input_images.getName())  # type: ignore
         # self.threshold: IntValue = self.in_params.get(self.threshol   d.getName())  # type:ignore
