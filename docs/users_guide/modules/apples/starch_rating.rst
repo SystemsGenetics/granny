@@ -1,15 +1,22 @@
 Rating Starch Content
 =====================
 
-.. attention::
-    
-    :ref:`Step 2: Run Segmentation` must be performed before using this rating module.
-
 The starch rating module of Granny is used to determine the ratio of starch in a cross-sectioned fruit treated with potassium iodide and iodine solution (Lugol’s solution). 
 
-Rating Starch Clearing
-----------------------
-Inside of your Granny project directory (created in the :ref:`Step 1: Project Setup`), and where you already performed the segmentation step, you will run the `starch` analysis on the command-line. Like the segmentation step, you must provide several arguments. The following table lists the arguments needed for the `starch`  analysis:
+Segmentation for Starch Rating
+------------------------------
+Prior to running this module, :ref:`Step 2: Run Segmentation` must be performed so that apples on the tray can be separated into individual images. To follow along with this tutorial, you can use the following image:
+
+.. figure:: ../../../_static/users_guide/starch_example.hires.JPG
+   :align: center
+   :width: 50%
+
+   Demo image for starch analysis.
+
+
+Rate Starch Clearing
+--------------------
+Inside of your Granny project directory (created in the :ref:`Step 1: Project Setup`), you should performed the segmentation step before proceeding with starch analysis. Now, you will run the `starch` analysis on the command-line. Like the segmentation step, you must provide several arguments. The following table lists the arguments needed for the `starch` analysis:
 
 .. csv-table::
    :header: "Granny Options", "Description"
@@ -19,7 +26,7 @@ Inside of your Granny project directory (created in the :ref:`Step 1: Project Se
    "``--analysis starch``", "Indicates you want to run the starch analysis."
    "``--input``", "The directory where the segmented images of apple cross-sections, stained with iodine are kept."
 
-Similar to the segmentation step, when you specific the ``--input`` argument, you can drag and drop the folder where the cross-section images from the segmentation are stored. This will be the ``segmented_images`` folder created during the `segmentation` step.  For example if the results from segmentation are in this location  ``/home/johns_smith/demo/results/segmentation/2024-07-11-23-34/segmented_images`` then your command line will look like the following:
+Similar to the segmentation step, when you specify the ``--input`` argument, you can drag and drop the folder where the cross-section images from the segmentation are stored. This will be the ``segmented_images`` folder created during the `segmentation` step.  For example if the results from segmentation are in this location  ``/home/johns_smith/demo/results/segmentation/2024-07-11-23-34/segmented_images`` then your command line will look like the following:
 
 .. code:: bash
 
@@ -30,7 +37,7 @@ Similar to the segmentation step, when you specific the ``--input`` argument, yo
 
     Remember, you can drag and drop a folder from the file browser into the terminal so you do not have to type the full directory path.
 
-While running the starch step, Granny will output something similar to the terminal:
+While running the starch analysis, Granny will output something similar to the terminal:
 
 
 ::
@@ -40,8 +47,7 @@ While running the starch step, Granny will output something similar to the termi
 
 Starch Rating Results
 ---------------------
-Similar to the segmentation step, a new folder named ``starch`` will be created in the ``results`` results folder. It too will have a sub folder with the date the analysis was run.  Inside this folder will be the results file named ``results.csv`` and images of each apple, with regions of starch colored in a dark gray tansparent amsk.
-
+Similar to the segmentation step, a new folder named ``starch`` will be created in the ``results`` results folder. It too will have a sub folder with the date the analysis was run.  Inside this folder will be the results file named ``results.csv`` and images of each apple, with regions of starch colored in a dark gray transparent mask.
 
 .. image:: ../../../_static/users_guide/starch_results_folder.png
 

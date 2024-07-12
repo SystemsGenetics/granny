@@ -15,9 +15,6 @@ _build/
 *result*/
 
 # Files
-*.gif
-*.jpg
-*.jpeg
 *.pyc
 *.out
 *.pptx
@@ -37,5 +34,4 @@ test_perf.py
 *.lock
 *.ini
 *.vscode
-*.png
 *.yaml
