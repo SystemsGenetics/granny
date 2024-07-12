@@ -1,27 +1,60 @@
 Rating Color in Pears
 =====================
 
-.. attention::
-    
-    :ref:`Step 2: Run Segmentation` must be performed before using this rating module.
 
-This module will determine the color on a piece of fruit. The module will output the results as a ``results.csv`` file that can be opened in Microsoft Excel or another spreadsheet program. The results include: the color vs total fruit area (rating) for each individual piece of fruit. Granny's color rating module will also report an average tray level  color rating. 
+This module will determine the color on a piece of fruit. 
 
-Example of starch rating command line usage:
+Segmentation for Pear Color Rating
+----------------------------------
+
+Prior to running this module, :ref:`Step 2: Run Segmentation` must be performed so that pears on the tray can be separated into individual images. To follow along with this tutorial, you can use the following image:
+
+.. figure:: ../../../_static/users_guide/pear_demo_image.hires.JPG
+   :align: center
+   :width: 50%
+
+   Demo image for pear color analysis.
+
+
+Rate Pear Color
+---------------
+Inside of your Granny project directory (created in the :ref:`Step 1: Project Setup`), you should have performed the segmentation step before proceeding with pear color analysis. Now, you will run the `color` analysis on the command-line. Like the segmentation step, you must provide several arguments. The following table lists the arguments needed for the `color` analysis:
+
+.. csv-table::
+   :header: "Granny Options", "Description"
+   :widths: auto
+
+   "``-i cli``", "Indicates you want to use the command-line interface."
+   "``--analysis color``", "Indicates you want to run the color analysis."
+   "``--input``", "The directory where the segmented images of apple cross-sections, stained with iodine are kept."
+
+Similar to the segmentation step, when you specify the ``--input`` argument, you can drag and drop the folder where the images from the segmentation are stored. This will be the ``segmented_images`` folder created during the `segmentation` step.  For example if the results from segmentation are in this location  ``/home/johns_smith/results/segmentation/2024-07-12-09-05/segmented_images`` then your command line will look like the following:
 
 .. code:: bash
 
-    granny -i cli --action color --image_dir ./results/segmentation/<date_and_time_of_run>
+    granny -i cli --analysis color --input /home/john_smith/demo/results/segmentation/2024-07-12-09-05/segmented_images
 
-.. figure:: ../../../_static/users_guide/Color_Example_small.JPG
-   :align: center
 
-   Example image of tray that Granny color can process.
+.. note::
 
-.. attention::
-    
-    The image above shows a tray that ultimately will get rated for color however, in practice, users must perform segmentation before rating color.
- 
+    Remember, you can drag and drop a folder from the file browser into the terminal so you do not have to type the full directory path.
+
+While running the color analysis, Granny will output something similar to the terminal:
+
+
+::
+
+    input                    : (user) /home/john_smith/demo/results/segmentation/2024-07-12-09-05/segmented_images
+
+
+
+Pear Color Rating Results
+-------------------------
+Similar to the segmentation step, a new folder named ``color`` will be created in the ``results`` results folder. It too will have a sub folder with the date the analysis was run.  Inside this folder will be the results file named ``results.csv`` and images of each pear.
+
+.. image:: ../../../_static/users_guide/color_results_folder.png
+
+The ``results.csv`` file can be opened using Microsoft Excel or another spreadsheet program. The file includes the segmented image name and several rating values.
 
 .. csv-table:: color Rating Results .csv
     :header: Name,bin,score,distance,location,l,a,b,TrayName
@@ -46,6 +79,25 @@ Example of starch rating command line usage:
     Color_Example_8.png,4,0.6499018671623829,4.525019766465617,1.0,50,-28.785119627954426,76.66404584678685,Color_Example
     Color_Example_9.png,4,0.6198036457425253,7.130207185838455,1.0,50,-32.46627873591814,75.93724145628157,Color_Example
 
+The following provides the meaning of each column in ``results.csv`` file:
 
+   - **Name**: The name of the segmented image. A single pear is contained in each image.
+   - **bin**: Granny will estimate a color that best approximates the rating in the color card that is commonly used for pear color rating.  An image of the color card can be found below.
+   - **score**: The granny color score rating. The score ranges from 0 to 1, where 1 indicates more yellow fruit and lower numbers more greenish fruit.  Formally, this score is the distance along the line that passes through the color card colors in LAB color space. Please see the published `Granny manuscript <https://www.biorxiv.org/content/10.1101/2024.04.03.588000v1.full>`_ for more detailed information about how this score is calculated. 
+   - **distance**: This value indicates the distance from the line that passes through the color card colors in LAB color space.  Because the color card can not include the color of every pear, this number is meant to indicate how "off" the color might be from a traditional color card rating.  The closer to 0 the less "off" it is.
+   - **location**: Indicates if the distance value is above (1 value) or below (-1 value) the line.
+   - **l**: The "L" channel value in the LAB color space.
+   - **a**: The "A" channel value in the LAB color space.
+   - **b**: The "B" channel value in the LAB color space.
+   - **TrayName**: The name of the original tray image.
 
-Each segemented image with a mask of the color is located in ``/results/color/<date and time of run>`` directory, users can navigate to this directory to check what is being used in the color rating. This is also where the color rating ``results.csv`` file (shown in table above) will be output. 
+The following is an image of the color card that is commonly used to rate pear color. Each color on the card has a unique number from 0.5 (most green) to 5 (most yellow).
+
+.. image:: ../../../_static/users_guide/pear_color_card.jpg
+
+Granny's pear color rating module will also report an average tray level color rating in the ``tray_summary.csv`` file. 
+
+.. csv-table:: tray_summary.csv
+    :header: TrayName,bin,score,distance,location,l,a,b
+
+    pear_demo_image_fruit,4.22222222222222,0.660048942774391,4.28146103077064,0.555555555555556,50,-27.5796094195362,76.7010994738336

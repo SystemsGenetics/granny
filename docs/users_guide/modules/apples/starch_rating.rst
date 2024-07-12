@@ -16,7 +16,7 @@ Prior to running this module, :ref:`Step 2: Run Segmentation` must be performed 
 
 Rate Starch Clearing
 --------------------
-Inside of your Granny project directory (created in the :ref:`Step 1: Project Setup`), you should performed the segmentation step before proceeding with starch analysis. Now, you will run the `starch` analysis on the command-line. Like the segmentation step, you must provide several arguments. The following table lists the arguments needed for the `starch` analysis:
+Inside of your Granny project directory (created in the :ref:`Step 1: Project Setup`), you should have performed the segmentation step before proceeding with starch analysis. Now, you will run the `starch` analysis on the command-line. Like the segmentation step, you must provide several arguments. The following table lists the arguments needed for the `starch` analysis:
 
 .. csv-table::
    :header: "Granny Options", "Description"
