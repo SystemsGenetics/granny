@@ -41,7 +41,7 @@ class SegmentationConfig:
     MODELS: Dict[str, Dict[str, str]] = {
         "pome_fruit-v1_0": {
             "full_name": "granny-v1_0-pome_fruit-v1_0.pt",
-            "url": "https://osf.io/dqzyn/download/",
+            "url": "https://osf.io/vyfhm/download/",
         }
     }
 
@@ -125,7 +125,6 @@ class Segmentation(Analysis):
         model_url = ""
         try:
             model_url = self.models[model_name]["url"]
-            print(f"Model URL: {model_url}")
         except KeyError:
             print(f"Key '{model_name}' not found in configuration.")
         return model_url
