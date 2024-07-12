@@ -162,21 +162,6 @@ class StarchArea(Analysis):
         )
         self.output_results.setValue(result_dir)
 
-        # # sets up default threshold parameter
-        # self.threshold = IntValue(
-        #     "th",
-        #     "threshold",
-        #     "The color threshold, acting as initial anchor, that distinguishes iodine-stained "
-        #     + "starch regions",
-        # )
-        # self.threshold.setMin(0)
-        # self.threshold.setMax(255)
-        # self.threshold.setValue(172)
-        # self.threshold.setIsRequired(False)
-
-        # # adds parameters for argument parser
-        # self.addInParam(self.threshold)
-
     def _drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
         Overlays a binary mask on an image.
@@ -258,7 +243,7 @@ class StarchArea(Analysis):
 
         return starch / ground_truth, new_img
 
-    def calculateIndex(self, target: float) -> Dict[str, float]:
+    def _calculateIndex(self, target: float) -> Dict[str, float]:
         """ """
         # unpacks StarchScales constants as a dictionary
         scales = {
@@ -315,7 +300,7 @@ class StarchArea(Analysis):
         rating.setValue(score)
 
         # calculates the closest index of the image to each StarchScale
-        starch_indices = self.calculateIndex(score)
+        starch_indices = self._calculateIndex(score)
 
         # adds each starch scale's index into the image instance
         for scale_name, index in starch_indices.items():
