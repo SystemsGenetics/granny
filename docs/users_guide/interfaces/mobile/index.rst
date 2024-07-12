@@ -1,5 +1,5 @@
-Use the Mobile Application
-==========================
+The Mobile Application
+======================
 
 .. note:: 
 
