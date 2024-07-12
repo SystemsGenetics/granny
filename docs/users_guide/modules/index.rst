@@ -1,13 +1,18 @@
-Rating Modules
-==============
+Step 3: Run Fruit Rating
+========================
 
+After segmentation, you can perform ratings of fruit quality. Granny provides four different rating modules:
 
 .. toctree::
    :maxdepth: 1
-   :caption: Contents: 
+   :caption: Rating Modules for Apples
 
-   segmentation
-   blush_rating
-   pear_color_rating
-   scald_rating
-   starch_rating
+   apples/starch_rating
+   apples/scald_rating
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Rating Modules for Pears
+
+   pears/blush_rating
+   pears/pear_color_rating

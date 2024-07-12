@@ -6,8 +6,8 @@ Granny was built using Python3 and can be run on any modern operating system inc
 Opening the terminal
 --------------------
 
-Ubuntu 22.04 Linux
-``````````````````
+Ubuntu 22.04 Terminal
+`````````````````````
 The command-line interface for Granny can be opened by clicking on Ubuntu icon on the task bar:
 
 .. figure:: ../_static/users_guide/install_ubuntu_icon.png
@@ -19,24 +19,24 @@ Search for "terminal" in the search box that appears.  Click the icon with the t
 Within the terminal you can type the commands to install Granny.
 
 
-Windows
-```````
+Windows Terminal
+````````````````
 .. note::
 
     Instructions will be added here.
 
-OS X
-````
+Mac OS X Terminal
+`````````````````
 
 .. note::
 
-    Instructions will be added here.
+    Follow the same instructions as Linux: Ubuntu 22.04.
 
 Install the Most Recent Release
 -------------------------------
 
-Linux: Ubuntu 22.04
-```````````````````
+Ubuntu 22.04 Installation
+`````````````````````````
 Python3 comes pre-installed on Ubuntu. You can install Granny along with all its dependencies using the `pip3` command in the terminal in the following way:
 
 .. code:: bash
@@ -51,20 +51,30 @@ You will see output printed to the terminal as the installation progresses. If s
     Successfully installed granny-1.0a0
 
 
-Windows
-```````
+Windows Installation
+`````````````````````
 
 .. note::
 
     Instructions will be added here.
 
 
-Mac OS X
-```````
+Mac OS X Installation
+`````````````````````
 
-.. note::
+Python3 comes pre-installed on OS X. You can install Granny along with all its dependencies using the `pip3` command in the terminal in the following way:
 
-    Instructions will be added here.
+.. code:: bash
+
+    pip3 install granny
+
+You will see output printed to the terminal as the installation progresses. If successful, you will see something similar to the following:
+
+::
+
+    Installing collected packages: granny
+    Successfully installed granny-1.0a0
+
 
 Install the Development Version
 -------------------------------

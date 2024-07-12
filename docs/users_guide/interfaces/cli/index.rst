@@ -1,5 +1,5 @@
-Use the Command-Line
-====================
+The Command-Line Interface
+==========================
 
 The command-line is a fully text-based interface and can be used to execute all of analytical tools of Granny.  While the command-line is not the most intuitive interface for those of us used to the graphical desktop of a Windows or Mac computer, the command-line provides some important benefits:
 
@@ -9,7 +9,7 @@ The command-line is a fully text-based interface and can be used to execute all 
 
 The following describes how to use Granny on the command-line.  Regardless if you are on a Linux, Mac OS X, or Windows terminal, the commands for Granny will be the same. The Granny command-line is not available on the mobile version of the software.
 
-Running Granny
+Execute Granny
 --------------
 Once Granny is installed, you can simply execute it by calling the program and providing arguments. A simple command to run Granny is to ask it for its version. To see the version of Granny that you have installed type the following into the terminal window and press enter:
 

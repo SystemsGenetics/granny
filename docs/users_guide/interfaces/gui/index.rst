@@ -1,5 +1,5 @@
-Use the Desktop Application
-===========================
+The Desktop Application
+=======================
 
 .. note:: 
 

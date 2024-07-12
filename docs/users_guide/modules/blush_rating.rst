@@ -1,3 +1,0 @@
-Rating Blush in Pears
-=====================
-
