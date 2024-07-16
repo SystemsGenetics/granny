@@ -145,7 +145,9 @@ class StarchArea(Analysis):
         )
         self.input_images.setIsRequired(True)
         self.output_images = ImageListValue(
-            "output", "output", "The output directory where analysis' images are written."
+            "output",
+            "output",
+            "The output directory where analysis' images are written.",
         )
         result_dir = os.path.join(
             os.curdir,
@@ -158,7 +160,9 @@ class StarchArea(Analysis):
 
         # sets up output result directory
         self.output_results = MetaDataValue(
-            "results", "results", "The output directory where analysis' results are written."
+            "results",
+            "results",
+            "The output directory where analysis' results are written.",
         )
         self.output_results.setValue(result_dir)
 
@@ -323,7 +327,7 @@ class StarchArea(Analysis):
         """
         # initiates user's input
         self.input_images: ImageListValue = self.in_params.get(self.input_images.getName())  # type: ignore
-        # self.threshold: IntValue = self.in_params.get(self.threshol   d.getName())  # type:ignore
+        # self.threshold: IntValue = self.in_params.get(self.threshold.getName())  # type:ignore
 
         # initiates an ImageIO for image input/output
         self.image_io: ImageIO = RGBImageFile()

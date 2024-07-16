@@ -1,7 +1,7 @@
 # Directories
 *data
 __pycache__
-.vscode
+.vscode/
 .DS_Store
 01-*
 baseline/
