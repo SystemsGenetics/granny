@@ -35,3 +35,7 @@ test_perf.py
 *.ini
 *.vscode
 *.yaml
+*.png
+*.jpeg
+*.jpg
+*.tiff
