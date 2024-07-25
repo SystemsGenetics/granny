@@ -7,7 +7,6 @@ The analysis will be carried out in the following manner:
        convention: granny-v{granny_version}-{model_name}-v{model_version}.pt
     2. parses user's input for image folder, initiates a list of Granny.Models.
        Images.Image, then runs YOLOv8 on the images.
-    3.
 
 date: June 06, 2024
 author: Nhan H. Nguyen
@@ -164,10 +163,16 @@ class Segmentation(Analysis):
     def _extractMaskedImage(self, tray_image: Image) -> Image:
         """"""
         [result] = tray_image.getSegmentationResults()
-        masks = result.masks.cpu()
-        boxes = result.boxes.cpu()
-        coords = boxes.xyxy.cpu().numpy()
-        confs = result.boxes.cpu().conf
+        masks = result.masks.cpu().numpy()
+        boxes = result.boxes.cpu().numpy()
+        confs = result.boxes.cpu().conf.numpy()
+
+        # sorts boxes and masks based on xy-coordinates
+        sorted_df = self._sortInstances(boxes.data, boxes.orig_shape)
+        order: NDArray[np.float32] = sorted_df["nums"].to_numpy()
+        sorted_boxes = boxes.data[order]  # type: ignore
+        sorted_masks = masks.data[order]  # type: ignore
+        confs = confs[order]
 
         img = tray_image.getImage()
         result = img.copy()
@@ -178,7 +183,7 @@ class Segmentation(Analysis):
         colors = list(map(lambda c: colorsys.hsv_to_rgb(*c), hsv))
         random.shuffle(colors)
         for i in range(num_instances):
-            mask = masks.data[i].numpy()
+            mask = sorted_masks[i]
             (r, g, b) = colors[i]
             for c in range(3):
                 result[:, :, c] = np.where(
@@ -187,12 +192,12 @@ class Segmentation(Analysis):
                     result[:, :, c],
                 )
 
-            x1, y1, x2, y2 = coords[i]
+            x1, y1, x2, y2, _, _ = sorted_boxes[i]
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
             cv2.rectangle(result, (x1, y1), (x2, y2), (r * 255, g * 255, b * 255), 5)
             cv2.putText(
                 result,
-                "{:.3f}".format(confs[i]),
+                "{:2.0f}-{:.3f}".format(i, confs[i]),
                 (x1, y1),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=2,
@@ -357,8 +362,6 @@ class Segmentation(Analysis):
 
         # performs segmentation on each image one-by-one
         segmented_images: List[Image] = []
-        tray_images: List[Image] = []
-        masked_images: List[Image] = []
         for image_instance in self.images:
             # set ImageIO with specific file path
             self.image_io.setFilePath(image_instance.getFilePath())
@@ -385,23 +388,19 @@ class Segmentation(Analysis):
                 # and masked image
                 masked_image = self._extractMaskedImage(image_instance)
 
-                # save to list for output
-                segmented_images.extend(image_instances)
-                tray_images.extend(tray_infos)
-                masked_images.append(masked_image)
+                # 1. sets the output ImageListValue with the list of segmented images
+                # 2. writes the segmented images to "segmented_images" folder
+                # 3. writes the tray information to "tray_info" folder
+                # 4. writes the full masked images to "full_masked_images" folder
+                self.seg_images.setImageList(image_instances)
+                self.seg_images.writeValue()
+
+                self.tray_infos.setImageList(tray_infos)
+                self.tray_infos.writeValue()
+
+                self.masked_images.setImageList([masked_image])
+                self.masked_images.writeValue()
             except:
                 AttributeError("Error with the results.")
 
-        # 1. sets the output ImageListValue with the list of segmented images
-        # 2. writes the segmented images to "segmented_images" folder
-        # 3. writes the tray information to "tray_info" folder
-        # 4. writes the full masked images to "full_masked_images" folder
-        self.seg_images.setImageList(segmented_images)
-        self.seg_images.writeValue()
-
-        self.tray_infos.setImageList(tray_images)
-        self.tray_infos.writeValue()
-
-        self.masked_images.setImageList(masked_images)
-        self.masked_images.writeValue()
         return segmented_images
