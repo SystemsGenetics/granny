@@ -1,3 +1,16 @@
+"""
+This module performs color extraction/evaluation calculation on pear image files.
+The analysis is conducted as follows:
+    1. It loads input images from a specified directory.
+    2. Removes surrounding purple from apples using YCrCb color space.
+    3. Calculates mean values of green and yellow in CIELAB color space, normalized to L = 50.
+    4. Calculates distance from normalized LAB to each bin color.
+    5. Calculates distance to the least-mean-square line in LAB color space.
+
+date: July 12, 2024
+author: Nhan H. Nguyen
+"""
+
 import os
 from datetime import datetime
 from multiprocessing import Pool
@@ -18,6 +31,20 @@ from numpy.typing import NDArray
 
 
 class PeelColor(Analysis):
+    """
+    Analysis class for evaluating peel color characteristics of images.
+
+    Attributes:
+        __analysis_name__ (str): Name of the analysis.
+        input_images (ImageListValue): Input images directory.
+        output_images (ImageListValue): Output images directory for analyzed images.
+        output_results (MetaDataValue): Output directory for analysis results.
+        MEAN_VALUES_A (List[float]): Mean values for A component in color card.
+        MEAN_VALUES_B (List[float]): Mean values for B component in color card.
+        SCORE (List[float]): Scores corresponding to color bins.
+        LINE_POINT_1 (NDArray[np.float16]): First point of the reference line in LAB color space.
+        LINE_POINT_2 (NDArray[np.float16]): Second point of the reference line in LAB color space.
+    """
     __analysis_name__ = "color"
 
     def __init__(self):
@@ -87,8 +114,13 @@ class PeelColor(Analysis):
 
     def remove_purple(self, img: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
-        Remove the surrounding purple from the individual apples using YCrCb color space.
-        This function helps remove the unwanted regions for more precise calculation of the scald area.
+        Remove surrounding purple from individual apples using YCrCb color space.
+
+        Args:
+            img (NDArray[np.uint8]): Original BGR image array.
+
+        Returns:
+            NDArray[np.uint8]: Processed image array with purple regions removed.
         """
         # convert BGR to YCrCb
         new_img = img.copy()
@@ -111,8 +143,13 @@ class PeelColor(Analysis):
 
     def get_green_yellow_values(self, img: NDArray[np.uint8]) -> Tuple[float, float, float]:
         """
-        Get the mean pixel values from the images representing the amount of
-        green and yellow in the CIELAB color space. Then, normalize the values to L = 50.
+        Get mean pixel values representing green and yellow in CIELAB color space, normalized to L = 50.
+
+        Args:
+            img (NDArray[np.uint8]): Original BGR image array.
+
+        Returns:
+            Tuple[float, float, float]: Mean values for L, A, B channels in LAB color space.
         """
         # convert from BGR to Lab color space
         lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2LAB))
@@ -150,10 +187,14 @@ class PeelColor(Analysis):
         self, color_list: List[float], method: str = "Euclidean"
     ) -> Tuple[int, NDArray[np.float16]]:
         """
-        Calculate the Euclidean distance from normalized image's LAB to each
-        bin color.
-        Return the shortest distance and the corresponding bin.
+        Calculate distance from normalized LAB color to each bin color.
 
+        Args:
+            color_list (List[float]): List containing color values.
+            method (str, optional): Method for distance calculation. Defaults to "Euclidean".
+
+        Returns:
+            Tuple[int, NDArray[np.float16]]: Bin number and distance array.
         """
         bin_num = 0
         dist: NDArray[np.float16]
@@ -180,11 +221,18 @@ class PeelColor(Analysis):
             bin_num = np.argmin(dist) + 1
         return bin_num, dist
 
-    def calculate_score_distance(
+    def _calculate_score_distance(
         self, color_list: List[float]
     ) -> Tuple[Tuple[float, float], float, float, float]:
-        """ """
+        """
+        Calculate distance to least-mean-square line in LAB color space.
 
+        Args:
+            color_list (List[float]): List containing color values.
+
+        Returns:
+            Tuple[Tuple[float, float], float, float, float]: Projection, score, distance, point.
+        """
         def calculate_intersection(
             line1: Tuple[Any, Any],
             line2: Tuple[Any, Any],
@@ -271,7 +319,7 @@ class PeelColor(Analysis):
             score,
             orth_distance,
             point,
-        ) = self.calculate_score_distance([l, a, b])
+        ) = self._calculate_score_distance([l, a, b])
 
         # bin number according to the color card
         bin_num, _ = self.calculate_bin_distance([score], method="Score")

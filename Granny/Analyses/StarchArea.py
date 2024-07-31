@@ -1,3 +1,16 @@
+"""
+This module performs starch analysis on cross-section user-provided image files.
+The analysis is conducted as follows:
+    1. parses user's input for image folder, initiates a list of Granny.Models.Images.Image,
+    then runs the starch calculation on the images to get a mask and a rating for each image.
+    2. overlays the mask on to the original image indicating starch clearing area of the
+    cross-sections.
+    3. adds the rating to the image instance
+    4. outputs the masked images to image files and the ratings to a ".csv" file.
+
+date: July 12, 2024
+author: Nhan H. Nguyen
+"""
 import os
 from datetime import datetime
 from multiprocessing import Pool
@@ -17,7 +30,23 @@ from numpy.typing import NDArray
 
 
 class StarchScales:
-    """ """
+    """
+    A class to store starch scale indices and corresponding ratings for different apple varieties.
+
+    This class provides predefined starch index and rating values for various apple varieties.
+    These values are used to evaluate the starch content in apples, which is an indicator of
+    their ripeness and suitability for consumption or storage.
+
+    Attributes: (Refers to docs/_static/users_guide/ for the list of starch indices in this module)
+        HONEY_CRISP (Dict[str, List[float]]): Starch index and rating for Honey Crisp apples.
+        WA38_1 (Dict[str, List[float]]): Starch index and rating for WA38_1 apples.
+        WA38_2 (Dict[str, List[float]]): Starch index and rating for WA38_2 apples.
+        ALLAN_BROS (Dict[str, List[float]]): Starch index and rating for Allan Bros apples.
+        GOLDEN_DELICIOUS (Dict[str, List[float]]): Starch index and rating for Golden Delicious apples.
+        GRANNY_SMITH (Dict[str, List[float]]): Starch index and rating for Granny Smith apples.
+        JONAGOLD (Dict[str, List[float]]): Starch index and rating for Jonagold apples.
+        CORNELL (Dict[str, List[float]]): Starch index and rating for Cornell apples.
+    """
 
     HONEY_CRISP: Dict[str, List[float]] = {
         "index": [1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0],
@@ -130,6 +159,20 @@ class StarchScales:
 
 
 class StarchArea(Analysis):
+    """
+    This class performs starch content analysis on apple images.
+
+    This class extends the Analysis base class and provides functionality to
+    calculate starch content in apple images, rate the images based on predefined
+    starch scales in StarchScales, and save the results.
+
+    Attributes:
+        images (List[Image]): List of Image objects to be analyzed.
+        starch_scales (StarchScales): Reference to the StarchScales class containing starch scales data.
+        input_images (ImageListValue): Input parameter for directory containing input images.
+        output_images (ImageListValue): Output parameter for directory to save analyzed images.
+        output_results (MetaDataValue): Output parameter for directory to save analysis results.
+    """
 
     __analysis_name__ = "starch"
 
@@ -194,6 +237,14 @@ class StarchArea(Analysis):
         its intensity values, and creating a binary thresholded image to identify the starch
         regions. The ratio of starch pixels to the total pixels in the ground truth is
         returned along with the modified image.
+
+        Args:
+            img (NDArray[np.uint8]): The input image as a NumPy array of type np.uint8.
+
+        Returns:
+            Tuple[float, NDArray[np.uint8]]: A tuple containing:
+                - float: The ratio of starch pixels to total pixels in the ground truth.
+                - NDArray[np.uint8]: The modified image with identified starch regions.
         """
 
         def extractImage(img: NDArray[np.uint8]) -> Tuple[int, int]:
@@ -248,7 +299,22 @@ class StarchArea(Analysis):
         return starch / ground_truth, new_img
 
     def _calculateIndex(self, target: float) -> Dict[str, float]:
-        """ """
+        """
+        Calculates the starch index for different apple varieties based on the closest
+        rating to the target value.
+
+        This function computes the starch index for each apple variety based on the closest
+        rating to the specified target value. It utilizes predefined starch scales stored
+        in `self.starch_scales`, extracting ratings and corresponding index values. The
+        closest index value to the target rating is selected for each variety.
+
+        Args:
+            target (float): The target rating value to find the closest match for.
+
+        Returns:
+            Dict[str, float]: A dictionary mapping apple variety names to their calculated
+            starch index values. Example: {'HONEY_CRISP': 1.0, 'GRANNY_SMITH': 1.5, ...}
+        """
         # unpacks StarchScales constants as a dictionary
         scales = {
             name: value
@@ -272,14 +338,31 @@ class StarchArea(Analysis):
 
     def _rateImageInstance(self, image_instance: Image) -> Image:
         """
-        1. Loads and performs analysis on the provided Image instance.
-        2. Saves the instance to result directory
+        Loads and analyzes the provided Image instance to calculate starch content and ratings.
 
-        @param image_instance: An GRANNY.Models.Images.Image instance
+        This method performs the following steps:
+        1. Sets the file path for the Image instance using self.image_io.
+        2. Loads the image from the file system using image_instance.loadImage().
+        3. Calculates the starch percentage in the loaded image using self._calculateStarch().
+        4. Creates a new result Image instance with the calculated starch areas.
+        5. Saves the calculated rating score to the result Image instance as a parameter.
+        6. Calculates and adds starch scale indices to the result Image instance using self._calculateIndex().
 
-        @return
-            image_name: file name of the image instance
-            score: rating for the instance
+        Args:
+            image_instance (Image): An instance of GRANNY.Models.Images.Image representing the image to be rated.
+
+        Returns:
+            Image: A modified Image instance containing:
+                - image_name: The file name of the input image instance.
+                - score: The calculated rating for the starch content in the image.
+                - Additional values for each starch scale index calculated.
+
+        Raises:
+            Any specific exceptions that might be raised during image loading or processing.
+
+        Note:
+            Ensure that self.image_io and GRANNY.Models.Images.Image are correctly initialized
+            and imported respectively before calling this method.
         """
         # initiates ImageIO
         self.image_io.setFilePath(image_instance.getFilePath())

@@ -1,14 +1,15 @@
 """
-This class perform instance segmentation on the user provided image files.
-The analysis will be carried out in the following manner:
+This module performs instance segmentation on user-provided image files.
+The analysis is conducted as follows:
     1. retrieves the machine learning (instance segmentation) trained models
        from https://osf.io/. to the current directory 'Analyses/'. The machine
        learning models are uploaded manually and should be named in this
        convention: granny-v{granny_version}-{model_name}-v{model_version}.pt
     2. parses user's input for image folder, initiates a list of Granny.Models.
        Images.Image, then runs YOLOv8 on the images.
+    3. extracts and processes the segmented instances from the images.
 
-date: June 06, 2024
+date: July 12, 2024
 author: Nhan H. Nguyen
 """
 
@@ -36,6 +37,38 @@ from numpy.typing import NDArray
 
 
 class SegmentationConfig:
+    """
+    Configuration class for instance segmentation module.
+
+    This class provides the configuration details for different segmentation models,
+    including the class labels and model details.
+
+    Attributes:
+        CLASSES (Dict[str, int]): A dictionary mapping class names to their respective integer labels.
+            Format:
+                {
+                    "class_name_1": int_label_1,
+                    "class_name_2": int_label_2,
+                    ...
+                }
+
+        MODELS (Dict[str, Dict[str, str]]): A dictionary containing model details. Each model is represented
+            by another dictionary that includes the full name of the model file and the URL to download it from.
+            format:
+                {
+                    "model_name_1": {
+                        "model_full_name_1": "*.pt",
+                        "osf_urf_1": "https://osf_link/download/"
+                    }
+                }
+                {
+                    "model_name_2": {
+                        "model_full_name_2": "*.pt",
+                        "osf_urf_1": "https://osf_link/download/"
+                    }
+                }
+    """
+
     CLASSES: Dict[str, int] = {"fruits": 0, "tray_info": 1}
     MODELS: Dict[str, Dict[str, str]] = {
         "pome_fruit-v1_0": {
@@ -46,6 +79,29 @@ class SegmentationConfig:
 
 
 class Segmentation(Analysis):
+    """
+    Segmentation class for analyzing and segmenting images to identify fruit.
+
+    This class extends the `Analysis` base class and provides functionality for
+    setting up and performing segmentation analysis using specified models. It 
+    manages input and output directories for images and results, and allows for
+    specifying models either by name or file path.
+
+    Attributes:
+        __analysis_name__ (str): The name of the analysis type, set to "segmentation".
+        config (SegmentationConfig): Configuration settings for segmentation.
+        analysis_time (str): The timestamp when the analysis instance is created.
+        models (list): List of available models for segmentation.
+        model (FileNameValue): Specifies the model for segmentation, with options for known 
+            model names or file paths. Default is "pome_fruit-v1_0".
+        input_images (ImageListValue): Directory path for input images, required for analysis.
+        seg_images (ImageListValue): Directory path for saving segmented images, defaults to
+            a timestamped folder within "results/segmentation".
+        tray_infos (ImageListValue): Directory path for saving tray information of analyzed images,
+            defaults to a timestamped folder within "results/segmentation".
+        masked_images (ImageListValue): Directory path for saving full-masked images, defaults to
+            a timestamped folder within "results/segmentation".
+    """
     __analysis_name__ = "segmentation"
 
     def __init__(self):
@@ -161,7 +217,19 @@ class Segmentation(Analysis):
         return results
 
     def _extractMaskedImage(self, tray_image: Image) -> Image:
-        """"""
+        """
+        Extracts a masked image from the given tray image, overlaying segmentation masks and bounding boxes.
+
+        This method applies segmentation masks to the input tray image and draws bounding boxes around the detected objects.
+        Each mask is colored uniquely, and the confidence score of each detected object is displayed on the image.
+
+        Args:
+            tray_image (Image): The input tray image from which to extract the masked image.
+                This object is expected to have methods `getSegmentationResults()` and `getImage()`.
+
+        Returns:
+            Image: An image instance with the segmentation masks and bounding boxes overlaid.
+        """
         [result] = tray_image.getSegmentationResults()
         masks = result.masks.cpu().numpy()
         boxes = result.boxes.cpu().numpy()
@@ -214,8 +282,20 @@ class Segmentation(Analysis):
         """
         Helper function to sort the fruit tray using their center coordinates.
 
-        This sorting algorithm follows the numbering convention in demo/numbering_tray_convention.pdf
-        In an increasing order, sort by y-center coordinates then sort by x-center coordinates.
+        This sorting algorithm follows the numbering convention in demo/numbering_tray_convention.pdf.
+        In an increasing order, it sorts by y-center coordinates and then by x-center coordinates.
+
+        Args:
+            boxes (NDArray[np.float32]): A NumPy array of shape (N, 6), where N is the number of bounding boxes.
+                Each row represents a bounding box with the format [x1, y1, x2, y2, conf, cls].
+            img_shape (Tuple[int, int]): A tuple representing the shape of the image (height, width).
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the sorted bounding boxes with additional columns:
+                - ycenter: The y-coordinate of the center of the bounding box.
+                - xcenter: The x-coordinate of the center of the bounding box.
+                - rows: The row number assigned based on the y-center coordinates.
+                - apple_id: The unique identifier assigned to each bounding box after sorting.
         """
         h, _ = img_shape
         df = pd.DataFrame(boxes)
@@ -244,8 +324,19 @@ class Segmentation(Analysis):
 
     def _extractTrayInfo(self, tray_image: Image) -> List[Image]:
         """
-        From the given full 'tray_image', using the binary masks stored in 'results', performs
-        instance segmentation to extract each YOLO-detected feature.
+        Extracts individual tray information instances from the given tray image.
+
+        This method identifies and isolates instances of the "tray_info" class within the provided tray image.
+        It uses the segmentation results to extract bounding boxes and masks for the relevant class,
+        sorts these instances, and then extracts and saves individual images for each detected instance.
+
+        Args:
+            tray_image (Image): The input tray image from which to extract tray information instances.
+                This object is expected to have methods `getSegmentationResults()` and `getImage()`.
+
+        Returns:
+            List[Image]: A list of `Image` objects representing the individual tray information instances.
+                If no instances of the "tray_info" class are found, an empty list is returned.
         """
         info_cls = SegmentationConfig.CLASSES["tray_info"]
 
@@ -288,8 +379,20 @@ class Segmentation(Analysis):
 
     def _extractImage(self, tray_image: Image) -> List[Image]:
         """
-        From the given full 'tray_image', using the binary masks stored in 'results', performs
-        instance segmentation to extract each YOLO-detected image.
+        Extracts individual fruit instances from the given tray image using binary masks.
+
+        This method performs instance segmentation on the input tray image to isolate and extract
+        images of each fruit detected by the YOLO model. It utilizes the segmentation results to
+        obtain bounding boxes and masks, sorts the instances, and then extracts and saves individual
+        images for each detected fruit.
+
+        Args:
+            tray_image (Image): The input tray image from which to extract fruit instances.
+                This object is expected to have methods `getSegmentationResults()` and `getImage()`.
+
+        Returns:
+            List[Image]: A list of `Image` objects representing the individual fruit instances.
+                If no instances of the "fruits" class are found, an empty list is returned.
         """
         fruit_cls = SegmentationConfig.CLASSES["fruits"]
 

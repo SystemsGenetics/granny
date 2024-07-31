@@ -1,8 +1,15 @@
 """
-Superficial scald calculation module for Granny Smith apple images.
+This module performs superficial scald calculation on "Granny Smith" apple image files.
+The analysis is conducted as follows:
+    1. It loads input images from a specified directory.
+    2. It processes each image to remove unwanted areas (e.g., purple tray residues).
+    3. It identifies and removes scald regions using morphological operations and color space
+    analysis.
+    4. It calculates the percentage of the image affected by scald.
+    5. It outputs processed images and analysis results to specified directories.
 
-Author: Nhan Nguyen
-Date: May 21, 2024
+date: July 12, 2024
+author: Nhan H. Nguyen
 """
 
 import os
@@ -25,7 +32,17 @@ from numpy.typing import NDArray
 
 
 class SuperficialScald(Analysis):
+    """
+    Analysis class for detecting superficial scald regions on "Granny Smith" apple images.
 
+    Attributes:
+        __analysis_name__ (str): The name of the analysis ('scald').
+        input_images (ImageListValue): List of input images to analyze.
+        output_images (ImageListValue): List of output images with scald regions identified.
+        output_results (MetaDataValue): Metadata value containing the directory where analysis
+        results are saved.
+    """
+    
     __analysis_name__ = "scald"
 
     def __init__(self):
@@ -54,10 +71,15 @@ class SuperficialScald(Analysis):
         )
         self.output_results.setValue(result_dir)
 
-    def smoothMask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
+    def _smoothMask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
-        Smooth scald region with basic morphological operations.
-        By performing morphology, the binary mask will be smoothened to avoid discontinuity.
+        Smooths scald region with basic morphological operations.
+
+        Args:
+            bin_mask (NDArray[np.uint8]): Binary mask representing scald regions.
+
+        Returns:
+            NDArray[np.uint8]: Smoothed binary mask after morphological operations.
         """
         bin_mask = bin_mask
 
@@ -80,9 +102,17 @@ class SuperficialScald(Analysis):
 
     def _removeScald(self, img: NDArray[np.uint8]) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
         """
-        Remove the scald region from the individual apple images.
-        Note that the stem could have potentially been removed during the process.
+        Removes the scald region from individual apple images.
+
+        Args:
+            img (NDArray[np.uint8]): Original BGR image array.
+
+        Returns:
+            Tuple[NDArray[np.uint8], NDArray[np.uint8]]: Tuple containing:
+                - NDArray[np.uint8]: Binary mask of scald regions.
+                - NDArray[np.uint8]: Image with scald regions removed.
         """
+
         # convert from BGR to Lab color space
         new_img = img.copy()
         lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2LAB))
@@ -109,7 +139,7 @@ class SuperficialScald(Analysis):
         )
 
         # perform simple morphological operation to smooth the binary mask
-        th123 = self.smoothMask(th123)
+        th123 = self._smoothMask(th123)
 
         # apply the binary mask on the image
         for i in range(3):
@@ -118,8 +148,13 @@ class SuperficialScald(Analysis):
 
     def _removeTrayResidue(self, img: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
-        Remove the surrounding purple from the individual apples using YCrCb color space.
-        This function helps remove the unwanted regions for more precise calculation of the scald area.
+        Removes the surrounding purple tray residue from individual apples using YCrCb color space.
+
+        Args:
+            img (NDArray[np.uint8]): Original BGR image array.
+
+        Returns:
+            NDArray[np.uint8]: Image with surrounding purple tray residue removed.
         """
         # convert BGR to YCrCb
         new_img = img.copy()
@@ -144,9 +179,16 @@ class SuperficialScald(Analysis):
         self, img: NDArray[np.uint8]
     ) -> Tuple[NDArray[np.uint8], NDArray[np.uint8], NDArray[np.uint8]]:
         """
-        @param img: array representation of the image
+        Cleans up individual image by removing purple tray residue and scald regions.
 
-        Clean up individual image (remove purple area of the tray), and remove scald
+        Args:
+            img (NDArray[np.uint8]): Original BGR image array.
+
+        Returns:
+            Tuple[NDArray[np.uint8], NDArray[np.uint8], NDArray[np.uint8]]: Tuple containing:
+                - NDArray[np.uint8]: Image with surrounding purple tray residue removed.
+                - NDArray[np.uint8]: Image with scald regions removed.
+                - NDArray[np.uint8]: Binary mask of scald regions.
         """
         # removes the residue tray background
         img = self._removeTrayResidue(img)
@@ -187,7 +229,15 @@ class SuperficialScald(Analysis):
 
     def _rateSuperficialScald(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
         """
-        Calls self.calculateScald function to calculate the scald portion of the image array.
+        Rates the superficial scald of the provided image array.
+
+        Args:
+            img (NDArray[np.uint8]): Original BGR image array.
+
+        Returns:
+            Tuple[float, NDArray[np.uint8]]: Tuple containing:
+                - float: Calculated rating score for the scald area.
+                - NDArray[np.uint8]: Binarized image with scald regions identified.
         """
         # returns apple image with no scald
         nopurple_img, binarized_image, _ = self._score_image(img)
@@ -198,14 +248,15 @@ class SuperficialScald(Analysis):
 
     def _rateImageInstance(self, image_instance: Image) -> Image:
         """
-        1. Loads and performs analysis on the provided Image instance.
-        2. Saves the instance to result directory
+        Loads and analyzes the provided Image instance for superficial scald.
 
-        @param image_instance: An GRANNY.Models.Images.Image instance
+        Args:
+            image_instance (Image): An instance of GRANNY.Models.Images.Image representing the image to be rated.
 
-        @return
-            image_name: file name of the image instance
-            score: rating for the instance
+        Returns:
+            Image: An updated Image instance containing:
+                - image_name: The file name of the input image instance.
+                - rating: Calculated rating for the superficial scald area.
         """
         # initiates ImageIO
         self.image_io.setFilePath(image_instance.getFilePath())
