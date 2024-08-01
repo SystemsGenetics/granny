@@ -15,7 +15,9 @@ class AIModel(ABC):
         self.model_dir: str = model_dir
         self.model: Any
         self.device = (
-            "cuda:0" if torch.cuda.is_available() else "mps" if mps.is_available() else "cpu"
+            "cuda:0"
+            if torch.cuda.is_available()
+            else "mps" if mps.is_available() else "cpu"
         )
 
     @abstractmethod
