@@ -42,7 +42,7 @@ class SuperficialScald(Analysis):
         output_results (MetaDataValue): Metadata value containing the directory where analysis
         results are saved.
     """
-    
+
     __analysis_name__ = "scald"
 
     def __init__(self):
@@ -54,7 +54,9 @@ class SuperficialScald(Analysis):
         )
         self.input_images.setIsRequired(True)
         self.output_images = ImageListValue(
-            "output", "output", "The output directory where analysis' images are written."
+            "output",
+            "output",
+            "The output directory where analysis' images are written.",
         )
         result_dir = os.path.join(
             os.curdir,
@@ -67,7 +69,9 @@ class SuperficialScald(Analysis):
 
         # sets up output result directory
         self.output_results = MetaDataValue(
-            "results", "results", "The output directory where analysis' results are written."
+            "results",
+            "results",
+            "The output directory where analysis' results are written.",
         )
         self.output_results.setValue(result_dir)
 
@@ -100,7 +104,9 @@ class SuperficialScald(Analysis):
         )  # type: ignore
         return bin_mask
 
-    def _removeScald(self, img: NDArray[np.uint8]) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
+    def _removeScald(
+        self, img: NDArray[np.uint8]
+    ) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
         """
         Removes the scald region from individual apple images.
 
@@ -134,9 +140,9 @@ class SuperficialScald(Analysis):
         threshold_3 = np.logical_and((lab_img[:, :, 2] >= 1), (lab_img[:, :, 2] <= 255))
 
         # combine to one matrix
-        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
-            np.uint8
-        )
+        th123 = np.logical_and(
+            np.logical_and(threshold_1, threshold_2), threshold_3
+        ).astype(np.uint8)
 
         # perform simple morphological operation to smooth the binary mask
         th123 = self._smoothMask(th123)
@@ -166,9 +172,9 @@ class SuperficialScald(Analysis):
         threshold_3 = np.logical_and((ycc_img[:, :, 2] >= 0), (ycc_img[:, :, 2] <= 126))
 
         # combine to one matrix
-        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
-            np.uint8
-        )
+        th123 = np.logical_and(
+            np.logical_and(threshold_1, threshold_2), threshold_3
+        ).astype(np.uint8)
 
         # create new image using threshold matrices
         for i in range(3):
@@ -227,7 +233,9 @@ class SuperficialScald(Analysis):
             return 0
         return fraction
 
-    def _rateSuperficialScald(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
+    def _rateSuperficialScald(
+        self, img: NDArray[np.uint8]
+    ) -> Tuple[float, NDArray[np.uint8]]:
         """
         Rates the superficial scald of the provided image array.
 
@@ -275,7 +283,9 @@ class SuperficialScald(Analysis):
         result_img.setImage(binarized_image)
 
         # saves the calculated score to the image_instance as a parameter
-        rating = FloatValue("rating", "rating", "Granny calculated rating of total starch area.")
+        rating = FloatValue(
+            "rating", "rating", "Granny calculated rating of total starch area."
+        )
         rating.setMin(0.0)
         rating.setMax(1.0)
         rating.setValue(score)

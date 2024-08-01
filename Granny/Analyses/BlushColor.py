@@ -64,7 +64,9 @@ class BlushColor(Analysis):
         )
         self.input_images.setIsRequired(True)
         self.output_images = ImageListValue(
-            "output", "output", "The output directory where analysis' images are written."
+            "output",
+            "output",
+            "The output directory where analysis' images are written.",
         )
         result_dir = os.path.join(
             os.curdir,
@@ -77,7 +79,9 @@ class BlushColor(Analysis):
 
         # sets up output result directory
         self.output_results = MetaDataValue(
-            "results", "results", "The output directory where analysis' results are written."
+            "results",
+            "results",
+            "The output directory where analysis' results are written.",
         )
         self.output_results.setValue(result_dir)
 
@@ -97,7 +101,9 @@ class BlushColor(Analysis):
         # adds threshold to the parameter input list
         self.addInParam(self.threshold)
 
-    def _calculateBlush(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
+    def _calculateBlush(
+        self, img: NDArray[np.uint8]
+    ) -> Tuple[float, NDArray[np.uint8]]:
         """
         Calculate the percentage of blush area on the pear fruit image using LAB color space.
 
@@ -162,7 +168,9 @@ class BlushColor(Analysis):
         result_img.setImage(result)
 
         # saves the calculated score to the image_instance as a parameter
-        rating = FloatValue("rating", "rating", "Granny calculated rating of total blush area.")
+        rating = FloatValue(
+            "rating", "rating", "Granny calculated rating of total blush area."
+        )
         rating.setMin(0.0)
         rating.setMax(1.0)
         rating.setValue(score)

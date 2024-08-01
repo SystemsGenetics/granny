@@ -11,6 +11,7 @@ The analysis is conducted as follows:
 date: July 12, 2024
 author: Nhan H. Nguyen
 """
+
 import os
 from datetime import datetime
 from multiprocessing import Pool
@@ -209,7 +210,9 @@ class StarchArea(Analysis):
         )
         self.output_results.setValue(result_dir)
 
-    def _drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
+    def _drawMask(
+        self, img: NDArray[np.uint8], mask: NDArray[np.uint8]
+    ) -> NDArray[np.uint8]:
         """
         Overlays a binary mask on an image.
 
@@ -228,7 +231,9 @@ class StarchArea(Analysis):
             )
         return result
 
-    def _calculateStarch(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
+    def _calculateStarch(
+        self, img: NDArray[np.uint8]
+    ) -> Tuple[float, NDArray[np.uint8]]:
         """
         Calculates the starch content in the given image and return the modified image.
 
@@ -381,7 +386,9 @@ class StarchArea(Analysis):
         result_img.setImage(result)
 
         # saves the calculated score to the image_instance as a parameter
-        rating = FloatValue("rating", "rating", "Granny calculated rating of total starch area.")
+        rating = FloatValue(
+            "rating", "rating", "Granny calculated rating of total starch area."
+        )
         rating.setMin(0.0)
         rating.setMax(1.0)
         rating.setValue(score)

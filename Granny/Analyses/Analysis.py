@@ -52,7 +52,9 @@ class Analysis(ABC):
 
         # Set some default metadata values for all analyses:
         # The analysis date and time.
-        time = StringValue("dt", "datetime", "Date and time of when the analysis was performed.")
+        time = StringValue(
+            "dt", "datetime", "Date and time of when the analysis was performed."
+        )
         time.setValue(datetime.now().strftime("%Y-%m-%d %H:%M"))
         self.metadata.append(time)
 
@@ -62,7 +64,9 @@ class Analysis(ABC):
         self.metadata.append(id)
 
         # Current directory
-        path = StringValue("path", "cur_dir", "Absolute file path of the current directory.")
+        path = StringValue(
+            "path", "cur_dir", "Absolute file path of the current directory."
+        )
         path.setValue(os.path.abspath(os.curdir))
         self.metadata.append(path)
 

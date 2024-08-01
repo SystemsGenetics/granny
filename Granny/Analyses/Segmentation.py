@@ -83,7 +83,7 @@ class Segmentation(Analysis):
     Segmentation class for analyzing and segmenting images to identify fruit.
 
     This class extends the `Analysis` base class and provides functionality for
-    setting up and performing segmentation analysis using specified models. It 
+    setting up and performing segmentation analysis using specified models. It
     manages input and output directories for images and results, and allows for
     specifying models either by name or file path.
 
@@ -92,7 +92,7 @@ class Segmentation(Analysis):
         config (SegmentationConfig): Configuration settings for segmentation.
         analysis_time (str): The timestamp when the analysis instance is created.
         models (list): List of available models for segmentation.
-        model (FileNameValue): Specifies the model for segmentation, with options for known 
+        model (FileNameValue): Specifies the model for segmentation, with options for known
             model names or file paths. Default is "pome_fruit-v1_0".
         input_images (ImageListValue): Directory path for input images, required for analysis.
         seg_images (ImageListValue): Directory path for saving segmented images, defaults to
@@ -102,6 +102,7 @@ class Segmentation(Analysis):
         masked_images (ImageListValue): Directory path for saving full-masked images, defaults to
             a timestamped folder within "results/segmentation".
     """
+
     __analysis_name__ = "segmentation"
 
     def __init__(self):
@@ -306,16 +307,22 @@ class Segmentation(Analysis):
         df["apple_id"] = 0
         df["nums"] = df.index
         df = df.sort_values("ycenter", ascending=True).reset_index(drop=True)
-        df["rows"] = (df["ycenter"].diff().abs().gt(h // 20).cumsum() + 1).fillna(1).astype(int)
+        df["rows"] = (
+            (df["ycenter"].diff().abs().gt(h // 20).cumsum() + 1).fillna(1).astype(int)
+        )
 
         df_list: List[pd.DataFrame] = []
         apple_id = 1
         increment = 1
         for i in range(1, df["rows"].max() + 1):
             dfx = (
-                df[df["rows"] == i].sort_values("xcenter", ascending=False).reset_index(drop=True)
+                df[df["rows"] == i]
+                .sort_values("xcenter", ascending=False)
+                .reset_index(drop=True)
             )
-            dfx["apple_id"] = range(apple_id, apple_id + increment * len(dfx), increment)
+            dfx["apple_id"] = range(
+                apple_id, apple_id + increment * len(dfx), increment
+            )
             df_list.append(dfx)
             apple_id += increment * len(dfx)
 
@@ -368,7 +375,9 @@ class Segmentation(Analysis):
             for channel in range(3):
                 individual_image[:, :, channel] = tray_image_array[y1:y2, x1:x2, channel] * mask[y1:y2, x1:x2]  # type: ignore
             image_name = (
-                pathlib.Path(tray_image.getImageName()).stem + f"_tray_info_{i+1}" + ".png"
+                pathlib.Path(tray_image.getImageName()).stem
+                + f"_tray_info_{i+1}"
+                + ".png"
             )
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
@@ -423,7 +432,9 @@ class Segmentation(Analysis):
             mask = sorted_masks[i]
             for channel in range(3):
                 individual_image[:, :, channel] = tray_image_array[y1:y2, x1:x2, channel] * mask[y1:y2, x1:x2]  # type: ignore
-            image_name = pathlib.Path(tray_image.getImageName()).stem + f"_fruit_{i+1}" + ".png"
+            image_name = (
+                pathlib.Path(tray_image.getImageName()).stem + f"_fruit_{i+1}" + ".png"
+            )
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
             individual_images.append(image_instance)
@@ -435,14 +446,17 @@ class Segmentation(Analysis):
         """
         {@inheritdoc}
         """
-        self.model_name: str = self.in_params.get(self.model.getName()).getValue()  # type:ignore
+        self.model_name: str = self.in_params.get(
+            self.model.getName()
+        ).getValue()  # type:ignore
 
         # download trained ML models from https://osf.io to the current directory
         if self.model_name.endswith(".pt"):
             self.local_model_path = self.model_name
         else:
             self.local_model_path = os.path.join(
-                f"{pathlib.Path(__file__).parent}", self.models[self.model_name]["full_name"]
+                f"{pathlib.Path(__file__).parent}",
+                self.models[self.model_name]["full_name"],
             )
             if not os.path.exists(self.local_model_path):
                 model_url: str = self._getModelUrl(self.model_name)  # type: ignore
@@ -454,7 +468,9 @@ class Segmentation(Analysis):
         self.segmentation_model = self.AIModel.getModel()
 
         # initiates user's input
-        self.input_images = self.in_params.get(self.input_images.getName())  # type:ignore
+        self.input_images = self.in_params.get(
+            self.input_images.getName()
+        )  # type:ignore
 
         # initiates Granny.Model.Images.Image instances for the analysis using the user's input
         self.input_images.readValue()

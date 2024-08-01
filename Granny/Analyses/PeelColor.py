@@ -45,6 +45,7 @@ class PeelColor(Analysis):
         LINE_POINT_1 (NDArray[np.float16]): First point of the reference line in LAB color space.
         LINE_POINT_2 (NDArray[np.float16]): Second point of the reference line in LAB color space.
     """
+
     __analysis_name__ = "color"
 
     def __init__(self):
@@ -55,7 +56,9 @@ class PeelColor(Analysis):
         )
         self.input_images.setIsRequired(True)
         self.output_images = ImageListValue(
-            "output", "output", "The output directory where analysis' images are written."
+            "output",
+            "output",
+            "The output directory where analysis' images are written.",
         )
         result_dir = os.path.join(
             os.curdir,
@@ -68,7 +71,9 @@ class PeelColor(Analysis):
 
         # sets up output result directory
         self.output_results = MetaDataValue(
-            "results", "results", "The output directory where analysis' results are written."
+            "results",
+            "results",
+            "The output directory where analysis' results are written.",
         )
         self.output_results.setValue(result_dir)
         # values of the color cards normalized to the LMS line
@@ -109,8 +114,12 @@ class PeelColor(Analysis):
             0.8106974639404376,
         ]
 
-        self.LINE_POINT_1: NDArray[np.float16] = np.array([-76.69774, 0.0], dtype=np.float16)
-        self.LINE_POINT_2: NDArray[np.float16] = np.array([0.0, 110.0861], dtype=np.float16)
+        self.LINE_POINT_1: NDArray[np.float16] = np.array(
+            [-76.69774, 0.0], dtype=np.float16
+        )
+        self.LINE_POINT_2: NDArray[np.float16] = np.array(
+            [0.0, 110.0861], dtype=np.float16
+        )
 
     def remove_purple(self, img: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
@@ -132,16 +141,18 @@ class PeelColor(Analysis):
         threshold_3 = np.logical_and((ycc_img[:, :, 2] >= 0), (ycc_img[:, :, 2] <= 126))
 
         # combine to one matrix
-        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
-            np.uint8
-        )
+        th123 = np.logical_and(
+            np.logical_and(threshold_1, threshold_2), threshold_3
+        ).astype(np.uint8)
 
         # create new image using threshold matrices
         for i in range(3):
             new_img[:, :, i] = new_img[:, :, i] * th123
         return new_img
 
-    def get_green_yellow_values(self, img: NDArray[np.uint8]) -> Tuple[float, float, float]:
+    def get_green_yellow_values(
+        self, img: NDArray[np.uint8]
+    ) -> Tuple[float, float, float]:
         """
         Get mean pixel values representing green and yellow in CIELAB color space, normalized to L = 50.
 
@@ -160,16 +171,18 @@ class PeelColor(Analysis):
         threshold_3 = np.logical_and((lab_img[:, :, 2] > 128), (lab_img[:, :, 2] < 255))
 
         # combine to one matrix
-        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
-            np.uint8
-        )
+        th123 = np.logical_and(
+            np.logical_and(threshold_1, threshold_2), threshold_3
+        ).astype(np.uint8)
 
         # apply the binary mask on the image
         for i in range(3):
             lab_img[:, :, i] = lab_img[:, :, i] * th123
 
         # get mean values from each channel
-        mean_l = np.sum(lab_img[:, :, 0]) / np.count_nonzero(lab_img[:, :, 0]) * 100 / 255
+        mean_l = (
+            np.sum(lab_img[:, :, 0]) / np.count_nonzero(lab_img[:, :, 0]) * 100 / 255
+        )
         mean_a = np.sum(lab_img[:, :, 1]) / np.count_nonzero(lab_img[:, :, 1]) - 128
         mean_b = np.sum(lab_img[:, :, 2]) / np.count_nonzero(lab_img[:, :, 2]) - 128
 
@@ -202,7 +215,8 @@ class PeelColor(Analysis):
             dist_a = color_list[0] - np.array(self.MEAN_VALUES_A)
             dist_b = color_list[1] - np.array(self.MEAN_VALUES_B)
             dist = np.sqrt(
-                (dist_a / np.linalg.norm(dist_a)) ** 2 + (dist_b / np.linalg.norm(dist_b)) ** 2
+                (dist_a / np.linalg.norm(dist_a)) ** 2
+                + (dist_b / np.linalg.norm(dist_b)) ** 2
             )
             bin_num = np.argmin(dist) + 1
         if method == "X-component":
@@ -233,6 +247,7 @@ class PeelColor(Analysis):
         Returns:
             Tuple[Tuple[float, float], float, float, float]: Projection, score, distance, point.
         """
+
         def calculate_intersection(
             line1: Tuple[Any, Any],
             line2: Tuple[Any, Any],
@@ -333,35 +348,53 @@ class PeelColor(Analysis):
         bin_value.setValue(bin_num)
 
         # score
-        score_value = FloatValue("score", "score", "Granny calculated rating of the peel color.")
+        score_value = FloatValue(
+            "score", "score", "Granny calculated rating of the peel color."
+        )
         score_value.setMin(0.0)
         score_value.setMax(1.0)
         score_value.setValue(score)
 
         # distance
         distance_value = FloatValue(
-            "distance", "distance", "Granny calculated distance from the LMS best-fit line."
+            "distance",
+            "distance",
+            "Granny calculated distance from the LMS best-fit line.",
         )
         distance_value.setValue(orth_distance)
 
         # relative location value to the LMS fit line,
         # i.e. 1:above or -1:below
         location_value = FloatValue(
-            "location", "location", "Granny calculated location wrt. the LMS best-fit line."
+            "location",
+            "location",
+            "Granny calculated location wrt. the LMS best-fit line.",
         )
         location_value.setValue(point)
 
         # LAB color space
-        l_value = IntValue("l", "L", "Granny calculated L value of the image in the LAB space.")
+        l_value = IntValue(
+            "l", "L", "Granny calculated L value of the image in the LAB space."
+        )
         l_value.setValue(l)
-        a_value = IntValue("a", "A", "Granny calculated A value of the image in the LAB space.")
+        a_value = IntValue(
+            "a", "A", "Granny calculated A value of the image in the LAB space."
+        )
         a_value.setValue(a)
-        b_value = IntValue("b", "B", "Granny calculated B value of the image in the LAB space.")
+        b_value = IntValue(
+            "b", "B", "Granny calculated B value of the image in the LAB space."
+        )
         b_value.setValue(b)
 
         # adds ratings to  to the image_instance as parameters
         image_instance.addValue(
-            bin_value, score_value, distance_value, location_value, l_value, a_value, b_value
+            bin_value,
+            score_value,
+            distance_value,
+            location_value,
+            l_value,
+            a_value,
+            b_value,
         )
 
         return image_instance
