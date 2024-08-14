@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 
 from Granny.Models.Values.Value import Value
 
@@ -13,8 +13,14 @@ class StringValue(Value):
         {@inheritdoc}
         """
         super().__init__(name, label, help)
-        self.type = str
-        self.value_values: List[str] = []
+        self.valid_values: List[str] = []
+
+    def setValue(self, value: str):
+        """
+        {@inheritdoc}
+        """
+        self.value = value if self.validate(value) else None
+        self.is_set = True
 
     def setValidValues(self, values: List[str]):
         """
@@ -26,10 +32,14 @@ class StringValue(Value):
         """
         Gets the list of valid values for this string value.
         """
-        return self.value_values
+        return self.valid_values
 
-    def validate(self) -> bool:
+    def validate(self, value: Any) -> bool:
         """
         {@inheritdoc}
         """
+        if self.valid_values != [] and value not in self.valid_values:
+            return False
+        if type(value) is not str:
+            return False
         return True

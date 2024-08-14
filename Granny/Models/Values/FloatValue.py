@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any
 
 from Granny.Models.Values.NumericValue import NumericValue
 
@@ -41,8 +41,16 @@ class FloatValue(NumericValue):
         """
         return self.valid_values
 
-    def validate(self) -> bool:
+    def validate(self, value: Any) -> bool:
         """
         {@inheritdoc}
         """
+        if not isinstance(value, float):
+            return False
+        if self.valid_values and value not in self.valid_values:
+            return False
+        if self.min_value is not None and value < self.min_value:
+            return False
+        if self.max_value is not None and value > self.max_value:
+            return False
         return True

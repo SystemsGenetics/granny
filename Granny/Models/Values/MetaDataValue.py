@@ -4,7 +4,6 @@ from typing import List
 import pandas as pd
 from Granny.Models.Images.Image import Image
 from Granny.Models.Values.FileNameValue import FileNameValue
-from Granny.Models.Values.Value import Value
 
 
 class MetaDataValue(FileNameValue):

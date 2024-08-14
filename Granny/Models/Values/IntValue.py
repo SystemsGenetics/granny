@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any
 
 from Granny.Models.Values.NumericValue import NumericValue
 
@@ -35,14 +35,29 @@ class IntValue(NumericValue):
         """
         self.valid_values = values
 
+    def setValue(self, value: Any):
+        """
+        Sets the current value of the value.
+        """
+        self.validate(value)
+        self.value = value
+        self.is_set = True
+        self.setType(type(value))
+
     def getValidValues(self) -> List[int]:
         """
         Gets the list of valid values for this integer value.
         """
         return self.valid_values
 
-    def validate(self) -> bool:
+    def validate(self, value: Any) -> bool:
         """
         {@inheritdoc}
         """
+        if self.valid_values != [] and value not in self.valid_values:
+            return False
+        if self.min_value > value or self.max_value < value:
+            return False
+        if type(value) is not int:
+            return False
         return True
