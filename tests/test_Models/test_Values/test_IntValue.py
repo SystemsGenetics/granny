@@ -5,15 +5,15 @@ def test_set_get_valid_values():
     int_value = IntValue("test", "label", "help")
     valid_values = [1, 2, 3]
     int_value.setValidValues(valid_values)
-    int_value.getValidValues() == valid_values
+    assert int_value.getValidValues() == valid_values
 
 
 def test_set_min_max():
     int_value = IntValue("test", "label", "help")
     int_value.setMin(1)
     int_value.setMax(10)
-    int_value.min_value == 1
-    int_value.max_value == 10
+    assert int_value.min_value == 1
+    assert int_value.max_value == 10
 
 
 def test_validate_valid_values():
