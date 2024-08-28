@@ -2,6 +2,12 @@ Installation
 ============
 Granny was built using Python3 and can be run on any modern operating system including Windows, variants of Linux and OS X. Currently to install Granny, you must use the command-line interface. Follow the installation instructions that match the operating system you are using. 
 
+Requirements
+-----------
+Granny only requires Python verison 3.9 or greater.  It aslo requires several python packages such as ultralytics, numpy and opencv-python but these will be installed automatically when Granny is installed.  
+
+Please see the `Python instructions for downloading <https://www.python.org/downloads/>`_ and installing Python.  Alternatively, you can install `Anaconda <https://www.anaconda.com/download/success>`_ which is a data analytics platform which includes Python.
+
 
 Opening the terminal
 --------------------
