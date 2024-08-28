@@ -4,7 +4,7 @@ Granny was built using Python3 and can be run on any modern operating system inc
 
 Requirements
 -----------
-Granny requires Python verison 3.9 or greater.  It aslo requires several python packages such as ultralytics, numpy and opencv-python but these will be installed automatically when Granny is installed.  
+Granny requires Python verison 3.9 or greater.  It also requires several python packages such as ultralytics, numpy, and opencv-python but these packages will be installed automatically when Granny is installed.  
 
 Please see the `Python instructions for downloading <https://www.python.org/downloads/>`_ and installing Python.  Alternatively, you can install `Anaconda <https://www.anaconda.com/download/success>`_ which is a data analytics platform which includes Python.
 
