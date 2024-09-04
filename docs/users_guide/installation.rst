@@ -1,6 +1,6 @@
 Installation
 ============
-Granny was built using Python3 and can be run on any modern operating system including Windows, variants of Linux and OS X. Currently to install Granny, you must use the command-line interface. Follow the installation instructions that match the operating system you are using. 
+Granny was built using Python3 and can be run on any modern operating system including variants of Linux, OS X, and potentially Windows. Currently to install Granny, you must use the command-line interface. Follow the installation instructions that match the operating system you are using. 
 
 Requirements
 -----------
@@ -24,13 +24,6 @@ Search for "terminal" in the search box that appears.  Click the icon with the t
 
 Within the terminal you can type the commands to install Granny.
 
-
-Windows Terminal
-````````````````
-.. note::
-
-    Instructions will be added here.
-
 Mac OS X Terminal
 `````````````````
 
@@ -39,6 +32,14 @@ Mac OS X Terminal
     Follow the same instructions as Linux: Ubuntu 22.04.
 
 Install the Most Recent Release
+
+Windows Terminal
+````````````````
+.. warning::
+
+    We do not currently support Granny for Windows. 
+
+
 -------------------------------
 
 Ubuntu 22.04 Installation
@@ -57,14 +58,6 @@ You will see output printed to the terminal as the installation progresses. If s
     Successfully installed granny-1.0a1
 
 
-Windows Installation
-`````````````````````
-
-.. note::
-
-    Instructions will be added here.
-
-
 Mac OS X Installation
 `````````````````````
 
@@ -80,6 +73,15 @@ You will see output printed to the terminal as the installation progresses. If s
 
     Installing collected packages: granny
     Successfully installed granny-1.0a1
+
+
+Windows Installation
+`````````````````````
+
+.. warning::
+
+   There is currently a dependency missing for Granny to run in Windows and we encourage users of Granny to use a Linux or OS X computer to use Granny. You are welcome to try Granny on Windows but we will not currently offer support for this operating system.
+
 
 
 Install the Development Version
