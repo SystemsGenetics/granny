@@ -307,22 +307,16 @@ class Segmentation(Analysis):
         df["apple_id"] = 0
         df["nums"] = df.index
         df = df.sort_values("ycenter", ascending=True).reset_index(drop=True)
-        df["rows"] = (
-            (df["ycenter"].diff().abs().gt(h // 20).cumsum() + 1).fillna(1).astype(int)
-        )
+        df["rows"] = (df["ycenter"].diff().abs().gt(h // 20).cumsum() + 1).fillna(1).astype(int)
 
         df_list: List[pd.DataFrame] = []
         apple_id = 1
         increment = 1
         for i in range(1, df["rows"].max() + 1):
             dfx = (
-                df[df["rows"] == i]
-                .sort_values("xcenter", ascending=False)
-                .reset_index(drop=True)
+                df[df["rows"] == i].sort_values("xcenter", ascending=False).reset_index(drop=True)
             )
-            dfx["apple_id"] = range(
-                apple_id, apple_id + increment * len(dfx), increment
-            )
+            dfx["apple_id"] = range(apple_id, apple_id + increment * len(dfx), increment)
             df_list.append(dfx)
             apple_id += increment * len(dfx)
 
@@ -375,9 +369,7 @@ class Segmentation(Analysis):
             for channel in range(3):
                 individual_image[:, :, channel] = tray_image_array[y1:y2, x1:x2, channel] * mask[y1:y2, x1:x2]  # type: ignore
             image_name = (
-                pathlib.Path(tray_image.getImageName()).stem
-                + f"_tray_info_{i+1}"
-                + ".png"
+                pathlib.Path(tray_image.getImageName()).stem + f"_tray_info_{i+1}" + ".png"
             )
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
@@ -432,9 +424,7 @@ class Segmentation(Analysis):
             mask = sorted_masks[i]
             for channel in range(3):
                 individual_image[:, :, channel] = tray_image_array[y1:y2, x1:x2, channel] * mask[y1:y2, x1:x2]  # type: ignore
-            image_name = (
-                pathlib.Path(tray_image.getImageName()).stem + f"_fruit_{i+1}" + ".png"
-            )
+            image_name = pathlib.Path(tray_image.getImageName()).stem + f"_fruit_{i+1}" + ".png"
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
             individual_images.append(image_instance)
@@ -446,9 +436,7 @@ class Segmentation(Analysis):
         """
         {@inheritdoc}
         """
-        self.model_name: str = self.in_params.get(
-            self.model.getName()
-        ).getValue()  # type:ignore
+        self.model_name: str = self.in_params.get(self.model.getName()).getValue()  # type:ignore
 
         # download trained ML models from https://osf.io to the current directory
         if self.model_name.endswith(".pt"):
@@ -468,9 +456,7 @@ class Segmentation(Analysis):
         self.segmentation_model = self.AIModel.getModel()
 
         # initiates user's input
-        self.input_images = self.in_params.get(
-            self.input_images.getName()
-        )  # type:ignore
+        self.input_images = self.in_params.get(self.input_images.getName())  # type:ignore
 
         # initiates Granny.Model.Images.Image instances for the analysis using the user's input
         self.input_images.readValue()
