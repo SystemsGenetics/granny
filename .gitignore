@@ -10,7 +10,6 @@ build/
 dist/
 06-Package
 *logs/
-test*/
 _build/
 *result*/
 
