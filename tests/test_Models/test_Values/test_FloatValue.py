@@ -32,6 +32,8 @@ def test_set_min_max():
 
 
 def test_validate_valid_values():
+    # Tests if valid and invalid values are properly handled in a wide range
+    # of ways and data types
     float_value = FloatValue("test", "label", "help")
     float_value.setValidValues([1.1, 2.2, 3.3])
     assert float_value.validate(1.1)
@@ -54,6 +56,8 @@ def test_validate_valid_values():
     assert not float_value.validate("string")
 
 def test_validate_min_max():
+    # Tests if values within and not within the min and max are accepted
+    # also checks using different data types
     float_value = FloatValue("test", "label", "help")
     float_value.setMin(1.1)
     float_value.setMax(10.1)
@@ -72,6 +76,7 @@ def test_validate_min_max():
 
 
 def test_validate_type():
+    # Tests if the correct data type is validated properly 
     float_value = FloatValue("test", "label", "help")
     assert not float_value.validate("string")
     assert not float_value.validate(1)

@@ -12,5 +12,5 @@ def test_get_validate_value():
     value_2 = FileNameValue("name2", "string2", "help2")
     file2 = "tests/test_Models/test"
     value_2.value = file2
-    assert value_2.getValue() != file
+    assert value_2.getValue() == file2
     assert not value_2.validate()

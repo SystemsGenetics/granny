@@ -58,7 +58,8 @@ def test_validate_valid_values():
 
 
 def test_validate_min_max():
-    # checks if 
+    # Checks if values within and not within the min and max can be validated, 
+    # also checks what happens when strings and floats are validated
     int_value = IntValue("test", "label", "help")
     int_value.setMin(1)
     int_value.setMax(10)
@@ -70,12 +71,12 @@ def test_validate_min_max():
     except TypeError:
         assert True
     assert not int_value.validate(1.1)
-   
     assert not int_value.validate(10.1)
  
 
 
 def test_validate_type():
+    # Checks if ints, strings, and floats can be validated
     int_value = IntValue("test", "label", "help")
     try:
         int_value.validate("string")
