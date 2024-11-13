@@ -60,7 +60,7 @@ def test_get_setMetaData():
     image1 = RGBImage(filePath)
     image1.setMetaData(mData)
     assert image1.getMetaData() == {"name1": a, "name2": b, "name3": c}
-
+# Sets the metadata results to a string then sees if the string is returned
 def test_set_get_checkResults():
     filePath = "/demo/cross_section_images/cross_section_tray"
     image1 = RGBImage(filePath)

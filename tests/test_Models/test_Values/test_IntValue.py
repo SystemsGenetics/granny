@@ -14,17 +14,15 @@ def test_set_get_valid_values():
     int_value_1.setValidValues(valid_values_1)
     int_value_2.setValidValues(valid_values_2)
     assert int_value.getValidValues() == valid_values
-    try:
-        int_value_1.getValidValues() == valid_values_1
-    except TypeError:
-        assert True
-    try: 
-        int_value_2.getValidValues() == valid_values_2
-    except TypeError:
-        assert True 
+    #NOTE: Find a fix so the validate function makes sure that the type is the
+    # correct type
+    assert int_value_1.getValidValues() == valid_values_1
+    assert int_value_2.getValidValues() == valid_values_2
+ 
 
 # For setting the min and max values for the intValue class, it allows Strings
 # Doubles be to set. I do not know if this is an oversight or if it matters.
+# NOTE: The ability to set the min and max to values that are not in
 def test_set_min_max():
     # Checks what happens when string and floats are set as max and min values and 
     # what happens when you try to change these values. 
@@ -36,14 +34,8 @@ def test_set_min_max():
     int_value_1.setMax(10.1)
     assert int_value.min_value == 1
     assert int_value.max_value == 10
-    try:
-        int_value_1.min_value == 'string'
-    except TypeError:
-        assert True
-    try:
-        int_value_1.max_value == 10.1
-    except TypeError:
-        assert True
+    assert int_value_1.min_value == 'string'
+    assert int_value_1.max_value == 10.1
     
 
 
@@ -66,10 +58,7 @@ def test_validate_min_max():
     assert int_value.validate(5)
     assert not int_value.validate(0)
     assert not int_value.validate(11)
-    try:
-        int_value.validate("string")
-    except TypeError:
-        assert True
+    assert int_value.validate("string")
     assert not int_value.validate(1.1)
     assert not int_value.validate(10.1)
  
@@ -78,9 +67,6 @@ def test_validate_min_max():
 def test_validate_type():
     # Checks if ints, strings, and floats can be validated
     int_value = IntValue("test", "label", "help")
-    try:
-        int_value.validate("string")
-    except TypeError:
-        assert True
+    assert int_value.validate("string")
     assert not int_value.validate(1.5)
     assert int_value.validate(1)
