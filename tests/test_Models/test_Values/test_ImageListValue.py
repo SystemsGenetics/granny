@@ -4,7 +4,7 @@ from Granny.Models.IO.RGBImageFile import RGBImageFile
 
 # Tests the read and write functions and if the outputs are correct
 def test_read_writeValue():
-    file_path = "demo/granny_smith_images/binarized_images/"
+    file_path = "test-results/images/list/"
     imageList = ImageListValue("name", "label", "help")
   
     imageList.value = file_path
@@ -29,9 +29,9 @@ def test_read_writeValue():
 # Tests the get and set value by creating a list of RBGImages and comparing
 # the results with the list
 def test_get_setValue():
-    image = RGBImage("/demo/cross_section_images/cross_section_tray")
+    image = RGBImage("/test-results/images/")
     images = [image]
-    file_path = "demo/granny_smith_images/binarized_images/"
+    file_path = "test-results/images/list/"
     imageList = ImageListValue("name", "label", "help")
   
     imageList.value = file_path

@@ -5,7 +5,7 @@ import uuid
 def test_set_validate_value():
     # Tests for exisiting Dir file name. 
     FileDirValue_1 = FileDirValue("name1", "label1", "help1")
-    FileDirValue_1.setValue("tests/test_Models/test_Values")
+    FileDirValue_1.setValue("Granny/Analyses")
     assert FileDirValue_1.validate()
 
     # Tests if a new Dir is created using the file path entered. 
@@ -13,5 +13,5 @@ def test_set_validate_value():
     # This is for testing and making sure we know where it is from.
     FileDirValue_2 = FileDirValue("name2", "label2", "help2")
     filename = str(uuid.uuid4())
-    FileDirValue_2.setValue("tmp/FileDirValue_test_" + filename)
+    FileDirValue_2.setValue("test-results/results/FileDirValue/FileDirValue_test_" + filename)
     assert FileDirValue_2.validate()

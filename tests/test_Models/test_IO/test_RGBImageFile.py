@@ -5,7 +5,7 @@ import uuid
 # in the right dir.
 def test_load_saveImage_getType():
     image = RGBImageFile()
-    image.setFilePath("demo/cross_section_images/cross_section_tray/cross_section_demo_image.jpeg")
+    image.setFilePath("test-results/images/single/cross_section_demo_image.jpeg")
     test = image.loadImage()
-    image.saveImage(test, "tmp/")
+    image.saveImage(test, "test-results/results/")
     assert image.getType() == "rgb" 

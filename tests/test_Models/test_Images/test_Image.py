@@ -70,7 +70,7 @@ def test_add_getValue_getFilePath():
     a = StringValue("name1", "label1", "help1")
     b = StringValue("name2", "label2", "help2")
     c = StringValue("name3", "label3", "help3")
-    values = [a,b,c]
-    image.addValue(values)
-    assert image.getValue() == values
+    val = [a,b,c]
+    image.addValue(val)
+    assert image.getValue() == ["name1", "name2", "name3"]
     assert image.getFilePath() == filepath
