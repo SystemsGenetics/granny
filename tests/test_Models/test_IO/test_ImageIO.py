@@ -32,7 +32,7 @@ class testImageIO(ImageIO):
 
 
 def test_setFilePath():
-    filePath = "test-results/images/single/"
+    filePath = "test-assets/images/single/"
     image = testImageIO()
     image.setFilePath(filePath)
     assert image.filepath == filePath

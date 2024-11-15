@@ -13,5 +13,5 @@ def test_set_validate_value():
     # This is for testing and making sure we know where it is from.
     FileDirValue_2 = FileDirValue("name2", "label2", "help2")
     filename = str(uuid.uuid4())
-    FileDirValue_2.setValue("test-results/results/FileDirValue/FileDirValue_test_" + filename)
+    FileDirValue_2.setValue("test-assets/results/FileDirValue/FileDirValue_test_" + filename)
     assert FileDirValue_2.validate()
