@@ -65,12 +65,16 @@ class testImage(Image):
         return self.result
 
 def test_add_getValue_getFilePath():
-    filepath = "demo/cross_section_images/cross_section_tray/cross_section_demo_image.jpeg"
+    filepath = "test-assets/images/single/cross_section_demo_image.jpeg"
     image = testImage(filepath)
     a = StringValue("name1", "label1", "help1")
     b = StringValue("name2", "label2", "help2")
     c = StringValue("name3", "label3", "help3")
-    val = [a,b,c]
-    image.addValue(val)
-    assert image.getValue() == ["name1", "name2", "name3"]
-    assert image.getFilePath() == filepath
+    a.setValue('a-val')
+    b.setValue('b-val')
+    c.setValue('c-val')
+
+    #val = [a,b,c]
+    image.addValue(a, b, c)
+    assert image.getValue('name1').getValue() == 'a-val'
+    assert image.getFilePath() == os.path.abspath(filepath)
