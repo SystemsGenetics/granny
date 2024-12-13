@@ -34,7 +34,7 @@ def test_save_load_rotateImage():
     imageTest2 = imageActual.loadImage()
     image1.loadImage(imageActual)
     image1.rotateImage()
-    image1.saveImage(imageActual,"test-assets/results")
+    image1.saveImage(imageActual,"test-results")
     assert image1 
 # Sets image1 to demo image, then converts it to BGR and then back to RBG
 def test_toRBG_toBGR():
@@ -45,10 +45,10 @@ def test_toRBG_toBGR():
     #imageTest2 = imageActual.loadImage()
     image1.loadImage(imageActual)
     image1.toBGR()
-    image1.saveImage(imageActual,"test-assets/results")
+    image1.saveImage(imageActual,"test-results")
     imageActual.setFilePath("test-assets/images/single/test_RGBImage_RGB_Test.jpeg")
     image1.toRGB()
-    image1.saveImage(imageActual,"test-assets/results")
+    image1.saveImage(imageActual,"test-results")
     assert image1
 # Checks if the MetaData properly outputs the correct version of the dictionary
 def test_get_setMetaData():

@@ -7,5 +7,5 @@ def test_load_saveImage_getType():
     image = RGBImageFile()
     image.setFilePath("test-assets/images/single/cross_section_demo_image.jpeg")
     test = image.loadImage()
-    image.saveImage(test, "test-assets/results/")
+    image.saveImage(test, "test-results/")
     assert image.getType() == "rgb" 
