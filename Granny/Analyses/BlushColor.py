@@ -54,6 +54,11 @@ class BlushColor(Analysis):
     __analysis_name__ = "blush"
 
     def __init__(self):
+        """
+        Initializes the BlushColor analysis with default parameters and output directories.
+        Sets up input/output parameters, default blush threshold, and links all
+        necessary values to the analysis framework.
+        """ 
         super().__init__()
 
         self.images: List[Image] = []

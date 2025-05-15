@@ -6,17 +6,28 @@ from Granny.Models.Values.Value import Value
 class FileDirValue(Value):
     def __init__(self, name: str, label: str, help: str):
         """
-        {@inheritdoc}
+        A value class that represents a directory path.
+
+        When set, this value ensures the directory exists (creates it if missing).
+        Validates that the path is indeed a directory.
         """
         super().__init__(name, label, help)
         self.type = str
         self.value: str = ""
 
     def setValue(self, value: str):
-        """ """
+        """ 
+        Sets the directory path for this value. Creates the directory if it doesn't exist.
+
+        Args:
+            value (str): A string representing a directory path.
+
+        Raises:
+        ValueError: If the path is not a valid directory after assignment.
+        """
         self.value = value
         if not self.validate():
-            ValueError("Not a directory. Please specify a directory.")
+            raise ValueError("Not a directory. Please specify a directory.")
         os.makedirs(self.value, exist_ok=True)
 
     def validate(self) -> bool:

@@ -176,7 +176,13 @@ class Segmentation(Analysis):
 
     def _getModelUrl(self, model_name: str):
         """
-        Parses the self.models attribute to retrieves segmentation ML model URl using model_name.
+        Retrieves the download URL for a given model name from the configuration.
+
+        Args:
+            model_name (str): The key name of the model in self.models.
+
+        Returns:
+        str: Download URL if found, else an empty string.
         """
         model_url = ""
         try:
@@ -434,7 +440,20 @@ class Segmentation(Analysis):
 
     def performAnalysis(self) -> List[Image]:
         """
-        {@inheritdoc}
+        Runs the full segmentation pipeline on user-provided images.
+
+        Steps:
+        - Downloads or loads pretrained model.
+        - Loads and rotates images if needed.
+        - Runs YOLO segmentation.
+        - Extracts:
+            - Individual fruit images
+            - Tray info (labels, QR)
+            - Masked overlays
+        - Saves all outputs to results folders.
+
+        Returns:
+            ist[Image]: All segmented fruit image instances.
         """
         self.model_name: str = self.in_params.get(self.model.getName()).getValue()  # type:ignore
 

@@ -5,7 +5,14 @@ from Granny.Models.Values.NumericValue import NumericValue
 
 class IntValue(NumericValue):
     """
-    Class for an integer value.
+    Represents an integer value with optional min/max constraints and metadata.
+
+    Often used for analysis parameters like thresholds.
+
+    Attributes:
+        min (Optional[int]): Minimum allowed value.
+        max (Optional[int]): Maximum allowed value.
+    Value assignment is handled via inherited `setValue()` from the NumericValue base class.
     """
 
     def __init__(self, name: str, label: str, help: str):

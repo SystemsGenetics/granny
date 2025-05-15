@@ -10,14 +10,27 @@ class StringValue(Value):
 
     def __init__(self, name: str, label: str, help: str):
         """
-        {@inheritdoc}
+        Initializes a new StringValue parameter.
+
+        Args:
+            name (str): Internal name for the parameter.
+            label (str): Human-readable label for display purposes.
+            help (str): Help description or usage instructions for the parameter.
         """
         super().__init__(name, label, help)
         self.valid_values: List[str] = []
 
     def setValue(self, value: str):
         """
-        {@inheritdoc}
+        Sets the string value if it passes validation.
+
+        Args:
+            value (str): The value to assign to this parameter.
+
+        Notes:
+            - If the value is not valid (type mismatch or not in `valid_values`),
+              it sets the value to None.
+            - Marks the value as set using `self.is_set = True`.
         """
         self.value = value if self.validate(value) else None
         self.is_set = True

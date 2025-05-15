@@ -8,10 +8,17 @@ from Granny.Models.Values.FileNameValue import FileNameValue
 
 class MetaDataValue(FileNameValue):
     """
-    A value that stores the file name where the metadata are kept.
+    A value class responsible for storing and exporting metadata associated with analyzed images.
 
-    The readValue() and writeValue() functions will read and write
-    the metadata into the filename of the value.
+     This class collects metadata from a list of Image instances and writes:
+        - A per-image summary to 'results.csv'
+        - A per-tray average summary to 'tray_summary.csv'
+     Inherits:
+        FileNameValue: Provides filename handling capability.
+
+     Attributes:
+        images (List[Image]): A list of analyzed image objects.
+    
     """
 
     def __init__(self, name: str, label: str, help: str):
