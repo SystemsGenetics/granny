@@ -72,3 +72,8 @@ def test_isRequired():
     value_2 = testObject("name2", "label2", "help2")
     value_2.setIsRequired(False)
     assert not value_2.getIsRequired()
+
+def test_getType_before_set():
+    value = testObject("name", "label", "help") 
+    # Verify that the type is Any before setValue is called.
+    assert value.getType() == Any
