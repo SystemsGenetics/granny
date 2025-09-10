@@ -78,3 +78,20 @@ def test_add_getValue_getFilePath():
     image.addValue(a, b, c)
     assert image.getValue('name1').getValue() == 'a-val'
     assert image.getFilePath() == os.path.abspath(filepath)
+
+# Tests if getImagename extracts the filename from the full path.
+# Check's that the image file's name is returned, not the full directory.
+
+#Sees if setImageName() correctly extracts just the filename from a path.
+def test_get_image_name():
+    filepath = "test-assets/images/single/cross_section_demo_image.jpeg"
+    image = testImage(filepath)
+    assert image.getImageName() == "cross_section_demo_image.jpeg" 
+
+# Tests whether getShape correctly returns the shape of the image
+def test_get_shape_after_set_image():
+    image = testImage("dummy/path/to/image.jpg")
+    dummy_image = np.zeros((100, 200, 3), dtype=np.uint8)
+    image.setImage(dummy_image)
+    assert image.getShape() == (100, 200, 3)
+
