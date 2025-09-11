@@ -27,15 +27,6 @@ granny -i cli --analysis segmentation --confidence_threshold 0.8 --input /path/t
 
 The confidence threshold filters YOLO model predictions based on how confident the model is about each detection. Only detections with confidence scores above the threshold are kept for processing.
 
-**Recommended Values:**
-
-| Confidence | Use Case | Expected Results |
-|------------|----------|------------------|
-| 0.1 - 0.3 | Maximum detection coverage | More fruits detected, may include false positives |
-| 0.25 | Default balanced setting | Good balance of accuracy and coverage |
-| 0.5 - 0.7 | Higher quality detections | Fewer fruits but higher accuracy |
-| 0.8 - 0.95 | Only high-confidence fruits | Most reliable detections, may miss some valid fruits |
-| 0.95+ | Extremely strict filtering | Only the most obvious fruit detections |
 
 **Example Scenarios:**
 
