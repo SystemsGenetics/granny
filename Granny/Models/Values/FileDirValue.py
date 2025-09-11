@@ -25,10 +25,19 @@ class FileDirValue(Value):
         Raises:
         ValueError: If the path is not a valid directory after assignment.
         """
-        self.value = value
-        # Create directory first, then validate
-        os.makedirs(self.value, exist_ok=True)
-        if not self.validate():
+        # Validate input before setting
+        if not isinstance(value, str):
+            raise ValueError(f"Directory path must be a string, got {type(value)}")
+        if not value.strip():
+            raise ValueError("Directory path cannot be empty")
+        
+        # Create directory first, then set and validate
+        os.makedirs(value, exist_ok=True)
+        
+        # Only set the value after successful directory creation and validation
+        if os.path.isdir(value):
+            self.value = value
+        else:
             raise ValueError("Not a directory. Please specify a directory.")
 
     def validate(self) -> bool:
