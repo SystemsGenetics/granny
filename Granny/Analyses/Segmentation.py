@@ -32,6 +32,7 @@ from Granny.Models.Images.RGBImage import RGBImage
 from Granny.Models.IO.ImageIO import ImageIO
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from Granny.Models.Values.FileNameValue import FileNameValue
+from Granny.Models.Values.FloatValue import FloatValue
 from Granny.Models.Values.ImageListValue import ImageListValue
 from numpy.typing import NDArray
 
@@ -172,7 +173,18 @@ class Segmentation(Analysis):
             )
         )
 
-        self.addInParam(self.model, self.input_images)
+        # Add confidence threshold parameter for YOLO predictions
+        self.confidence_threshold = FloatValue(
+            "conf_threshold",
+            "confidence_threshold", 
+            "Minimum confidence threshold for YOLO detections. Objects with confidence below this value will be filtered out."
+        )
+        self.confidence_threshold.setValue(0.25)  # YOLO default
+        self.confidence_threshold.setMin(0.0)
+        self.confidence_threshold.setMax(1.0)
+        self.confidence_threshold.setIsRequired(False)
+
+        self.addInParam(self.model, self.input_images, self.confidence_threshold)
 
     def _getModelUrl(self, model_name: str):
         """
@@ -219,7 +231,9 @@ class Segmentation(Analysis):
         including: masks, boxes, xyxy's, classes, confident scores
         """
         # detects instances on the image
-        results = self.segmentation_model.predict(image, retina_masks=True)  # type: ignore
+        # Get confidence threshold from parameters
+        conf_threshold = self.in_params.get(self.confidence_threshold.getName()).getValue()
+        results = self.segmentation_model.predict(image, retina_masks=True, conf=conf_threshold)  # type: ignore
 
         return results
 
@@ -430,7 +444,7 @@ class Segmentation(Analysis):
             mask = sorted_masks[i]
             for channel in range(3):
                 individual_image[:, :, channel] = tray_image_array[y1:y2, x1:x2, channel] * mask[y1:y2, x1:x2]  # type: ignore
-            image_name = pathlib.Path(tray_image.getImageName()).stem + f"_fruit_{i+1}" + ".png"
+            image_name = pathlib.Path(tray_image.getImageName()).stem + f"_fruit_{i+1:02d}" + ".png"
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
             individual_images.append(image_instance)
