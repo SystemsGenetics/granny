@@ -20,11 +20,12 @@ class FileNameValue(Value):
         """
         {@inheritdoc}
         """
-        self.value = value if self.validate() else None
+        self.value = value
+        # For model names that aren't files yet, keep the value but note validation status
         self.is_set = True
 
     def validate(self) -> bool:
         """
-        Makes sure that the filename is valid as a file.
+        Makes sure that the filename is valid as a file, or allow non-empty strings for model names.
         """
-        return os.path.isfile(self.value)
+        return self.value is not None and (os.path.isfile(self.value) or bool(self.value.strip()))
