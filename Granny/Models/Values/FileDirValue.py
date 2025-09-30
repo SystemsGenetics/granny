@@ -47,4 +47,8 @@ class FileDirValue(Value):
         @returns boolean
             returns True if the directory is valid, False otherwise.
         """
+        if not isinstance(self.value, str):
+            return False
+        if not self.value.strip():
+            return False
         return os.path.isdir(self.value)
