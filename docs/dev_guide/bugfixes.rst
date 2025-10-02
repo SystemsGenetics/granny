@@ -25,16 +25,6 @@ FileNameValue Reverted Fix
 
 **Impact:** Prevents CSV generation failures
 
-Demo Image Numbering
---------------------
-
-**Issue:** Non-zero-padded file names cause incorrect sorting (1, 10, 2, 3...)
-
-**Location:** ``demo/cross_section_images/segmented_images/``
-
-**Fix:** Rename files to zero-padded format (01, 02, 03...)
-
-**Impact:** Proper file ordering in results
 
 Testing Results
 --------------
