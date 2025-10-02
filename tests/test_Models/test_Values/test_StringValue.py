@@ -1,5 +1,5 @@
 from Granny.Models.Values.StringValue import StringValue
-
+import pytest
 
 def test_getsetValidValues():
     # Checks if the valid values are set and get and if a valid string value can be set 
@@ -64,3 +64,24 @@ def test_validate():
     value_4.setValidValues([1.1,2.2,3.3])
     assert value_4.validate(1.1) is False
     assert value_4.validate(4) is False
+
+# Tests empty string as a valid value.
+# Sees if an empty string can be set and retrieved correctly
+# when it is explicitly included in the list of valid values.
+
+def test_empty_string_handling():
+    value = StringValue("name", "label", "help")
+    value.setValidValues([""])
+    value.setValue("")
+    assert value.getValue() == ""
+    assert value.is_set
+ 
+#Checks to see if "value" can be updated from one valid value to another
+#and still behave correctly.
+def test_overwrite_value():
+    value = StringValue("name", "label", "help")
+    value.setValidValues(["A", "B"])
+    value.setValue("A")
+    assert value.getValue() == "A"
+    value.setValue("B")
+    assert value.getValue() == "B"
