@@ -389,7 +389,7 @@ class Segmentation(Analysis):
             for channel in range(3):
                 individual_image[:, :, channel] = tray_image_array[y1:y2, x1:x2, channel] * mask[y1:y2, x1:x2]  # type: ignore
             image_name = (
-                pathlib.Path(tray_image.getImageName()).stem + f"_tray_info_{i+1}" + ".png"
+                pathlib.Path(tray_image.getImageName()).stem + f"_tray_info_{i+1:02d}" + ".png"
             )
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
