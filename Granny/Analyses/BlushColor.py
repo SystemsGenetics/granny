@@ -103,8 +103,102 @@ class BlushColor(Analysis):
         self.threshold.setValue(148)
         self.threshold.setIsRequired(False)
 
-        # adds threshold to the parameter input list
-        self.addInParam(self.threshold)
+        # Fruit detection threshold parameter (B channel in LAB space)
+        self.fruit_threshold = IntValue(
+            "fruit_threshold",
+            "fruit_threshold",
+            "Threshold for fruit pixel detection using the B channel in LAB color space. "
+            + "Pixels with B channel values > this threshold are considered fruit. "
+            + "Range is 0 to 255, default is 140.",
+        )
+        self.fruit_threshold.setMin(0)
+        self.fruit_threshold.setMax(255)
+        self.fruit_threshold.setValue(140)
+        self.fruit_threshold.setIsRequired(False)
+
+        # Visualization parameters
+        self.blush_color_r = IntValue(
+            "blush_color_r",
+            "blush_color_r",
+            "Red component of blush mask color (BGR format). Range is 0 to 255, default is 150.",
+        )
+        self.blush_color_r.setMin(0)
+        self.blush_color_r.setMax(255)
+        self.blush_color_r.setValue(150)
+        self.blush_color_r.setIsRequired(False)
+
+        self.blush_color_g = IntValue(
+            "blush_color_g",
+            "blush_color_g",
+            "Green component of blush mask color (BGR format). Range is 0 to 255, default is 55.",
+        )
+        self.blush_color_g.setMin(0)
+        self.blush_color_g.setMax(255)
+        self.blush_color_g.setValue(55)
+        self.blush_color_g.setIsRequired(False)
+
+        self.blush_color_b = IntValue(
+            "blush_color_b",
+            "blush_color_b",
+            "Blue component of blush mask color (BGR format). Range is 0 to 255, default is 50.",
+        )
+        self.blush_color_b.setMin(0)
+        self.blush_color_b.setMax(255)
+        self.blush_color_b.setValue(50)
+        self.blush_color_b.setIsRequired(False)
+
+        self.text_x = IntValue(
+            "text_x",
+            "text_x",
+            "X coordinate for text position on output image. Default is 20.",
+        )
+        self.text_x.setMin(0)
+        self.text_x.setMax(5000)
+        self.text_x.setValue(20)
+        self.text_x.setIsRequired(False)
+
+        self.text_y = IntValue(
+            "text_y",
+            "text_y",
+            "Y coordinate for text position on output image. Default is 50.",
+        )
+        self.text_y.setMin(0)
+        self.text_y.setMax(5000)
+        self.text_y.setValue(50)
+        self.text_y.setIsRequired(False)
+
+        self.font_scale = FloatValue(
+            "font_scale",
+            "font_scale",
+            "Font scale for text labels on output images. Default is 1.0.",
+        )
+        self.font_scale.setMin(0.1)
+        self.font_scale.setMax(10.0)
+        self.font_scale.setValue(1.0)
+        self.font_scale.setIsRequired(False)
+
+        self.text_thickness = IntValue(
+            "text_thickness",
+            "text_thickness",
+            "Thickness of text labels in pixels. Default is 3.",
+        )
+        self.text_thickness.setMin(1)
+        self.text_thickness.setMax(50)
+        self.text_thickness.setValue(3)
+        self.text_thickness.setIsRequired(False)
+
+        # adds thresholds to the parameter input list
+        self.addInParam(
+            self.threshold,
+            self.fruit_threshold,
+            self.blush_color_r,
+            self.blush_color_g,
+            self.blush_color_b,
+            self.text_x,
+            self.text_y,
+            self.font_scale,
+            self.text_thickness,
+        )
 
     def _calculateBlush(
         self, img: NDArray[np.uint8]
@@ -126,21 +220,21 @@ class BlushColor(Analysis):
 
         # create thresholded matrices
         blush_threshold = self.threshold.getValue()
-        fruit_px = lab_img[:, :, 2] > 140
+        fruit_px = lab_img[:, :, 2] > self.fruit_threshold.getValue()
         blush_px = lab_img[:, :, 1] > blush_threshold
-        new_img[:, :, 0][blush_px] = 150
-        new_img[:, :, 1][blush_px] = 55
-        new_img[:, :, 2][blush_px] = 50
+        new_img[:, :, 0][blush_px] = self.blush_color_r.getValue()
+        new_img[:, :, 1][blush_px] = self.blush_color_g.getValue()
+        new_img[:, :, 2][blush_px] = self.blush_color_b.getValue()
         blush_pct = 100 * blush_px.sum() / fruit_px.sum()
 
         cv2.putText(
             new_img,
             "Blush: " + str(blush_pct.round(1)) + "%",
-            (20, 50),
+            (self.text_x.getValue(), self.text_y.getValue()),
             fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-            fontScale=1,
+            fontScale=self.font_scale.getValue(),
             color=(0, 0, 255),
-            thickness=3,
+            thickness=self.text_thickness.getValue(),
         )
 
         return blush_px.sum() / fruit_px.sum(), new_img

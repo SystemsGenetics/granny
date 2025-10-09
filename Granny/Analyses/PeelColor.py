@@ -55,6 +55,103 @@ class PeelColor(Analysis):
             "input", "input", "The directory where input images are located."
         )
         self.input_images.setIsRequired(True)
+
+        # Purple removal threshold parameter
+        self.purple_threshold = IntValue(
+            "purple_threshold",
+            "purple_threshold",
+            "Threshold for removing purple background/tray pixels using YCrCb color space. "
+            + "Pixels with Cb channel <= this value are kept. Range is 0 to 255, default is 126.",
+        )
+        self.purple_threshold.setMin(0)
+        self.purple_threshold.setMax(255)
+        self.purple_threshold.setValue(126)
+        self.purple_threshold.setIsRequired(False)
+
+        # Lightness minimum parameter
+        self.lightness_min = IntValue(
+            "lightness_min",
+            "lightness_min",
+            "Minimum lightness value for peel color detection in LAB color space. "
+            + "Range is 0 to 255, default is 0.",
+        )
+        self.lightness_min.setMin(0)
+        self.lightness_min.setMax(255)
+        self.lightness_min.setValue(0)
+        self.lightness_min.setIsRequired(False)
+
+        # Lightness maximum parameter
+        self.lightness_max = IntValue(
+            "lightness_max",
+            "lightness_max",
+            "Maximum lightness value for peel color detection in LAB color space. "
+            + "Range is 0 to 255, default is 255.",
+        )
+        self.lightness_max.setMin(0)
+        self.lightness_max.setMax(255)
+        self.lightness_max.setValue(255)
+        self.lightness_max.setIsRequired(False)
+
+        # Green channel minimum parameter
+        self.green_min = IntValue(
+            "green_min",
+            "green_min",
+            "Minimum green channel value for peel color detection in LAB color space. "
+            + "Range is 0 to 255, default is 0.",
+        )
+        self.green_min.setMin(0)
+        self.green_min.setMax(255)
+        self.green_min.setValue(0)
+        self.green_min.setIsRequired(False)
+
+        # Green channel maximum parameter
+        self.green_max = IntValue(
+            "green_max",
+            "green_max",
+            "Maximum green channel value for peel color detection in LAB color space. "
+            + "Range is 0 to 255, default is 128.",
+        )
+        self.green_max.setMin(0)
+        self.green_max.setMax(255)
+        self.green_max.setValue(128)
+        self.green_max.setIsRequired(False)
+
+        # Yellow channel minimum parameter
+        self.yellow_min = IntValue(
+            "yellow_min",
+            "yellow_min",
+            "Minimum yellow channel value for peel color detection in LAB color space. "
+            + "Range is 0 to 255, default is 128.",
+        )
+        self.yellow_min.setMin(0)
+        self.yellow_min.setMax(255)
+        self.yellow_min.setValue(128)
+        self.yellow_min.setIsRequired(False)
+
+        # Yellow channel maximum parameter
+        self.yellow_max = IntValue(
+            "yellow_max",
+            "yellow_max",
+            "Maximum yellow channel value for peel color detection in LAB color space. "
+            + "Range is 0 to 255, default is 255.",
+        )
+        self.yellow_max.setMin(0)
+        self.yellow_max.setMax(255)
+        self.yellow_max.setValue(255)
+        self.yellow_max.setIsRequired(False)
+
+        # Normalization lightness parameter
+        self.normalize_lightness = IntValue(
+            "normalize_lightness",
+            "normalize_lightness",
+            "Target lightness value for color normalization in LAB space. "
+            + "Range is 0 to 100, default is 50.",
+        )
+        self.normalize_lightness.setMin(0)
+        self.normalize_lightness.setMax(100)
+        self.normalize_lightness.setValue(50)
+        self.normalize_lightness.setIsRequired(False)
+
         self.output_images = ImageListValue(
             "output",
             "output",
@@ -67,7 +164,17 @@ class PeelColor(Analysis):
             datetime.now().strftime("%Y-%m-%d-%H-%M"),
         )
         self.output_images.setValue(result_dir)
-        self.addInParam(self.input_images)
+        self.addInParam(
+            self.input_images,
+            self.purple_threshold,
+            self.lightness_min,
+            self.lightness_max,
+            self.green_min,
+            self.green_max,
+            self.yellow_min,
+            self.yellow_max,
+            self.normalize_lightness,
+        )
 
         # sets up output result directory
         self.output_results = MetaDataValue(
@@ -138,7 +245,7 @@ class PeelColor(Analysis):
         # create binary matrices
         threshold_1 = np.logical_and((ycc_img[:, :, 0] >= 0), (ycc_img[:, :, 0] <= 255))
         threshold_2 = np.logical_and((ycc_img[:, :, 1] >= 0), (ycc_img[:, :, 1] <= 255))
-        threshold_3 = np.logical_and((ycc_img[:, :, 2] >= 0), (ycc_img[:, :, 2] <= 126))
+        threshold_3 = np.logical_and((ycc_img[:, :, 2] >= 0), (ycc_img[:, :, 2] <= self.purple_threshold.getValue()))
 
         # combine to one matrix
         th123 = np.logical_and(
@@ -166,9 +273,9 @@ class PeelColor(Analysis):
         lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2LAB))
 
         # create binary matrices
-        threshold_1 = np.logical_and((lab_img[:, :, 0] > 0), (lab_img[:, :, 0] < 255))
-        threshold_2 = np.logical_and((lab_img[:, :, 1] > 0), (lab_img[:, :, 1] < 128))
-        threshold_3 = np.logical_and((lab_img[:, :, 2] > 128), (lab_img[:, :, 2] < 255))
+        threshold_1 = np.logical_and((lab_img[:, :, 0] > self.lightness_min.getValue()), (lab_img[:, :, 0] < self.lightness_max.getValue()))
+        threshold_2 = np.logical_and((lab_img[:, :, 1] > self.green_min.getValue()), (lab_img[:, :, 1] < self.green_max.getValue()))
+        threshold_3 = np.logical_and((lab_img[:, :, 2] > self.yellow_min.getValue()), (lab_img[:, :, 2] < self.yellow_max.getValue()))
 
         # combine to one matrix
         th123 = np.logical_and(
@@ -188,7 +295,7 @@ class PeelColor(Analysis):
 
         # normalize by shifting point in the spherical coordinates
         radius = np.sqrt(mean_l**2 + mean_a**2 + mean_b**2)
-        scaled_l = 50
+        scaled_l = self.normalize_lightness.getValue()
         scaled_a = np.sign(mean_a) * np.sqrt(
             np.abs(radius**2 - scaled_l**2) / (1 + (mean_b / mean_a) ** 2)
         )
