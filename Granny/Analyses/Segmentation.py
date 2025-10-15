@@ -34,6 +34,7 @@ from Granny.Models.IO.RGBImageFile import RGBImageFile
 from Granny.Models.Values.FileNameValue import FileNameValue
 from Granny.Models.Values.FloatValue import FloatValue
 from Granny.Models.Values.ImageListValue import ImageListValue
+from Granny.Models.Values.IntValue import IntValue
 from numpy.typing import NDArray
 
 
@@ -130,6 +131,99 @@ class Segmentation(Analysis):
             "input", "input", "The directory where input images are located."
         )
         self.input_images.setIsRequired(True)
+
+        # YOLO confidence threshold parameter
+        self.conf_threshold = FloatValue(
+            "conf",
+            "confidence",
+            "Confidence threshold for YOLO detections. Only detections with confidence "
+            + "scores above this threshold will be kept. Range is 0.0 to 1.0, "
+            + "default is 0.25.",
+        )
+        self.conf_threshold.setMin(0.0)
+        self.conf_threshold.setMax(1.0)
+        self.conf_threshold.setValue(0.25)
+        self.conf_threshold.setIsRequired(False)
+
+        # YOLO IOU threshold parameter
+        self.iou_threshold = FloatValue(
+            "iou",
+            "iou_threshold",
+            "Intersection over Union (IOU) threshold for non-maximum suppression. "
+            + "Used to filter overlapping detections. Range is 0.0 to 1.0, "
+            + "default is 0.45.",
+        )
+        self.iou_threshold.setMin(0.0)
+        self.iou_threshold.setMax(1.0)
+        self.iou_threshold.setValue(0.45)
+        self.iou_threshold.setIsRequired(False)
+
+        # Visualization parameters
+        self.mask_alpha = FloatValue(
+            "mask_alpha",
+            "mask_alpha",
+            "Alpha transparency value for mask overlay on output images. "
+            + "Range is 0.0 (transparent) to 1.0 (opaque), default is 0.5.",
+        )
+        self.mask_alpha.setMin(0.0)
+        self.mask_alpha.setMax(1.0)
+        self.mask_alpha.setValue(0.5)
+        self.mask_alpha.setIsRequired(False)
+
+        self.color_brightness = FloatValue(
+            "color_brightness",
+            "color_brightness",
+            "Brightness value for mask colors in HSV color space. "
+            + "Range is 0.0 (dark) to 1.0 (bright), default is 1.0.",
+        )
+        self.color_brightness.setMin(0.0)
+        self.color_brightness.setMax(1.0)
+        self.color_brightness.setValue(1.0)
+        self.color_brightness.setIsRequired(False)
+
+        self.bbox_thickness = IntValue(
+            "bbox_thickness",
+            "bbox_thickness",
+            "Thickness of bounding box lines in pixels. Default is 5.",
+        )
+        self.bbox_thickness.setMin(1)
+        self.bbox_thickness.setMax(50)
+        self.bbox_thickness.setValue(5)
+        self.bbox_thickness.setIsRequired(False)
+
+        self.font_scale = FloatValue(
+            "font_scale",
+            "font_scale",
+            "Font scale for text labels on output images. Default is 2.0.",
+        )
+        self.font_scale.setMin(0.1)
+        self.font_scale.setMax(10.0)
+        self.font_scale.setValue(2.0)
+        self.font_scale.setIsRequired(False)
+
+        self.text_thickness = IntValue(
+            "text_thickness",
+            "text_thickness",
+            "Thickness of text labels in pixels. Default is 3.",
+        )
+        self.text_thickness.setMin(1)
+        self.text_thickness.setMax(50)
+        self.text_thickness.setValue(3)
+        self.text_thickness.setIsRequired(False)
+
+        # Sorting/grouping parameter
+        self.row_tolerance = IntValue(
+            "row_tolerance",
+            "row_tolerance",
+            "Row grouping tolerance factor. Fruits are grouped into rows when their y-centers "
+            + "differ by more than height/row_tolerance pixels. Smaller values = looser grouping, "
+            + "larger values = tighter grouping. Default is 20.",
+        )
+        self.row_tolerance.setMin(1)
+        self.row_tolerance.setMax(100)
+        self.row_tolerance.setValue(20)
+        self.row_tolerance.setIsRequired(False)
+
         self.seg_images = ImageListValue(
             "seg_img",
             "segmented_images",
@@ -173,18 +267,18 @@ class Segmentation(Analysis):
             )
         )
 
-        # Add confidence threshold parameter for YOLO predictions
-        self.confidence_threshold = FloatValue(
-            "conf_threshold",
-            "confidence_threshold", 
-            "Minimum confidence threshold for YOLO detections. Objects with confidence below this value will be filtered out."
+        self.addInParam(
+            self.model,
+            self.input_images,
+            self.conf_threshold,
+            self.iou_threshold,
+            self.mask_alpha,
+            self.color_brightness,
+            self.bbox_thickness,
+            self.font_scale,
+            self.text_thickness,
+            self.row_tolerance,
         )
-        self.confidence_threshold.setValue(0.25)  # YOLO default
-        self.confidence_threshold.setMin(0.0)
-        self.confidence_threshold.setMax(1.0)
-        self.confidence_threshold.setIsRequired(False)
-
-        self.addInParam(self.model, self.input_images, self.confidence_threshold)
 
     def _getModelUrl(self, model_name: str):
         """
@@ -231,9 +325,13 @@ class Segmentation(Analysis):
         including: masks, boxes, xyxy's, classes, confident scores
         """
         # detects instances on the image
-        # Get confidence threshold from parameters
-        conf_threshold = self.in_params.get(self.confidence_threshold.getName()).getValue()
-        results = self.segmentation_model.predict(image, retina_masks=True, conf=conf_threshold)  # type: ignore
+
+        results = self.segmentation_model.predict(
+            image,
+            retina_masks=True,
+            conf=self.conf_threshold.getValue(),
+            iou=self.iou_threshold.getValue()
+        )  # type: ignore
 
         return results
 
@@ -265,9 +363,9 @@ class Segmentation(Analysis):
 
         img = tray_image.getImage()
         result = img.copy()
-        alpha = 0.5
+        alpha = self.mask_alpha.getValue()
         num_instances = masks.shape[0]
-        brightness = 1.0
+        brightness = self.color_brightness.getValue()
         hsv = [(i / num_instances, 1, brightness) for i in range(num_instances)]
         colors = list(map(lambda c: colorsys.hsv_to_rgb(*c), hsv))
         random.shuffle(colors)
@@ -283,15 +381,15 @@ class Segmentation(Analysis):
 
             x1, y1, x2, y2, _, _ = sorted_boxes[i]
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-            cv2.rectangle(result, (x1, y1), (x2, y2), (r * 255, g * 255, b * 255), 5)
+            cv2.rectangle(result, (x1, y1), (x2, y2), (r * 255, g * 255, b * 255), self.bbox_thickness.getValue())
             cv2.putText(
                 result,
                 "{:2.0f}-{:.3f}".format(i, confs[i]),
                 (x1, y1),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=2,
+                fontScale=self.font_scale.getValue(),
                 color=(255, 255, 255),
-                thickness=3,
+                thickness=self.text_thickness.getValue(),
             )
         image_instance: Image = RGBImage(
             pathlib.Path(tray_image.getImageName()).stem + f"_masked_image" + ".png"
@@ -327,7 +425,7 @@ class Segmentation(Analysis):
         df["apple_id"] = 0
         df["nums"] = df.index
         df = df.sort_values("ycenter", ascending=True).reset_index(drop=True)
-        df["rows"] = (df["ycenter"].diff().abs().gt(h // 20).cumsum() + 1).fillna(1).astype(int)
+        df["rows"] = (df["ycenter"].diff().abs().gt(h // self.row_tolerance.getValue()).cumsum() + 1).fillna(1).astype(int)
 
         df_list: List[pd.DataFrame] = []
         apple_id = 1

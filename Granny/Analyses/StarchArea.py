@@ -26,6 +26,7 @@ from Granny.Models.IO.ImageIO import ImageIO
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from Granny.Models.Values.FloatValue import FloatValue
 from Granny.Models.Values.ImageListValue import ImageListValue
+from Granny.Models.Values.IntValue import IntValue
 from Granny.Models.Values.MetaDataValue import MetaDataValue
 from numpy.typing import NDArray
 
@@ -188,6 +189,45 @@ class StarchArea(Analysis):
             "input", "input", "The directory where input images are located."
         )
         self.input_images.setIsRequired(True)
+
+        # Starch threshold parameter
+        self.starch_threshold = IntValue(
+            "starch_threshold",
+            "starch_threshold",
+            "Threshold value for starch detection. Pixels with gray values <= this threshold "
+            + "are considered starch. Lower values detect only darker starch regions, higher "
+            + "values include lighter regions. Range is 0 to 255, default is 172.",
+        )
+        self.starch_threshold.setMin(0)
+        self.starch_threshold.setMax(255)
+        self.starch_threshold.setValue(172)
+        self.starch_threshold.setIsRequired(False)
+
+        # Gaussian blur kernel size parameter
+        self.blur_kernel = IntValue(
+            "blur_kernel",
+            "blur_kernel",
+            "Size of the Gaussian blur kernel for noise reduction preprocessing. "
+            + "Must be an odd positive integer. Larger values produce more smoothing. "
+            + "Default is 7 (creates a 7x7 kernel).",
+        )
+        self.blur_kernel.setMin(1)
+        self.blur_kernel.setMax(99)
+        self.blur_kernel.setValue(7)
+        self.blur_kernel.setIsRequired(False)
+
+        # Visualization parameter
+        self.mask_alpha = FloatValue(
+            "mask_alpha",
+            "mask_alpha",
+            "Alpha transparency value for starch mask overlay on output images. "
+            + "Range is 0.0 (transparent) to 1.0 (opaque), default is 0.6.",
+        )
+        self.mask_alpha.setMin(0.0)
+        self.mask_alpha.setMax(1.0)
+        self.mask_alpha.setValue(0.6)
+        self.mask_alpha.setIsRequired(False)
+
         self.output_images = ImageListValue(
             "output",
             "output",
@@ -200,7 +240,7 @@ class StarchArea(Analysis):
             datetime.now().strftime("%Y-%m-%d-%H-%M"),
         )
         self.output_images.setValue(result_dir)
-        self.addInParam(self.input_images)
+        self.addInParam(self.input_images, self.starch_threshold, self.blur_kernel, self.mask_alpha)
 
         # sets up output result directory
         self.output_results = MetaDataValue(
@@ -222,7 +262,7 @@ class StarchArea(Analysis):
         """
         result = img.copy()
         color = (0, 0, 0)
-        alpha = 0.6
+        alpha = self.mask_alpha.getValue()
         for c in range(3):
             result[:, :, c] = np.where(
                 mask == 0,
@@ -282,7 +322,8 @@ class StarchArea(Analysis):
         new_img = img.copy()
 
         # blurs the image to remove sharp noises, then converts it to gray scale
-        img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (7, 7), 0))
+        kernel_size = self.blur_kernel.getValue()
+        img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (kernel_size, kernel_size), 0))
         gray = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
 
         # re-adjusts the image to [0 255]
@@ -290,7 +331,7 @@ class StarchArea(Analysis):
         gray = adjustImage(gray, low, high)
 
         # create thresholded matrices
-        image_threshold = 172
+        image_threshold = self.starch_threshold.getValue()
         mask = np.logical_and((gray > 0), (gray <= image_threshold)).astype(np.uint8)
 
         # creates new image using threshold matrices

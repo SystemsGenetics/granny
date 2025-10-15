@@ -53,6 +53,79 @@ class SuperficialScald(Analysis):
             "input", "input", "The directory where input images are located."
         )
         self.input_images.setIsRequired(True)
+
+        # Morphological kernel size parameter
+        self.morph_kernel = IntValue(
+            "morph_kernel",
+            "morph_kernel",
+            "Size of the morphological (ellipse) kernel for mask smoothing operations. "
+            + "Larger values produce more smoothing. Default is 10 (creates a 10x10 kernel).",
+        )
+        self.morph_kernel.setMin(1)
+        self.morph_kernel.setMax(99)
+        self.morph_kernel.setValue(10)
+        self.morph_kernel.setIsRequired(False)
+
+        # Minimum threshold parameter
+        self.min_threshold = IntValue(
+            "min_threshold",
+            "min_threshold",
+            "Minimum threshold value for scald detection. Pixels below this threshold "
+            + "are considered potential scald regions. Range is 0 to 255, default is 100.",
+        )
+        self.min_threshold.setMin(0)
+        self.min_threshold.setMax(255)
+        self.min_threshold.setValue(100)
+        self.min_threshold.setIsRequired(False)
+
+        # Purple threshold parameter
+        self.purple_threshold = IntValue(
+            "purple_threshold",
+            "purple_threshold",
+            "Threshold for removing purple background/tray pixels using YCrCb color space. "
+            + "Pixels with Cb channel <= this value are kept. Range is 0 to 255, default is 126.",
+        )
+        self.purple_threshold.setMin(0)
+        self.purple_threshold.setMax(255)
+        self.purple_threshold.setValue(126)
+        self.purple_threshold.setIsRequired(False)
+
+        # Gaussian blur kernel parameter
+        self.blur_kernel = IntValue(
+            "blur_kernel",
+            "blur_kernel",
+            "Size of the Gaussian blur kernel for image smoothing. Must be an odd positive "
+            + "integer. Default is 3 (creates a 3x3 kernel).",
+        )
+        self.blur_kernel.setMin(1)
+        self.blur_kernel.setMax(99)
+        self.blur_kernel.setValue(3)
+        self.blur_kernel.setIsRequired(False)
+
+        # Histogram range factor parameter
+        self.hist_factor = FloatValue(
+            "hist_factor",
+            "hist_factor",
+            "Fraction of histogram range to subtract from threshold calculation. "
+            + "Range is 0.0 to 1.0, default is 0.333 (1/3).",
+        )
+        self.hist_factor.setMin(0.0)
+        self.hist_factor.setMax(1.0)
+        self.hist_factor.setValue(0.333)
+        self.hist_factor.setIsRequired(False)
+
+        # Histogram analysis parameter
+        self.hist_top_n = IntValue(
+            "hist_top_n",
+            "hist_top_n",
+            "Number of top histogram values to consider for threshold calculation. "
+            + "Default is 10.",
+        )
+        self.hist_top_n.setMin(1)
+        self.hist_top_n.setMax(100)
+        self.hist_top_n.setValue(10)
+        self.hist_top_n.setIsRequired(False)
+
         self.output_images = ImageListValue(
             "output",
             "output",
@@ -65,7 +138,15 @@ class SuperficialScald(Analysis):
             datetime.now().strftime("%Y-%m-%d-%H-%M"),
         )
         self.output_images.setValue(result_dir)
-        self.addInParam(self.input_images)
+        self.addInParam(
+            self.input_images,
+            self.morph_kernel,
+            self.min_threshold,
+            self.purple_threshold,
+            self.blur_kernel,
+            self.hist_factor,
+            self.hist_top_n,
+        )
 
         # sets up output result directory
         self.output_results = MetaDataValue(
@@ -87,8 +168,9 @@ class SuperficialScald(Analysis):
         """
         bin_mask = bin_mask
 
-        # create a circular structuring element of size 10
-        ksize = (10, 10)
+        # create a circular structuring element
+        kernel_size = self.morph_kernel.getValue()
+        ksize = (kernel_size, kernel_size)
         strel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, ksize=ksize)
 
         # using to structuring element to perform one close and one open operation on the binary mask
@@ -125,9 +207,11 @@ class SuperficialScald(Analysis):
 
         def _calculate_threshold_from_hist(hist: NDArray[np.int8]) -> int:
             hist_range = 255 - (hist[::-1] != 0).argmax() - (hist != 0).argmax()
-            threshold = np.max(np.argsort(hist)[-10:])
-            threshold = int(threshold - 1 / 3 * hist_range)
-            threshold = 100 if threshold < 100 else int(threshold)
+            top_n = self.hist_top_n.getValue()
+            threshold = np.max(np.argsort(hist)[-top_n:])
+            threshold = int(threshold - self.hist_factor.getValue() * hist_range)
+            min_thresh = self.min_threshold.getValue()
+            threshold = min_thresh if threshold < min_thresh else int(threshold)
             return threshold
 
         # create binary matrices
@@ -169,7 +253,7 @@ class SuperficialScald(Analysis):
         # create binary matrices
         threshold_1 = np.logical_and((ycc_img[:, :, 0] >= 0), (ycc_img[:, :, 0] <= 255))
         threshold_2 = np.logical_and((ycc_img[:, :, 1] >= 0), (ycc_img[:, :, 1] <= 255))
-        threshold_3 = np.logical_and((ycc_img[:, :, 2] >= 0), (ycc_img[:, :, 2] <= 126))
+        threshold_3 = np.logical_and((ycc_img[:, :, 2] >= 0), (ycc_img[:, :, 2] <= self.purple_threshold.getValue()))
 
         # combine to one matrix
         th123 = np.logical_and(
@@ -201,7 +285,8 @@ class SuperficialScald(Analysis):
         nopurple_img = img.copy()
 
         # Image smoothing
-        img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0))
+        blur_size = self.blur_kernel.getValue()
+        img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (blur_size, blur_size), sigmaX=0, sigmaY=0))
 
         # Removal of scald regions
         bw, img = self._removeScald(img)
