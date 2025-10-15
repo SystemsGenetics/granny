@@ -3,6 +3,10 @@ from Granny.Models.IO.ImageIO import ImageIO
 from numpy.typing import NDArray
 import numpy as np
 
+import os
+import pytest
+
+
 # Abstract Method 
 # I copied the code for the methods in the test class from RGBImageFile since
 # we are not testing if these methods work in this file. We are only testing
@@ -36,3 +40,10 @@ def test_setFilePath():
     image = testImageIO()
     image.setFilePath(filePath)
     assert image.filepath == filePath
+
+#Tries setting an invalid file path (None) and expects an exception.
+def test_setFilePath_invalid():
+    """Ensure that setting an invalid filepath raises a TypeError."""
+    image = testImageIO()
+    with pytest.raises(TypeError):  
+        image.setFilePath(None)  

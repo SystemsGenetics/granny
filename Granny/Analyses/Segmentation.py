@@ -325,6 +325,7 @@ class Segmentation(Analysis):
         including: masks, boxes, xyxy's, classes, confident scores
         """
         # detects instances on the image
+
         results = self.segmentation_model.predict(
             image,
             retina_masks=True,
@@ -486,7 +487,7 @@ class Segmentation(Analysis):
             for channel in range(3):
                 individual_image[:, :, channel] = tray_image_array[y1:y2, x1:x2, channel] * mask[y1:y2, x1:x2]  # type: ignore
             image_name = (
-                pathlib.Path(tray_image.getImageName()).stem + f"_tray_info_{i+1}" + ".png"
+                pathlib.Path(tray_image.getImageName()).stem + f"_tray_info_{i+1:02d}" + ".png"
             )
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
@@ -541,7 +542,7 @@ class Segmentation(Analysis):
             mask = sorted_masks[i]
             for channel in range(3):
                 individual_image[:, :, channel] = tray_image_array[y1:y2, x1:x2, channel] * mask[y1:y2, x1:x2]  # type: ignore
-            image_name = pathlib.Path(tray_image.getImageName()).stem + f"_fruit_{i+1}" + ".png"
+            image_name = pathlib.Path(tray_image.getImageName()).stem + f"_fruit_{i+1:02d}" + ".png"
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
             individual_images.append(image_instance)
