@@ -14,3 +14,4 @@ The Granny User's Guide provides instructions for setup and usage of Granny for 
    setup
    segmentation
    modules/index
+   adjustable_parameters
