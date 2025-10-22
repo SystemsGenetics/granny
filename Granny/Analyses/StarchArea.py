@@ -250,9 +250,7 @@ class StarchArea(Analysis):
         )
         self.output_results.setValue(result_dir)
 
-    def _drawMask(
-        self, img: NDArray[np.uint8], mask: NDArray[np.uint8]
-    ) -> NDArray[np.uint8]:
+    def _drawMask(self, img: NDArray[np.uint8], mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
         Overlays a binary mask on an image.
 
@@ -271,9 +269,7 @@ class StarchArea(Analysis):
             )
         return result
 
-    def _calculateStarch(
-        self, img: NDArray[np.uint8]
-    ) -> Tuple[float, NDArray[np.uint8]]:
+    def _calculateStarch(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
         """
         Calculates the starch content in the given image and return the modified image.
 
@@ -301,9 +297,7 @@ class StarchArea(Analysis):
             high = 255 - (hist[::-1] != 0).argmax()
             return low, high
 
-        def adjustImage(
-            img: NDArray[np.uint8], lIn: int, hIn: int, lOut: int = 0, hOut: int = 255
-        ):
+        def adjustImage(img: NDArray[np.uint8], lIn: int, hIn: int, lOut: int = 0, hOut: int = 255):
             """
             Adjusts the intensity values of an image I to new values. This function is equivalent
             to normalize the image pixel values to [0, 255].
@@ -382,7 +376,7 @@ class StarchArea(Analysis):
             results[name] = index_list[closest_index]
         return results
 
-    def _rateImageInstance(self, image_instance: Image) -> Image:
+    def _processImage(self, image_instance: Image) -> Image:
         """
         Loads and analyzes the provided Image instance to calculate starch content and ratings.
 
@@ -452,26 +446,18 @@ class StarchArea(Analysis):
 
         return result_img
 
-    def performAnalysis(self) -> List[Image]:
+    def _preRun(self):
         """
         {@inheritdoc}
         """
-        # initiates user's input
-        self.input_images: ImageListValue = self.in_params.get(self.input_images.getName())  # type: ignore
-        # self.threshold: IntValue = self.in_params.get(self.threshold.getName())  # type:ignore
+        pass
 
-        # initiates an ImageIO for image input/output
-        self.image_io: ImageIO = RGBImageFile()
 
-        # initiates Granny.Model.Images.Image instances for the analysis using the user's input
-        self.input_images.readValue()
-        self.images = self.input_images.getImageList()
 
-        # perform analysis with multiprocessing
-        num_cpu = os.cpu_count()
-        cpu_count = int(num_cpu * 0.8) or 1  # type: ignore
-        with Pool(cpu_count) as pool:
-            results = pool.map(self._rateImageInstance, self.images)
+    def _postRun(self, results):
+        """
+        {@inheritdoc}
+        """
 
         # adds the result list to self.output_images then writes the resulting images to folder
         self.output_images.setImageList(results)
@@ -484,3 +470,4 @@ class StarchArea(Analysis):
         self.addRetValue(self.output_images)
 
         return self.output_images.getImageList()
+

@@ -11,6 +11,7 @@ import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Dict, List
+from multiprocessing import Pool
 
 from Granny.Models.Images.Image import Image
 from Granny.Models.Values.StringValue import StringValue
@@ -120,10 +121,44 @@ class Analysis(ABC):
         """
         self.ret_values = {}
 
-    @abstractmethod
     def performAnalysis(self) -> List[Image]:
         """
         Once all required parameters have been set, this function is used
         to perform the analysis.
         """
+        # initiates user's input
+        self.input_images: ImageListValue = self.in_params.get(self.input_images.getName())  # type: ignore
+        # self.threshold: IntValue = self.in_params.get(self.threshold.getName())  # type:ignore
+
+        # initiates an ImageIO for image input/output
+        self.image_io: ImageIO = RGBImageFile()
+
+        # initiates Granny.Model.Images.Image instances for the analysis using the user's input
+        self.input_images.readValue()
+        self.images = self.input_images.getImageList()
+
+        # Allow the child module to set up it's member variables, etc.
+        self._preRun()
+
+        # perform analysis with multiprocessing
+        num_cpu = os.cpu_count()
+        cpu_count = int(num_cpu * 0.8) or 1  # type: ignore
+        with Pool(cpu_count) as pool:
+            results = pool.map(self._processImage, self.images)
+
+        # Allow the child module to perform post processing after
+        # all images have been processed.
+        return self._postRun()
+
+
+    @abstractmethod
+    def _preRun(self):
+        pass
+
+    @abstractmethod
+    def _postRun(self, results):
+        pass
+
+    @abstractmethod
+    def _processImage(self, image_instance: Image) -> Image:
         pass
