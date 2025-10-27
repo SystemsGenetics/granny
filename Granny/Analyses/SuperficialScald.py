@@ -339,7 +339,7 @@ class SuperficialScald(Analysis):
         score = self._calculateScald(binarized_image, nopurple_img)
         return score, binarized_image
 
-    def _rateImageInstance(self, image_instance: Image) -> Image:
+    def _processImage(self, image_instance: Image) -> Image:
         """
         Loads and analyzes the provided Image instance for superficial scald.
 
@@ -380,26 +380,17 @@ class SuperficialScald(Analysis):
 
         return result_img
 
-    def performAnalysis(self) -> List[Image]:
+    def _preRun(self):
         """
         {@inheritdoc}
         """
-        # initiates user's input
-        self.input_images: ImageListValue = self.in_params.get(self.input_images.getName())  # type: ignore
-
         # initiates an ImageIO for image input/output
         self.image_io: ImageIO = RGBImageFile()
 
-        # initiates Granny.Model.Images.Image instances for the analysis using the user's input
-        self.input_images.readValue()
-        self.images = self.input_images.getImageList()
-
-        # perform analysis with multiprocessing
-        num_cpu = os.cpu_count()
-        cpu_count = int(num_cpu * 0.8) or 1  # type: ignore
-        with Pool(cpu_count) as pool:
-            results = pool.map(self._rateImageInstance, self.images)
-
+    def _postRun(self, results):
+        """
+        {@inheritdoc}
+        """
         # adds the result list to self.output_images then writes the resulting images to folder
         self.output_images.setImageList(results)
         self.output_images.writeValue()

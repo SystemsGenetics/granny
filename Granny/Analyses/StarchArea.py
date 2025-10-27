@@ -450,7 +450,8 @@ class StarchArea(Analysis):
         """
         {@inheritdoc}
         """
-        pass
+        # initiates an ImageIO for image input/output
+        self.image_io: ImageIO = RGBImageFile()
 
 
 
