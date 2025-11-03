@@ -26,6 +26,6 @@ class FileNameValue(Value):
 
     def validate(self) -> bool:
         """
-        Makes sure that the filename is valid as a file, or allow non-empty strings for model names.
+        Makes sure that the filename is valid as a file.
         """
-        return self.value is not None and (os.path.isfile(self.value) or bool(self.value.strip()))
+        return self.value is not None and os.path.isfile(self.value)

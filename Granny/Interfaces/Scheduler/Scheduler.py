@@ -38,13 +38,13 @@ class Scheduler(object):
         # in the graph.
         for dependency in dependencies:
             dependency_id = id(dependency)
-            if dependency_id in self.analyses:
 
-                # Store the parent of the dependency.
-                self.graph[dependency_id].append(analysis_id)
+            # Store the dependency even if it hasn't been added yet
+            # This allows cycle detection to work properly
+            self.graph[dependency_id].append(analysis_id)
 
-                # Increment the in-degree for the analysis (# of deps).
-                self.in_degree[analysis_id] += 1
+            # Increment the in-degree for the analysis (# of deps).
+            self.in_degree[analysis_id] += 1
 
     def schedule(self):
         """
