@@ -11,8 +11,10 @@ import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Dict, List
+from multiprocessing import Pool
 
 from Granny.Models.Images.Image import Image
+from Granny.Models.Values.IntValue import IntValue
 from Granny.Models.Values.StringValue import StringValue
 from Granny.Models.Values.Value import Value
 
@@ -70,6 +72,20 @@ class Analysis(ABC):
         path.setValue(os.path.abspath(os.curdir))
         self.metadata.append(path)
 
+        # Number of CPU cores for parallel processing
+        self.cpu = IntValue(
+            "cpu",
+            "cpu",
+            "Number of CPU cores to use for parallel processing. "
+            "Set to 0 for automatic (uses 80% of available cores). "
+            "Default is 0 (automatic)."
+        )
+        self.cpu.setMin(0)
+        self.cpu.setMax(os.cpu_count() or 1)
+        self.cpu.setValue(0)  # 0 = auto mode
+        self.cpu.setIsRequired(False)
+        self.addInParam(self.cpu)
+
     def addInParam(self, *params: Value):
         """
         Adds one or more parameters to the input parameter dictionary.
@@ -120,10 +136,48 @@ class Analysis(ABC):
         """
         self.ret_values = {}
 
-    @abstractmethod
     def performAnalysis(self) -> List[Image]:
         """
         Once all required parameters have been set, this function is used
         to perform the analysis.
         """
+        # initiates user's input
+        self.input_images: ImageListValue = self.in_params.get(self.input_images.getName())  # type: ignore
+
+        # initiates Granny.Model.Images.Image instances for the analysis using the user's input
+        self.input_images.readValue()
+        self.images = self.input_images.getImageList()
+
+        # Allow the child module to set up it's member variables, etc.
+        self._preRun()
+
+        # perform analysis with multiprocessing
+        num_cpu = os.cpu_count() or 1
+        user_cpu = self.cpu.getValue()
+
+        if user_cpu == 0:
+            # Auto mode: use 80% of available cores
+            cpu_count = int(num_cpu * 0.8) or 1
+        else:
+            # User-specified: don't exceed available cores
+            cpu_count = min(user_cpu, num_cpu)
+
+        with Pool(cpu_count) as pool:
+            results = pool.map(self._processImage, self.images)
+
+        # Allow the child module to perform post processing after
+        # all images have been processed.
+        return self._postRun(results)
+
+
+    @abstractmethod
+    def _preRun(self):
+        pass
+
+    @abstractmethod
+    def _postRun(self, results):
+        pass
+
+    @abstractmethod
+    def _processImage(self, image_instance: Image) -> Image:
         pass

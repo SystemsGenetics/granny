@@ -640,3 +640,21 @@ class Segmentation(Analysis):
                 AttributeError("Error with the results.")
 
         return segmented_images
+
+    def _preRun(self):
+        """
+        Stub implementation - Segmentation overrides performAnalysis() entirely.
+        """
+        pass
+
+    def _processImage(self, image_instance: Image) -> Image:
+        """
+        Stub implementation - Segmentation overrides performAnalysis() entirely.
+        """
+        pass
+
+    def _postRun(self, results):
+        """
+        Stub implementation - Segmentation overrides performAnalysis() entirely.
+        """
+        pass
