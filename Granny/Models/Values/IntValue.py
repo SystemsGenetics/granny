@@ -61,10 +61,10 @@ class IntValue(NumericValue):
         """
         {@inheritdoc}
         """
+        if type(value) is not int:
+            return False
         if self.valid_values != [] and value not in self.valid_values:
             return False
         if self.min_value > value or self.max_value < value:
-            return False
-        if type(value) is not int:
             return False
         return True
