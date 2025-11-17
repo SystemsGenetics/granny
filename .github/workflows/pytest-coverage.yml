@@ -1,0 +1,50 @@
+name: Pytest with Coverage
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+      - pr-testing
+  push:
+    branches:
+      - dev
+      - main
+      - pr-testing
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov
+          pip install -e .
+
+      - name: Run pytest with coverage
+        run: |
+          pytest --cov=Granny --cov-report=lcov:coverage.lcov --cov-report=term-missing
+
+      - name: Upload coverage to QLTY Cloud
+        if: matrix.python-version == '3.12'
+        uses: qltysh/qlty-action/coverage@v1
+        with:
+          oidc: true
+          files: lcov:coverage.lcov
