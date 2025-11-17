@@ -42,9 +42,15 @@ jobs:
         run: |
           pytest --cov=Granny --cov-report=lcov:coverage.lcov --cov-report=term-missing
 
+      - name: Verify coverage file exists
+        if: matrix.python-version == '3.12'
+        run: |
+          ls -la coverage.lcov
+          cat coverage.lcov | head -20
+
       - name: Upload coverage to QLTY Cloud
         if: matrix.python-version == '3.12'
         uses: qltysh/qlty-action/coverage@v1
         with:
           oidc: true
-          files: lcov:coverage.lcov
+          files: coverage.lcov
