@@ -3,7 +3,7 @@ Base abstract Analysis class for the analyses to be called by either the command
 or the graphical user interface.
 
 Author: Nhan Nguyen
-Date: May 21, 2024
+Date: July 12, 2024
 """
 
 import os
@@ -11,8 +11,10 @@ import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Dict, List
+from multiprocessing import Pool
 
 from Granny.Models.Images.Image import Image
+from Granny.Models.Values.IntValue import IntValue
 from Granny.Models.Values.StringValue import StringValue
 from Granny.Models.Values.Value import Value
 
@@ -23,11 +25,15 @@ class Analysis(ABC):
 
     def __init__(self):
         """
-        Initializes an instance of an Analysis object
+        Abstract base class for different types of analyses. This class provides the structure
+        and common functionality for performing analyses, including handling input parameters,
+        return values, and metadata.
 
-        @param GRANNY.Models.Images.Image An instance of an Image object
-
-        @return GRANNY.Analyses.Analysis.Analysis object.
+        Attributes:
+            in_params (Dict[str, Value]): Dictionary to store input parameters for the analysis.
+            ret_values (Dict[str, Value]): Dictionary to store return values from the analysis.
+            compatibility (Dict[str, Dict[str, str]]): Dictionary to define compatibility with other analyses.
+            metadata (List[Value]): List to store metadata about the analysis.
         """
         # The list of INPUT parameter values for the analysis.
         self.in_params: Dict[str, Value] = {}
@@ -48,7 +54,9 @@ class Analysis(ABC):
 
         # Set some default metadata values for all analyses:
         # The analysis date and time.
-        time = StringValue("dt", "datetime", "Date and time of when the analysis was performed.")
+        time = StringValue(
+            "dt", "datetime", "Date and time of when the analysis was performed."
+        )
         time.setValue(datetime.now().strftime("%Y-%m-%d %H:%M"))
         self.metadata.append(time)
 
@@ -58,52 +66,118 @@ class Analysis(ABC):
         self.metadata.append(id)
 
         # Current directory
-        path = StringValue("path", "cur_dir", "Absolute file path of the current directory.")
+        path = StringValue(
+            "path", "cur_dir", "Absolute file path of the current directory."
+        )
         path.setValue(os.path.abspath(os.curdir))
         self.metadata.append(path)
 
+        # Number of CPU cores for parallel processing
+        self.cpu = IntValue(
+            "cpu",
+            "cpu",
+            "Number of CPU cores to use for parallel processing. "
+            "Set to 0 for automatic (uses 80% of available cores). "
+            "Default is 0 (automatic)."
+        )
+        self.cpu.setMin(0)
+        self.cpu.setMax(os.cpu_count() or 1)
+        self.cpu.setValue(0)  # 0 = auto mode
+        self.cpu.setIsRequired(False)
+        self.addInParam(self.cpu)
+
     def addInParam(self, *params: Value):
         """
-        Adds a parameter to the parameter dictionary
+        Adds one or more parameters to the input parameter dictionary.
+
+        Args:
+            *params (Value): One or more Value instances to add as input parameters.
         """
         for param in params:
             self.in_params[param.getName()] = param
 
     def getInParams(self) -> Dict[str, Value]:
         """
-        Returns to the GUI/CLI all the required parameters in self.params
+        Retrieves all input parameters for the analysis.
+
+        Returns:
+            Dict[str, Value]: A dictionary of input parameters.
         """
         return dict(self.in_params)
 
     def resetInParams(self):
         """
-        Resets the list of input parameter
+        Resets the list of input parameters, clearing all current input parameters.
         """
         self.in_params = {}
 
     def addRetValue(self, *values: Value):
         """
-        Adds a value to the return parameter dictionary
+        Adds one or more values to the return value dictionary.
+
+        Args:
+            *values (Value): One or more Value instances to add as return values.
         """
         for value in values:
             self.ret_values[value.getName()] = value
 
     def getRetValues(self) -> Dict[str, Value]:
         """
-        Returns to the GUI/CLI all the required parameters in self.params
+        Retrieves all return values from the analysis.
+
+        Returns:
+            Dict[str, Value]: A dictionary of return values.
         """
         return dict(self.ret_values)
 
     def resetRetValues(self):
         """
-        Resets the list of input parameter
+        Resets the list of return values, clearing all current return values.
         """
         self.ret_values = {}
 
-    @abstractmethod
     def performAnalysis(self) -> List[Image]:
         """
         Once all required parameters have been set, this function is used
         to perform the analysis.
         """
+        # initiates user's input
+        self.input_images: ImageListValue = self.in_params.get(self.input_images.getName())  # type: ignore
+
+        # initiates Granny.Model.Images.Image instances for the analysis using the user's input
+        self.input_images.readValue()
+        self.images = self.input_images.getImageList()
+
+        # Allow the child module to set up it's member variables, etc.
+        self._preRun()
+
+        # perform analysis with multiprocessing
+        num_cpu = os.cpu_count() or 1
+        user_cpu = self.cpu.getValue()
+
+        if user_cpu == 0:
+            # Auto mode: use 80% of available cores
+            cpu_count = int(num_cpu * 0.8) or 1
+        else:
+            # User-specified: don't exceed available cores
+            cpu_count = min(user_cpu, num_cpu)
+
+        with Pool(cpu_count) as pool:
+            results = pool.map(self._processImage, self.images)
+
+        # Allow the child module to perform post processing after
+        # all images have been processed.
+        return self._postRun(results)
+
+
+    @abstractmethod
+    def _preRun(self):
+        pass
+
+    @abstractmethod
+    def _postRun(self, results):
+        pass
+
+    @abstractmethod
+    def _processImage(self, image_instance: Image) -> Image:
         pass

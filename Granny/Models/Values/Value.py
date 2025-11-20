@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Type
 
 
 class Value(ABC):
@@ -23,7 +23,7 @@ class Value(ABC):
         self.required = False
 
     @abstractmethod
-    def validate(self) -> bool:
+    def validate(self, value: Any) -> bool:
         """
         Validates the value matches the value constraints.
         """
@@ -50,12 +50,20 @@ class Value(ABC):
         """
         return self.type
 
+    def setType(self, type: Type):
+        """
+        Sets the Python type for this value.
+        """
+        self.type = type
+
     def setValue(self, value: Any):
         """
         Sets the current value of the value.
         """
+        self.validate(value)
         self.value = value
         self.is_set = True
+        self.setType(type(value))
 
     def isSet(self):
         """
@@ -71,18 +79,6 @@ class Value(ABC):
         Returns the current value of the value.
         """
         return self.value
-
-    def readValue(self):
-        """
-        Reads the value from the storage system.
-        """
-        pass
-
-    def writeValue(self):
-        """
-        Writes the value to the storage system.
-        """
-        pass
 
     def setIsRequired(self, is_required: bool):
         """

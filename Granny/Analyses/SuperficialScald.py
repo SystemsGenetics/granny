@@ -1,8 +1,15 @@
 """
-Superficial scald calculation module for Granny Smith apple images.
+This module performs superficial scald calculation on "Granny Smith" apple image files.
+The analysis is conducted as follows:
+    1. It loads input images from a specified directory.
+    2. It processes each image to remove unwanted areas (e.g., purple tray residues).
+    3. It identifies and removes scald regions using morphological operations and color space
+    analysis.
+    4. It calculates the percentage of the image affected by scald.
+    5. It outputs processed images and analysis results to specified directories.
 
-Author: Nhan Nguyen
-Date: May 21, 2024
+date: July 12, 2024
+author: Nhan H. Nguyen
 """
 
 import os
@@ -25,6 +32,16 @@ from numpy.typing import NDArray
 
 
 class SuperficialScald(Analysis):
+    """
+    Analysis class for detecting superficial scald regions on "Granny Smith" apple images.
+
+    Attributes:
+        __analysis_name__ (str): The name of the analysis ('scald').
+        input_images (ImageListValue): List of input images to analyze.
+        output_images (ImageListValue): List of output images with scald regions identified.
+        output_results (MetaDataValue): Metadata value containing the directory where analysis
+        results are saved.
+    """
 
     __analysis_name__ = "scald"
 
@@ -36,8 +53,83 @@ class SuperficialScald(Analysis):
             "input", "input", "The directory where input images are located."
         )
         self.input_images.setIsRequired(True)
+
+        # Morphological kernel size parameter
+        self.morph_kernel = IntValue(
+            "morph_kernel",
+            "morph_kernel",
+            "Size of the morphological (ellipse) kernel for mask smoothing operations. "
+            + "Larger values produce more smoothing. Default is 10 (creates a 10x10 kernel).",
+        )
+        self.morph_kernel.setMin(1)
+        self.morph_kernel.setMax(99)
+        self.morph_kernel.setValue(10)
+        self.morph_kernel.setIsRequired(False)
+
+        # Minimum threshold parameter
+        self.min_threshold = IntValue(
+            "min_threshold",
+            "min_threshold",
+            "Minimum threshold value for scald detection. Pixels below this threshold "
+            + "are considered potential scald regions. Range is 0 to 255, default is 100.",
+        )
+        self.min_threshold.setMin(0)
+        self.min_threshold.setMax(255)
+        self.min_threshold.setValue(100)
+        self.min_threshold.setIsRequired(False)
+
+        # Purple threshold parameter
+        self.purple_threshold = IntValue(
+            "purple_threshold",
+            "purple_threshold",
+            "Threshold for removing purple background/tray pixels using YCrCb color space. "
+            + "Pixels with Cb channel <= this value are kept. Range is 0 to 255, default is 126.",
+        )
+        self.purple_threshold.setMin(0)
+        self.purple_threshold.setMax(255)
+        self.purple_threshold.setValue(126)
+        self.purple_threshold.setIsRequired(False)
+
+        # Gaussian blur kernel parameter
+        self.blur_kernel = IntValue(
+            "blur_kernel",
+            "blur_kernel",
+            "Size of the Gaussian blur kernel for image smoothing. Must be an odd positive "
+            + "integer. Default is 3 (creates a 3x3 kernel).",
+        )
+        self.blur_kernel.setMin(1)
+        self.blur_kernel.setMax(99)
+        self.blur_kernel.setValue(3)
+        self.blur_kernel.setIsRequired(False)
+
+        # Histogram range factor parameter
+        self.hist_factor = FloatValue(
+            "hist_factor",
+            "hist_factor",
+            "Fraction of histogram range to subtract from threshold calculation. "
+            + "Range is 0.0 to 1.0, default is 0.333 (1/3).",
+        )
+        self.hist_factor.setMin(0.0)
+        self.hist_factor.setMax(1.0)
+        self.hist_factor.setValue(0.333)
+        self.hist_factor.setIsRequired(False)
+
+        # Histogram analysis parameter
+        self.hist_top_n = IntValue(
+            "hist_top_n",
+            "hist_top_n",
+            "Number of top histogram values to consider for threshold calculation. "
+            + "Default is 10.",
+        )
+        self.hist_top_n.setMin(1)
+        self.hist_top_n.setMax(100)
+        self.hist_top_n.setValue(10)
+        self.hist_top_n.setIsRequired(False)
+
         self.output_images = ImageListValue(
-            "output", "output", "The output directory where analysis' images are written."
+            "output",
+            "output",
+            "The output directory where analysis' images are written.",
         )
         result_dir = os.path.join(
             os.curdir,
@@ -46,23 +138,39 @@ class SuperficialScald(Analysis):
             datetime.now().strftime("%Y-%m-%d-%H-%M"),
         )
         self.output_images.setValue(result_dir)
-        self.addInParam(self.input_images)
+        self.addInParam(
+            self.input_images,
+            self.morph_kernel,
+            self.min_threshold,
+            self.purple_threshold,
+            self.blur_kernel,
+            self.hist_factor,
+            self.hist_top_n,
+        )
 
         # sets up output result directory
         self.output_results = MetaDataValue(
-            "results", "results", "The output directory where analysis' results are written."
+            "results",
+            "results",
+            "The output directory where analysis' results are written.",
         )
         self.output_results.setValue(result_dir)
 
-    def smoothMask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
+    def _smoothMask(self, bin_mask: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
-        Smooth scald region with basic morphological operations.
-        By performing morphology, the binary mask will be smoothened to avoid discontinuity.
+        Smooths scald region with basic morphological operations.
+
+        Args:
+            bin_mask (NDArray[np.uint8]): Binary mask representing scald regions.
+
+        Returns:
+            NDArray[np.uint8]: Smoothed binary mask after morphological operations.
         """
         bin_mask = bin_mask
 
-        # create a circular structuring element of size 10
-        ksize = (10, 10)
+        # create a circular structuring element
+        kernel_size = self.morph_kernel.getValue()
+        ksize = (kernel_size, kernel_size)
         strel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, ksize=ksize)
 
         # using to structuring element to perform one close and one open operation on the binary mask
@@ -78,20 +186,32 @@ class SuperficialScald(Analysis):
         )  # type: ignore
         return bin_mask
 
-    def _removeScald(self, img: NDArray[np.uint8]) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
+    def _removeScald(
+        self, img: NDArray[np.uint8]
+    ) -> Tuple[NDArray[np.uint8], NDArray[np.uint8]]:
         """
-        Remove the scald region from the individual apple images.
-        Note that the stem could have potentially been removed during the process.
+        Removes the scald region from individual apple images.
+
+        Args:
+            img (NDArray[np.uint8]): Original BGR image array.
+
+        Returns:
+            Tuple[NDArray[np.uint8], NDArray[np.uint8]]: Tuple containing:
+                - NDArray[np.uint8]: Binary mask of scald regions.
+                - NDArray[np.uint8]: Image with scald regions removed.
         """
+
         # convert from BGR to Lab color space
         new_img = img.copy()
         lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2LAB))
 
         def _calculate_threshold_from_hist(hist: NDArray[np.int8]) -> int:
             hist_range = 255 - (hist[::-1] != 0).argmax() - (hist != 0).argmax()
-            threshold = np.max(np.argsort(hist)[-10:])
-            threshold = int(threshold - 1 / 3 * hist_range)
-            threshold = 100 if threshold < 100 else int(threshold)
+            top_n = self.hist_top_n.getValue()
+            threshold = np.max(np.argsort(hist)[-top_n:])
+            threshold = int(threshold - self.hist_factor.getValue() * hist_range)
+            min_thresh = self.min_threshold.getValue()
+            threshold = min_thresh if threshold < min_thresh else int(threshold)
             return threshold
 
         # create binary matrices
@@ -104,12 +224,12 @@ class SuperficialScald(Analysis):
         threshold_3 = np.logical_and((lab_img[:, :, 2] >= 1), (lab_img[:, :, 2] <= 255))
 
         # combine to one matrix
-        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
-            np.uint8
-        )
+        th123 = np.logical_and(
+            np.logical_and(threshold_1, threshold_2), threshold_3
+        ).astype(np.uint8)
 
         # perform simple morphological operation to smooth the binary mask
-        th123 = self.smoothMask(th123)
+        th123 = self._smoothMask(th123)
 
         # apply the binary mask on the image
         for i in range(3):
@@ -118,8 +238,13 @@ class SuperficialScald(Analysis):
 
     def _removeTrayResidue(self, img: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
-        Remove the surrounding purple from the individual apples using YCrCb color space.
-        This function helps remove the unwanted regions for more precise calculation of the scald area.
+        Removes the surrounding purple tray residue from individual apples using YCrCb color space.
+
+        Args:
+            img (NDArray[np.uint8]): Original BGR image array.
+
+        Returns:
+            NDArray[np.uint8]: Image with surrounding purple tray residue removed.
         """
         # convert BGR to YCrCb
         new_img = img.copy()
@@ -128,12 +253,12 @@ class SuperficialScald(Analysis):
         # create binary matrices
         threshold_1 = np.logical_and((ycc_img[:, :, 0] >= 0), (ycc_img[:, :, 0] <= 255))
         threshold_2 = np.logical_and((ycc_img[:, :, 1] >= 0), (ycc_img[:, :, 1] <= 255))
-        threshold_3 = np.logical_and((ycc_img[:, :, 2] >= 0), (ycc_img[:, :, 2] <= 126))
+        threshold_3 = np.logical_and((ycc_img[:, :, 2] >= 0), (ycc_img[:, :, 2] <= self.purple_threshold.getValue()))
 
         # combine to one matrix
-        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
-            np.uint8
-        )
+        th123 = np.logical_and(
+            np.logical_and(threshold_1, threshold_2), threshold_3
+        ).astype(np.uint8)
 
         # create new image using threshold matrices
         for i in range(3):
@@ -144,16 +269,24 @@ class SuperficialScald(Analysis):
         self, img: NDArray[np.uint8]
     ) -> Tuple[NDArray[np.uint8], NDArray[np.uint8], NDArray[np.uint8]]:
         """
-        @param img: array representation of the image
+        Cleans up individual image by removing purple tray residue and scald regions.
 
-        Clean up individual image (remove purple area of the tray), and remove scald
+        Args:
+            img (NDArray[np.uint8]): Original BGR image array.
+
+        Returns:
+            Tuple[NDArray[np.uint8], NDArray[np.uint8], NDArray[np.uint8]]: Tuple containing:
+                - NDArray[np.uint8]: Image with surrounding purple tray residue removed.
+                - NDArray[np.uint8]: Image with scald regions removed.
+                - NDArray[np.uint8]: Binary mask of scald regions.
         """
         # removes the residue tray background
         img = self._removeTrayResidue(img)
         nopurple_img = img.copy()
 
         # Image smoothing
-        img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0))
+        blur_size = self.blur_kernel.getValue()
+        img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (blur_size, blur_size), sigmaX=0, sigmaY=0))
 
         # Removal of scald regions
         bw, img = self._removeScald(img)
@@ -185,9 +318,19 @@ class SuperficialScald(Analysis):
             return 0
         return fraction
 
-    def _rateSuperficialScald(self, img: NDArray[np.uint8]) -> Tuple[float, NDArray[np.uint8]]:
+    def _rateSuperficialScald(
+        self, img: NDArray[np.uint8]
+    ) -> Tuple[float, NDArray[np.uint8]]:
         """
-        Calls self.calculateScald function to calculate the scald portion of the image array.
+        Rates the superficial scald of the provided image array.
+
+        Args:
+            img (NDArray[np.uint8]): Original BGR image array.
+
+        Returns:
+            Tuple[float, NDArray[np.uint8]]: Tuple containing:
+                - float: Calculated rating score for the scald area.
+                - NDArray[np.uint8]: Binarized image with scald regions identified.
         """
         # returns apple image with no scald
         nopurple_img, binarized_image, _ = self._score_image(img)
@@ -196,16 +339,17 @@ class SuperficialScald(Analysis):
         score = self._calculateScald(binarized_image, nopurple_img)
         return score, binarized_image
 
-    def _rateImageInstance(self, image_instance: Image) -> Image:
+    def _processImage(self, image_instance: Image) -> Image:
         """
-        1. Loads and performs analysis on the provided Image instance.
-        2. Saves the instance to result directory
+        Loads and analyzes the provided Image instance for superficial scald.
 
-        @param image_instance: An GRANNY.Models.Images.Image instance
+        Args:
+            image_instance (Image): An instance of GRANNY.Models.Images.Image representing the image to be rated.
 
-        @return
-            image_name: file name of the image instance
-            score: rating for the instance
+        Returns:
+            Image: An updated Image instance containing:
+                - image_name: The file name of the input image instance.
+                - rating: Calculated rating for the superficial scald area.
         """
         # initiates ImageIO
         self.image_io.setFilePath(image_instance.getFilePath())
@@ -224,7 +368,9 @@ class SuperficialScald(Analysis):
         result_img.setImage(binarized_image)
 
         # saves the calculated score to the image_instance as a parameter
-        rating = FloatValue("rating", "rating", "Granny calculated rating of total starch area.")
+        rating = FloatValue(
+            "rating", "rating", "Granny calculated rating of total starch area."
+        )
         rating.setMin(0.0)
         rating.setMax(1.0)
         rating.setValue(score)
@@ -234,26 +380,17 @@ class SuperficialScald(Analysis):
 
         return result_img
 
-    def performAnalysis(self) -> List[Image]:
+    def _preRun(self):
         """
         {@inheritdoc}
         """
-        # initiates user's input
-        self.input_images: ImageListValue = self.in_params.get(self.input_images.getName())  # type: ignore
-
         # initiates an ImageIO for image input/output
         self.image_io: ImageIO = RGBImageFile()
 
-        # initiates Granny.Model.Images.Image instances for the analysis using the user's input
-        self.input_images.readValue()
-        self.images = self.input_images.getImageList()
-
-        # perform analysis with multiprocessing
-        num_cpu = os.cpu_count()
-        cpu_count = int(num_cpu * 0.8) or 1  # type: ignore
-        with Pool(cpu_count) as pool:
-            results = pool.map(self._rateImageInstance, self.images)
-
+    def _postRun(self, results):
+        """
+        {@inheritdoc}
+        """
         # adds the result list to self.output_images then writes the resulting images to folder
         self.output_images.setImageList(results)
         self.output_images.writeValue()

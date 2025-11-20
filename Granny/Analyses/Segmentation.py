@@ -1,15 +1,15 @@
 """
-This class perform instance segmentation on the user provided image files.
-The analysis will be carried out in the following manner:
+This module performs instance segmentation on user-provided image files.
+The analysis is conducted as follows:
     1. retrieves the machine learning (instance segmentation) trained models
        from https://osf.io/. to the current directory 'Analyses/'. The machine
        learning models are uploaded manually and should be named in this
        convention: granny-v{granny_version}-{model_name}-v{model_version}.pt
     2. parses user's input for image folder, initiates a list of Granny.Models.
        Images.Image, then runs YOLOv8 on the images.
-    3.
+    3. extracts and processes the segmented instances from the images.
 
-date: June 06, 2024
+date: July 12, 2024
 author: Nhan H. Nguyen
 """
 
@@ -32,11 +32,45 @@ from Granny.Models.Images.RGBImage import RGBImage
 from Granny.Models.IO.ImageIO import ImageIO
 from Granny.Models.IO.RGBImageFile import RGBImageFile
 from Granny.Models.Values.FileNameValue import FileNameValue
+from Granny.Models.Values.FloatValue import FloatValue
 from Granny.Models.Values.ImageListValue import ImageListValue
+from Granny.Models.Values.IntValue import IntValue
 from numpy.typing import NDArray
 
 
 class SegmentationConfig:
+    """
+    Configuration class for instance segmentation module.
+
+    This class provides the configuration details for different segmentation models,
+    including the class labels and model details.
+
+    Attributes:
+        CLASSES (Dict[str, int]): A dictionary mapping class names to their respective integer labels.
+            Format:
+                {
+                    "class_name_1": int_label_1,
+                    "class_name_2": int_label_2,
+                    ...
+                }
+
+        MODELS (Dict[str, Dict[str, str]]): A dictionary containing model details. Each model is represented
+            by another dictionary that includes the full name of the model file and the URL to download it from.
+            format:
+                {
+                    "model_name_1": {
+                        "model_full_name_1": "*.pt",
+                        "osf_urf_1": "https://osf_link/download/"
+                    }
+                }
+                {
+                    "model_name_2": {
+                        "model_full_name_2": "*.pt",
+                        "osf_urf_1": "https://osf_link/download/"
+                    }
+                }
+    """
+
     CLASSES: Dict[str, int] = {"fruits": 0, "tray_info": 1}
     MODELS: Dict[str, Dict[str, str]] = {
         "pome_fruit-v1_0": {
@@ -47,6 +81,30 @@ class SegmentationConfig:
 
 
 class Segmentation(Analysis):
+    """
+    Segmentation class for analyzing and segmenting images to identify fruit.
+
+    This class extends the `Analysis` base class and provides functionality for
+    setting up and performing segmentation analysis using specified models. It
+    manages input and output directories for images and results, and allows for
+    specifying models either by name or file path.
+
+    Attributes:
+        __analysis_name__ (str): The name of the analysis type, set to "segmentation".
+        config (SegmentationConfig): Configuration settings for segmentation.
+        analysis_time (str): The timestamp when the analysis instance is created.
+        models (list): List of available models for segmentation.
+        model (FileNameValue): Specifies the model for segmentation, with options for known
+            model names or file paths. Default is "pome_fruit-v1_0".
+        input_images (ImageListValue): Directory path for input images, required for analysis.
+        seg_images (ImageListValue): Directory path for saving segmented images, defaults to
+            a timestamped folder within "results/segmentation".
+        tray_infos (ImageListValue): Directory path for saving tray information of analyzed images,
+            defaults to a timestamped folder within "results/segmentation".
+        masked_images (ImageListValue): Directory path for saving full-masked images, defaults to
+            a timestamped folder within "results/segmentation".
+    """
+
     __analysis_name__ = "segmentation"
 
     def __init__(self):
@@ -73,6 +131,99 @@ class Segmentation(Analysis):
             "input", "input", "The directory where input images are located."
         )
         self.input_images.setIsRequired(True)
+
+        # YOLO confidence threshold parameter
+        self.conf_threshold = FloatValue(
+            "conf",
+            "confidence",
+            "Confidence threshold for YOLO detections. Only detections with confidence "
+            + "scores above this threshold will be kept. Range is 0.0 to 1.0, "
+            + "default is 0.25.",
+        )
+        self.conf_threshold.setMin(0.0)
+        self.conf_threshold.setMax(1.0)
+        self.conf_threshold.setValue(0.25)
+        self.conf_threshold.setIsRequired(False)
+
+        # YOLO IOU threshold parameter
+        self.iou_threshold = FloatValue(
+            "iou",
+            "iou_threshold",
+            "Intersection over Union (IOU) threshold for non-maximum suppression. "
+            + "Used to filter overlapping detections. Range is 0.0 to 1.0, "
+            + "default is 0.45.",
+        )
+        self.iou_threshold.setMin(0.0)
+        self.iou_threshold.setMax(1.0)
+        self.iou_threshold.setValue(0.45)
+        self.iou_threshold.setIsRequired(False)
+
+        # Visualization parameters
+        self.mask_alpha = FloatValue(
+            "mask_alpha",
+            "mask_alpha",
+            "Alpha transparency value for mask overlay on output images. "
+            + "Range is 0.0 (transparent) to 1.0 (opaque), default is 0.5.",
+        )
+        self.mask_alpha.setMin(0.0)
+        self.mask_alpha.setMax(1.0)
+        self.mask_alpha.setValue(0.5)
+        self.mask_alpha.setIsRequired(False)
+
+        self.color_brightness = FloatValue(
+            "color_brightness",
+            "color_brightness",
+            "Brightness value for mask colors in HSV color space. "
+            + "Range is 0.0 (dark) to 1.0 (bright), default is 1.0.",
+        )
+        self.color_brightness.setMin(0.0)
+        self.color_brightness.setMax(1.0)
+        self.color_brightness.setValue(1.0)
+        self.color_brightness.setIsRequired(False)
+
+        self.bbox_thickness = IntValue(
+            "bbox_thickness",
+            "bbox_thickness",
+            "Thickness of bounding box lines in pixels. Default is 5.",
+        )
+        self.bbox_thickness.setMin(1)
+        self.bbox_thickness.setMax(50)
+        self.bbox_thickness.setValue(5)
+        self.bbox_thickness.setIsRequired(False)
+
+        self.font_scale = FloatValue(
+            "font_scale",
+            "font_scale",
+            "Font scale for text labels on output images. Default is 2.0.",
+        )
+        self.font_scale.setMin(0.1)
+        self.font_scale.setMax(10.0)
+        self.font_scale.setValue(2.0)
+        self.font_scale.setIsRequired(False)
+
+        self.text_thickness = IntValue(
+            "text_thickness",
+            "text_thickness",
+            "Thickness of text labels in pixels. Default is 3.",
+        )
+        self.text_thickness.setMin(1)
+        self.text_thickness.setMax(50)
+        self.text_thickness.setValue(3)
+        self.text_thickness.setIsRequired(False)
+
+        # Sorting/grouping parameter
+        self.row_tolerance = IntValue(
+            "row_tolerance",
+            "row_tolerance",
+            "Row grouping tolerance factor. Fruits are grouped into rows when their y-centers "
+            + "differ by more than height/row_tolerance pixels. Smaller values = looser grouping, "
+            + "larger values = tighter grouping. Default is 20.",
+        )
+        self.row_tolerance.setMin(1)
+        self.row_tolerance.setMax(100)
+        self.row_tolerance.setValue(20)
+        self.row_tolerance.setIsRequired(False)
+
         self.seg_images = ImageListValue(
             "seg_img",
             "segmented_images",
@@ -116,11 +267,28 @@ class Segmentation(Analysis):
             )
         )
 
-        self.addInParam(self.model, self.input_images)
+        self.addInParam(
+            self.model,
+            self.input_images,
+            self.conf_threshold,
+            self.iou_threshold,
+            self.mask_alpha,
+            self.color_brightness,
+            self.bbox_thickness,
+            self.font_scale,
+            self.text_thickness,
+            self.row_tolerance,
+        )
 
     def _getModelUrl(self, model_name: str):
         """
-        Parses the self.models attribute to retrieves segmentation ML model URl using model_name.
+        Retrieves the download URL for a given model name from the configuration.
+
+        Args:
+            model_name (str): The key name of the model in self.models.
+
+        Returns:
+        str: Download URL if found, else an empty string.
         """
         model_url = ""
         try:
@@ -157,28 +325,52 @@ class Segmentation(Analysis):
         including: masks, boxes, xyxy's, classes, confident scores
         """
         # detects instances on the image
-        results = self.segmentation_model.predict(image, retina_masks=True)  # type: ignore
+
+        results = self.segmentation_model.predict(
+            image,
+            retina_masks=True,
+            conf=self.conf_threshold.getValue(),
+            iou=self.iou_threshold.getValue()
+        )  # type: ignore
 
         return results
 
     def _extractMaskedImage(self, tray_image: Image) -> Image:
-        """"""
+        """
+        Extracts a masked image from the given tray image, overlaying segmentation masks and bounding boxes.
+
+        This method applies segmentation masks to the input tray image and draws bounding boxes around the detected objects.
+        Each mask is colored uniquely, and the confidence score of each detected object is displayed on the image.
+
+        Args:
+            tray_image (Image): The input tray image from which to extract the masked image.
+                This object is expected to have methods `getSegmentationResults()` and `getImage()`.
+
+        Returns:
+            Image: An image instance with the segmentation masks and bounding boxes overlaid.
+        """
         [result] = tray_image.getSegmentationResults()
-        masks = result.masks.cpu()
-        boxes = result.boxes.cpu()
-        coords = boxes.xyxy.cpu().numpy()
-        confs = result.boxes.cpu().conf
+        masks = result.masks.cpu().numpy()
+        boxes = result.boxes.cpu().numpy()
+        confs = result.boxes.cpu().conf.numpy()
+
+        # sorts boxes and masks based on xy-coordinates
+        sorted_df = self._sortInstances(boxes.data, boxes.orig_shape)
+        order: NDArray[np.float32] = sorted_df["nums"].to_numpy()
+        sorted_boxes = boxes.data[order]  # type: ignore
+        sorted_masks = masks.data[order]  # type: ignore
+        confs = confs[order]
 
         img = tray_image.getImage()
         result = img.copy()
-        alpha = 0.5
+        alpha = self.mask_alpha.getValue()
         num_instances = masks.shape[0]
-        brightness = 1.0
+        brightness = self.color_brightness.getValue()
         hsv = [(i / num_instances, 1, brightness) for i in range(num_instances)]
         colors = list(map(lambda c: colorsys.hsv_to_rgb(*c), hsv))
         random.shuffle(colors)
         for i in range(num_instances):
-            mask = masks.data[i].numpy()
+            mask = sorted_masks[i]
             (r, g, b) = colors[i]
             for c in range(3):
                 result[:, :, c] = np.where(
@@ -187,17 +379,17 @@ class Segmentation(Analysis):
                     result[:, :, c],
                 )
 
-            x1, y1, x2, y2 = coords[i]
+            x1, y1, x2, y2, _, _ = sorted_boxes[i]
             x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-            cv2.rectangle(result, (x1, y1), (x2, y2), (r * 255, g * 255, b * 255), 5)
+            cv2.rectangle(result, (x1, y1), (x2, y2), (r * 255, g * 255, b * 255), self.bbox_thickness.getValue())
             cv2.putText(
                 result,
-                "{:.3f}".format(confs[i]),
+                "{:2.0f}-{:.3f}".format(i, confs[i]),
                 (x1, y1),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-                fontScale=2,
+                fontScale=self.font_scale.getValue(),
                 color=(255, 255, 255),
-                thickness=3,
+                thickness=self.text_thickness.getValue(),
             )
         image_instance: Image = RGBImage(
             pathlib.Path(tray_image.getImageName()).stem + f"_masked_image" + ".png"
@@ -209,8 +401,20 @@ class Segmentation(Analysis):
         """
         Helper function to sort the fruit tray using their center coordinates.
 
-        This sorting algorithm follows the numbering convention in demo/numbering_tray_convention.pdf
-        In an increasing order, sort by y-center coordinates then sort by x-center coordinates.
+        This sorting algorithm follows the numbering convention in demo/numbering_tray_convention.pdf.
+        In an increasing order, it sorts by y-center coordinates and then by x-center coordinates.
+
+        Args:
+            boxes (NDArray[np.float32]): A NumPy array of shape (N, 6), where N is the number of bounding boxes.
+                Each row represents a bounding box with the format [x1, y1, x2, y2, conf, cls].
+            img_shape (Tuple[int, int]): A tuple representing the shape of the image (height, width).
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the sorted bounding boxes with additional columns:
+                - ycenter: The y-coordinate of the center of the bounding box.
+                - xcenter: The x-coordinate of the center of the bounding box.
+                - rows: The row number assigned based on the y-center coordinates.
+                - apple_id: The unique identifier assigned to each bounding box after sorting.
         """
         h, _ = img_shape
         df = pd.DataFrame(boxes)
@@ -221,7 +425,7 @@ class Segmentation(Analysis):
         df["apple_id"] = 0
         df["nums"] = df.index
         df = df.sort_values("ycenter", ascending=True).reset_index(drop=True)
-        df["rows"] = (df["ycenter"].diff().abs().gt(h // 20).cumsum() + 1).fillna(1).astype(int)
+        df["rows"] = (df["ycenter"].diff().abs().gt(h // self.row_tolerance.getValue()).cumsum() + 1).fillna(1).astype(int)
 
         df_list: List[pd.DataFrame] = []
         apple_id = 1
@@ -239,8 +443,19 @@ class Segmentation(Analysis):
 
     def _extractTrayInfo(self, tray_image: Image) -> List[Image]:
         """
-        From the given full 'tray_image', using the binary masks stored in 'results', performs
-        instance segmentation to extract each YOLO-detected feature.
+        Extracts individual tray information instances from the given tray image.
+
+        This method identifies and isolates instances of the "tray_info" class within the provided tray image.
+        It uses the segmentation results to extract bounding boxes and masks for the relevant class,
+        sorts these instances, and then extracts and saves individual images for each detected instance.
+
+        Args:
+            tray_image (Image): The input tray image from which to extract tray information instances.
+                This object is expected to have methods `getSegmentationResults()` and `getImage()`.
+
+        Returns:
+            List[Image]: A list of `Image` objects representing the individual tray information instances.
+                If no instances of the "tray_info" class are found, an empty list is returned.
         """
         info_cls = SegmentationConfig.CLASSES["tray_info"]
 
@@ -272,7 +487,7 @@ class Segmentation(Analysis):
             for channel in range(3):
                 individual_image[:, :, channel] = tray_image_array[y1:y2, x1:x2, channel] * mask[y1:y2, x1:x2]  # type: ignore
             image_name = (
-                pathlib.Path(tray_image.getImageName()).stem + f"_tray_info_{i+1}" + ".png"
+                pathlib.Path(tray_image.getImageName()).stem + f"_tray_info_{i+1:02d}" + ".png"
             )
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
@@ -283,8 +498,20 @@ class Segmentation(Analysis):
 
     def _extractImage(self, tray_image: Image) -> List[Image]:
         """
-        From the given full 'tray_image', using the binary masks stored in 'results', performs
-        instance segmentation to extract each YOLO-detected image.
+        Extracts individual fruit instances from the given tray image using binary masks.
+
+        This method performs instance segmentation on the input tray image to isolate and extract
+        images of each fruit detected by the YOLO model. It utilizes the segmentation results to
+        obtain bounding boxes and masks, sorts the instances, and then extracts and saves individual
+        images for each detected fruit.
+
+        Args:
+            tray_image (Image): The input tray image from which to extract fruit instances.
+                This object is expected to have methods `getSegmentationResults()` and `getImage()`.
+
+        Returns:
+            List[Image]: A list of `Image` objects representing the individual fruit instances.
+                If no instances of the "fruits" class are found, an empty list is returned.
         """
         fruit_cls = SegmentationConfig.CLASSES["fruits"]
 
@@ -315,7 +542,7 @@ class Segmentation(Analysis):
             mask = sorted_masks[i]
             for channel in range(3):
                 individual_image[:, :, channel] = tray_image_array[y1:y2, x1:x2, channel] * mask[y1:y2, x1:x2]  # type: ignore
-            image_name = pathlib.Path(tray_image.getImageName()).stem + f"_fruit_{i+1}" + ".png"
+            image_name = pathlib.Path(tray_image.getImageName()).stem + f"_fruit_{i+1:02d}" + ".png"
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
             individual_images.append(image_instance)
@@ -325,7 +552,20 @@ class Segmentation(Analysis):
 
     def performAnalysis(self) -> List[Image]:
         """
-        {@inheritdoc}
+        Runs the full segmentation pipeline on user-provided images.
+
+        Steps:
+        - Downloads or loads pretrained model.
+        - Loads and rotates images if needed.
+        - Runs YOLO segmentation.
+        - Extracts:
+            - Individual fruit images
+            - Tray info (labels, QR)
+            - Masked overlays
+        - Saves all outputs to results folders.
+
+        Returns:
+            ist[Image]: All segmented fruit image instances.
         """
         self.model_name: str = self.in_params.get(self.model.getName()).getValue()  # type:ignore
 
@@ -334,7 +574,8 @@ class Segmentation(Analysis):
             self.local_model_path = self.model_name
         else:
             self.local_model_path = os.path.join(
-                f"{pathlib.Path(__file__).parent}", self.models[self.model_name]["full_name"]
+                f"{pathlib.Path(__file__).parent}",
+                self.models[self.model_name]["full_name"],
             )
             if not os.path.exists(self.local_model_path):
                 model_url: str = self._getModelUrl(self.model_name)  # type: ignore
@@ -357,8 +598,6 @@ class Segmentation(Analysis):
 
         # performs segmentation on each image one-by-one
         segmented_images: List[Image] = []
-        tray_images: List[Image] = []
-        masked_images: List[Image] = []
         for image_instance in self.images:
             # set ImageIO with specific file path
             self.image_io.setFilePath(image_instance.getFilePath())
@@ -385,23 +624,37 @@ class Segmentation(Analysis):
                 # and masked image
                 masked_image = self._extractMaskedImage(image_instance)
 
-                # save to list for output
-                segmented_images.extend(image_instances)
-                tray_images.extend(tray_infos)
-                masked_images.append(masked_image)
+                # 1. sets the output ImageListValue with the list of segmented images
+                # 2. writes the segmented images to "segmented_images" folder
+                # 3. writes the tray information to "tray_info" folder
+                # 4. writes the full masked images to "full_masked_images" folder
+                self.seg_images.setImageList(image_instances)
+                self.seg_images.writeValue()
+
+                self.tray_infos.setImageList(tray_infos)
+                self.tray_infos.writeValue()
+
+                self.masked_images.setImageList([masked_image])
+                self.masked_images.writeValue()
             except:
                 AttributeError("Error with the results.")
 
-        # 1. sets the output ImageListValue with the list of segmented images
-        # 2. writes the segmented images to "segmented_images" folder
-        # 3. writes the tray information to "tray_info" folder
-        # 4. writes the full masked images to "full_masked_images" folder
-        self.seg_images.setImageList(segmented_images)
-        self.seg_images.writeValue()
-
-        self.tray_infos.setImageList(tray_images)
-        self.tray_infos.writeValue()
-
-        self.masked_images.setImageList(masked_images)
-        self.masked_images.writeValue()
         return segmented_images
+
+    def _preRun(self):
+        """
+        Stub implementation - Segmentation overrides performAnalysis() entirely.
+        """
+        pass
+
+    def _processImage(self, image_instance: Image) -> Image:
+        """
+        Stub implementation - Segmentation overrides performAnalysis() entirely.
+        """
+        pass
+
+    def _postRun(self, results):
+        """
+        Stub implementation - Segmentation overrides performAnalysis() entirely.
+        """
+        pass

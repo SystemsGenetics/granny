@@ -10,9 +10,7 @@ build/
 dist/
 06-Package
 *logs/
-test*/
 _build/
-*result*/
 
 # Files
 *.pyc
@@ -39,3 +37,4 @@ test_perf.py
 *.jpeg
 *.jpg
 *.tiff
+CLAUDE.md

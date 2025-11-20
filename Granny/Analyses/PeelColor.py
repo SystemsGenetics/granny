@@ -1,3 +1,16 @@
+"""
+This module performs color extraction/evaluation calculation on pear image files.
+The analysis is conducted as follows:
+    1. It loads input images from a specified directory.
+    2. Removes surrounding purple from apples using YCrCb color space.
+    3. Calculates mean values of green and yellow in CIELAB color space, normalized to L = 50.
+    4. Calculates distance from normalized LAB to each bin color.
+    5. Calculates distance to the least-mean-square line in LAB color space.
+
+date: July 12, 2024
+author: Nhan H. Nguyen
+"""
+
 import os
 from datetime import datetime
 from multiprocessing import Pool
@@ -18,6 +31,21 @@ from numpy.typing import NDArray
 
 
 class PeelColor(Analysis):
+    """
+    Analysis class for evaluating peel color characteristics of images.
+
+    Attributes:
+        __analysis_name__ (str): Name of the analysis.
+        input_images (ImageListValue): Input images directory.
+        output_images (ImageListValue): Output images directory for analyzed images.
+        output_results (MetaDataValue): Output directory for analysis results.
+        MEAN_VALUES_A (List[float]): Mean values for A component in color card.
+        MEAN_VALUES_B (List[float]): Mean values for B component in color card.
+        SCORE (List[float]): Scores corresponding to color bins.
+        LINE_POINT_1 (NDArray[np.float16]): First point of the reference line in LAB color space.
+        LINE_POINT_2 (NDArray[np.float16]): Second point of the reference line in LAB color space.
+    """
+
     __analysis_name__ = "color"
 
     def __init__(self):
@@ -27,8 +55,107 @@ class PeelColor(Analysis):
             "input", "input", "The directory where input images are located."
         )
         self.input_images.setIsRequired(True)
+
+        # Purple removal threshold parameter
+        self.purple_threshold = IntValue(
+            "purple_threshold",
+            "purple_threshold",
+            "Threshold for removing purple background/tray pixels using YCrCb color space. "
+            + "Pixels with Cb channel <= this value are kept. Range is 0 to 255, default is 126.",
+        )
+        self.purple_threshold.setMin(0)
+        self.purple_threshold.setMax(255)
+        self.purple_threshold.setValue(126)
+        self.purple_threshold.setIsRequired(False)
+
+        # Lightness minimum parameter
+        self.lightness_min = IntValue(
+            "lightness_min",
+            "lightness_min",
+            "Minimum lightness value for peel color detection in LAB color space. "
+            + "Range is 0 to 255, default is 0.",
+        )
+        self.lightness_min.setMin(0)
+        self.lightness_min.setMax(255)
+        self.lightness_min.setValue(0)
+        self.lightness_min.setIsRequired(False)
+
+        # Lightness maximum parameter
+        self.lightness_max = IntValue(
+            "lightness_max",
+            "lightness_max",
+            "Maximum lightness value for peel color detection in LAB color space. "
+            + "Range is 0 to 255, default is 255.",
+        )
+        self.lightness_max.setMin(0)
+        self.lightness_max.setMax(255)
+        self.lightness_max.setValue(255)
+        self.lightness_max.setIsRequired(False)
+
+        # Green channel minimum parameter
+        self.green_min = IntValue(
+            "green_min",
+            "green_min",
+            "Minimum green channel value for peel color detection in LAB color space. "
+            + "Range is 0 to 255, default is 0.",
+        )
+        self.green_min.setMin(0)
+        self.green_min.setMax(255)
+        self.green_min.setValue(0)
+        self.green_min.setIsRequired(False)
+
+        # Green channel maximum parameter
+        self.green_max = IntValue(
+            "green_max",
+            "green_max",
+            "Maximum green channel value for peel color detection in LAB color space. "
+            + "Range is 0 to 255, default is 128.",
+        )
+        self.green_max.setMin(0)
+        self.green_max.setMax(255)
+        self.green_max.setValue(128)
+        self.green_max.setIsRequired(False)
+
+        # Yellow channel minimum parameter
+        self.yellow_min = IntValue(
+            "yellow_min",
+            "yellow_min",
+            "Minimum yellow channel value for peel color detection in LAB color space. "
+            + "Range is 0 to 255, default is 128.",
+        )
+        self.yellow_min.setMin(0)
+        self.yellow_min.setMax(255)
+        self.yellow_min.setValue(128)
+        self.yellow_min.setIsRequired(False)
+
+        # Yellow channel maximum parameter
+        self.yellow_max = IntValue(
+            "yellow_max",
+            "yellow_max",
+            "Maximum yellow channel value for peel color detection in LAB color space. "
+            + "Range is 0 to 255, default is 255.",
+        )
+        self.yellow_max.setMin(0)
+        self.yellow_max.setMax(255)
+        self.yellow_max.setValue(255)
+        self.yellow_max.setIsRequired(False)
+
+        # Normalization lightness parameter
+        self.normalize_lightness = IntValue(
+            "normalize_lightness",
+            "normalize_lightness",
+            "Target lightness value for color normalization in LAB space. "
+            + "Range is 0 to 100, default is 50.",
+        )
+        self.normalize_lightness.setMin(0)
+        self.normalize_lightness.setMax(100)
+        self.normalize_lightness.setValue(50)
+        self.normalize_lightness.setIsRequired(False)
+
         self.output_images = ImageListValue(
-            "output", "output", "The output directory where analysis' images are written."
+            "output",
+            "output",
+            "The output directory where analysis' images are written.",
         )
         result_dir = os.path.join(
             os.curdir,
@@ -37,11 +164,23 @@ class PeelColor(Analysis):
             datetime.now().strftime("%Y-%m-%d-%H-%M"),
         )
         self.output_images.setValue(result_dir)
-        self.addInParam(self.input_images)
+        self.addInParam(
+            self.input_images,
+            self.purple_threshold,
+            self.lightness_min,
+            self.lightness_max,
+            self.green_min,
+            self.green_max,
+            self.yellow_min,
+            self.yellow_max,
+            self.normalize_lightness,
+        )
 
         # sets up output result directory
         self.output_results = MetaDataValue(
-            "results", "results", "The output directory where analysis' results are written."
+            "results",
+            "results",
+            "The output directory where analysis' results are written.",
         )
         self.output_results.setValue(result_dir)
         # values of the color cards normalized to the LMS line
@@ -82,13 +221,22 @@ class PeelColor(Analysis):
             0.8106974639404376,
         ]
 
-        self.LINE_POINT_1: NDArray[np.float16] = np.array([-76.69774, 0.0], dtype=np.float16)
-        self.LINE_POINT_2: NDArray[np.float16] = np.array([0.0, 110.0861], dtype=np.float16)
+        self.LINE_POINT_1: NDArray[np.float16] = np.array(
+            [-76.69774, 0.0], dtype=np.float16
+        )
+        self.LINE_POINT_2: NDArray[np.float16] = np.array(
+            [0.0, 110.0861], dtype=np.float16
+        )
 
     def remove_purple(self, img: NDArray[np.uint8]) -> NDArray[np.uint8]:
         """
-        Remove the surrounding purple from the individual apples using YCrCb color space.
-        This function helps remove the unwanted regions for more precise calculation of the scald area.
+        Remove surrounding purple from individual apples using YCrCb color space.
+
+        Args:
+            img (NDArray[np.uint8]): Original BGR image array.
+
+        Returns:
+            NDArray[np.uint8]: Processed image array with purple regions removed.
         """
         # convert BGR to YCrCb
         new_img = img.copy()
@@ -97,48 +245,57 @@ class PeelColor(Analysis):
         # create binary matrices
         threshold_1 = np.logical_and((ycc_img[:, :, 0] >= 0), (ycc_img[:, :, 0] <= 255))
         threshold_2 = np.logical_and((ycc_img[:, :, 1] >= 0), (ycc_img[:, :, 1] <= 255))
-        threshold_3 = np.logical_and((ycc_img[:, :, 2] >= 0), (ycc_img[:, :, 2] <= 126))
+        threshold_3 = np.logical_and((ycc_img[:, :, 2] >= 0), (ycc_img[:, :, 2] <= self.purple_threshold.getValue()))
 
         # combine to one matrix
-        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
-            np.uint8
-        )
+        th123 = np.logical_and(
+            np.logical_and(threshold_1, threshold_2), threshold_3
+        ).astype(np.uint8)
 
         # create new image using threshold matrices
         for i in range(3):
             new_img[:, :, i] = new_img[:, :, i] * th123
         return new_img
 
-    def get_green_yellow_values(self, img: NDArray[np.uint8]) -> Tuple[float, float, float]:
+    def get_green_yellow_values(
+        self, img: NDArray[np.uint8]
+    ) -> Tuple[float, float, float]:
         """
-        Get the mean pixel values from the images representing the amount of
-        green and yellow in the CIELAB color space. Then, normalize the values to L = 50.
+        Get mean pixel values representing green and yellow in CIELAB color space, normalized to L = 50.
+
+        Args:
+            img (NDArray[np.uint8]): Original BGR image array.
+
+        Returns:
+            Tuple[float, float, float]: Mean values for L, A, B channels in LAB color space.
         """
         # convert from BGR to Lab color space
         lab_img = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2LAB))
 
         # create binary matrices
-        threshold_1 = np.logical_and((lab_img[:, :, 0] > 0), (lab_img[:, :, 0] < 255))
-        threshold_2 = np.logical_and((lab_img[:, :, 1] > 0), (lab_img[:, :, 1] < 128))
-        threshold_3 = np.logical_and((lab_img[:, :, 2] > 128), (lab_img[:, :, 2] < 255))
+        threshold_1 = np.logical_and((lab_img[:, :, 0] > self.lightness_min.getValue()), (lab_img[:, :, 0] < self.lightness_max.getValue()))
+        threshold_2 = np.logical_and((lab_img[:, :, 1] > self.green_min.getValue()), (lab_img[:, :, 1] < self.green_max.getValue()))
+        threshold_3 = np.logical_and((lab_img[:, :, 2] > self.yellow_min.getValue()), (lab_img[:, :, 2] < self.yellow_max.getValue()))
 
         # combine to one matrix
-        th123 = np.logical_and(np.logical_and(threshold_1, threshold_2), threshold_3).astype(
-            np.uint8
-        )
+        th123 = np.logical_and(
+            np.logical_and(threshold_1, threshold_2), threshold_3
+        ).astype(np.uint8)
 
         # apply the binary mask on the image
         for i in range(3):
             lab_img[:, :, i] = lab_img[:, :, i] * th123
 
         # get mean values from each channel
-        mean_l = np.sum(lab_img[:, :, 0]) / np.count_nonzero(lab_img[:, :, 0]) * 100 / 255
+        mean_l = (
+            np.sum(lab_img[:, :, 0]) / np.count_nonzero(lab_img[:, :, 0]) * 100 / 255
+        )
         mean_a = np.sum(lab_img[:, :, 1]) / np.count_nonzero(lab_img[:, :, 1]) - 128
         mean_b = np.sum(lab_img[:, :, 2]) / np.count_nonzero(lab_img[:, :, 2]) - 128
 
         # normalize by shifting point in the spherical coordinates
         radius = np.sqrt(mean_l**2 + mean_a**2 + mean_b**2)
-        scaled_l = 50
+        scaled_l = self.normalize_lightness.getValue()
         scaled_a = np.sign(mean_a) * np.sqrt(
             np.abs(radius**2 - scaled_l**2) / (1 + (mean_b / mean_a) ** 2)
         )
@@ -150,10 +307,14 @@ class PeelColor(Analysis):
         self, color_list: List[float], method: str = "Euclidean"
     ) -> Tuple[int, NDArray[np.float16]]:
         """
-        Calculate the Euclidean distance from normalized image's LAB to each
-        bin color.
-        Return the shortest distance and the corresponding bin.
+        Calculate distance from normalized LAB color to each bin color.
 
+        Args:
+            color_list (List[float]): List containing color values.
+            method (str, optional): Method for distance calculation. Defaults to "Euclidean".
+
+        Returns:
+            Tuple[int, NDArray[np.float16]]: Bin number and distance array.
         """
         bin_num = 0
         dist: NDArray[np.float16]
@@ -161,7 +322,8 @@ class PeelColor(Analysis):
             dist_a = color_list[0] - np.array(self.MEAN_VALUES_A)
             dist_b = color_list[1] - np.array(self.MEAN_VALUES_B)
             dist = np.sqrt(
-                (dist_a / np.linalg.norm(dist_a)) ** 2 + (dist_b / np.linalg.norm(dist_b)) ** 2
+                (dist_a / np.linalg.norm(dist_a)) ** 2
+                + (dist_b / np.linalg.norm(dist_b)) ** 2
             )
             bin_num = np.argmin(dist) + 1
         if method == "X-component":
@@ -180,10 +342,18 @@ class PeelColor(Analysis):
             bin_num = np.argmin(dist) + 1
         return bin_num, dist
 
-    def calculate_score_distance(
+    def _calculate_score_distance(
         self, color_list: List[float]
     ) -> Tuple[Tuple[float, float], float, float, float]:
-        """ """
+        """
+        Calculate distance to least-mean-square line in LAB color space.
+
+        Args:
+            color_list (List[float]): List containing color values.
+
+        Returns:
+            Tuple[Tuple[float, float], float, float, float]: Projection, score, distance, point.
+        """
 
         def calculate_intersection(
             line1: Tuple[Any, Any],
@@ -236,7 +406,7 @@ class PeelColor(Analysis):
             score = float(1.0)
         return projection, score, distance, point
 
-    def _rateImageInstance(self, image_instance: Image) -> Image:
+    def _processImage(self, image_instance: Image) -> Image:
         """
         1. Loads and performs analysis on the provided Image instance.
         2. Saves the instance to result directory
@@ -271,7 +441,7 @@ class PeelColor(Analysis):
             score,
             orth_distance,
             point,
-        ) = self.calculate_score_distance([l, a, b])
+        ) = self._calculate_score_distance([l, a, b])
 
         # bin number according to the color card
         bin_num, _ = self.calculate_bin_distance([score], method="Score")
@@ -285,59 +455,68 @@ class PeelColor(Analysis):
         bin_value.setValue(bin_num)
 
         # score
-        score_value = FloatValue("score", "score", "Granny calculated rating of the peel color.")
+        score_value = FloatValue(
+            "score", "score", "Granny calculated rating of the peel color."
+        )
         score_value.setMin(0.0)
         score_value.setMax(1.0)
         score_value.setValue(score)
 
         # distance
         distance_value = FloatValue(
-            "distance", "distance", "Granny calculated distance from the LMS best-fit line."
+            "distance",
+            "distance",
+            "Granny calculated distance from the LMS best-fit line.",
         )
         distance_value.setValue(orth_distance)
 
         # relative location value to the LMS fit line,
         # i.e. 1:above or -1:below
         location_value = FloatValue(
-            "location", "location", "Granny calculated location wrt. the LMS best-fit line."
+            "location",
+            "location",
+            "Granny calculated location wrt. the LMS best-fit line.",
         )
         location_value.setValue(point)
 
         # LAB color space
-        l_value = IntValue("l", "L", "Granny calculated L value of the image in the LAB space.")
+        l_value = IntValue(
+            "l", "L", "Granny calculated L value of the image in the LAB space."
+        )
         l_value.setValue(l)
-        a_value = IntValue("a", "A", "Granny calculated A value of the image in the LAB space.")
+        a_value = IntValue(
+            "a", "A", "Granny calculated A value of the image in the LAB space."
+        )
         a_value.setValue(a)
-        b_value = IntValue("b", "B", "Granny calculated B value of the image in the LAB space.")
+        b_value = IntValue(
+            "b", "B", "Granny calculated B value of the image in the LAB space."
+        )
         b_value.setValue(b)
 
         # adds ratings to  to the image_instance as parameters
         image_instance.addValue(
-            bin_value, score_value, distance_value, location_value, l_value, a_value, b_value
+            bin_value,
+            score_value,
+            distance_value,
+            location_value,
+            l_value,
+            a_value,
+            b_value,
         )
 
         return image_instance
 
-    def performAnalysis(self) -> List[Image]:
+    def _preRun(self):
         """
         {@inheritdoc}
         """
-        # initiates user's input
-        self.input_images: ImageListValue = self.in_params.get(self.input_images.getName())  # type: ignore
-
         # initiates an ImageIO for image input/output
         self.image_io: ImageIO = RGBImageFile()
 
-        # initiates Granny.Model.Images.Image instances for the analysis using the user's input
-        self.input_images.readValue()
-        self.images = self.input_images.getImageList()
-
-        # perform analysis with multiprocessing
-        num_cpu = os.cpu_count()
-        cpu_count = int(num_cpu * 0.8) or 1  # type: ignore
-        with Pool(cpu_count) as pool:
-            results = pool.map(self._rateImageInstance, self.images)
-
+    def _postRun(self, results):
+        """
+        {@inheritdoc}
+        """
         # adds the result list to self.output_images then writes the resulting images to folder
         self.output_images.setImageList(results)
         self.output_images.writeValue()
