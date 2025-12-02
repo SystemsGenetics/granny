@@ -35,6 +35,7 @@ from Granny.Models.Values.FileNameValue import FileNameValue
 from Granny.Models.Values.FloatValue import FloatValue
 from Granny.Models.Values.ImageListValue import ImageListValue
 from Granny.Models.Values.IntValue import IntValue
+from Granny.Utils.QRCodeDetector import QRCodeDetector
 from numpy.typing import NDArray
 
 
@@ -266,6 +267,10 @@ class Segmentation(Analysis):
                 "full_masked_images",
             )
         )
+
+        # Initialize QR code detector for variety information extraction
+        self.qr_detector = QRCodeDetector()
+        self.variety_info = None  # Will store detected variety information
 
         self.addInParam(
             self.model,
@@ -610,6 +615,17 @@ class Segmentation(Analysis):
             if h > w:
                 image_instance.rotateImage()
 
+            # Detect QR code to extract variety information (optional)
+            try:
+                qr_data, qr_points = self.qr_detector.detect(image_instance.getImage())
+                if qr_data:
+                    self.variety_info = self.qr_detector.extract_variety_info(qr_data)
+                    print(f"QR Code detected: {self.variety_info['full']}")
+                    print(f"  Variety: {self.variety_info['variety']}, Timing: {self.variety_info['timing']}")
+            except Exception as e:
+                # QR detection failed, continue without variety info
+                print(f"QR detection skipped: {str(e)}")
+
             # predicts fruit instances in the image
             result = self._segmentInstances(image=image_instance.getImage())
 
@@ -636,6 +652,20 @@ class Segmentation(Analysis):
 
                 self.masked_images.setImageList([masked_image])
                 self.masked_images.writeValue()
+
+                # Save variety info to text file if QR code was detected
+                if self.variety_info:
+                    variety_file_path = os.path.join(
+                        os.curdir,
+                        "results",
+                        self.__analysis_name__,
+                        self.analysis_time,
+                        "variety_info.txt"
+                    )
+                    with open(variety_file_path, 'w') as f:
+                        f.write(f"variety_code={self.variety_info['variety']}\n")
+                        f.write(f"timing={self.variety_info['timing']}\n")
+                        f.write(f"full_variety={self.variety_info['full']}\n")
             except:
                 AttributeError("Error with the results.")
 
