@@ -13,6 +13,7 @@ author: Nhan H. Nguyen
 """
 
 import os
+import yaml
 from datetime import datetime
 from multiprocessing import Pool
 from typing import Dict, List, Tuple, cast
@@ -31,15 +32,40 @@ from Granny.Models.Values.MetaDataValue import MetaDataValue
 from numpy.typing import NDArray
 
 
+def load_starch_scales() -> Dict[str, Dict[str, List[float]]]:
+    """
+    Load starch scale data from YAML configuration file.
+
+    Reads the starch_scales.yml file from Granny/config/ directory and returns
+    the variety-specific starch index and rating mappings.
+
+    Returns:
+        Dict[str, Dict[str, List[float]]]: Dictionary mapping variety names to their
+            starch scales. Format: {'HONEY_CRISP': {'index': [...], 'rating': [...]}, ...}
+    """
+    # Get path to this file (Granny/Analyses/StarchArea.py)
+    current_dir = os.path.dirname(__file__)
+
+    # Navigate to Granny/config/starch_scales.yml
+    yaml_path = os.path.join(current_dir, '..', 'config', 'starch_scales.yml')
+
+    # Load and return the YAML data
+    with open(yaml_path, 'r') as file:
+        starch_data = yaml.safe_load(file)
+
+    return starch_data
+
+
 class StarchScales:
     """
     A class to store starch scale indices and corresponding ratings for different apple varieties.
 
-    This class provides predefined starch index and rating values for various apple varieties.
+    This class provides predefined starch index and rating values for various apple varieties
+    loaded from the YAML configuration file (Granny/config/starch_scales.yml).
     These values are used to evaluate the starch content in apples, which is an indicator of
     their ripeness and suitability for consumption or storage.
 
-    Attributes: (Refers to docs/_static/users_guide/ for the list of starch indices in this module)
+    Attributes: (Loaded from starch_scales.yml)
         HONEY_CRISP (Dict[str, List[float]]): Starch index and rating for Honey Crisp apples.
         WA38_1 (Dict[str, List[float]]): Starch index and rating for WA38_1 apples.
         WA38_2 (Dict[str, List[float]]): Starch index and rating for WA38_2 apples.
@@ -49,115 +75,13 @@ class StarchScales:
         JONAGOLD (Dict[str, List[float]]): Starch index and rating for Jonagold apples.
         CORNELL (Dict[str, List[float]]): Starch index and rating for Cornell apples.
     """
+    pass
 
-    HONEY_CRISP: Dict[str, List[float]] = {
-        "index": [1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0],
-        "rating": [
-            0.998998748,
-            0.947464712,
-            0.868898986,
-            0.783941273,
-            0.676589664,
-            0.329929925,
-            0.024131710,
-        ],
-    }
-    WA38_1: Dict[str, List[float]] = {
-        "index": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-        "rating": [
-            0.893993948,
-            0.855859903,
-            0.757963861,
-            0.597765822,
-            0.164192649,
-            0.080528335,
-        ],
-    }
-    WA38_2: Dict[str, List[float]] = {
-        "index": [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0],
-        "rating": [
-            0.950925926,
-            0.912917454,
-            0.839858059,
-            0.749211356,
-            0.770660718,
-            0.634160550,
-            0.571832210,
-            0.522944438,
-            0.178909419,
-            0.017493382,
-            0.075675075,
-        ],
-    }
-    ALLAN_BROS: Dict[str, List[float]] = {
-        "index": [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
-        "rating": [
-            0.997783524,
-            0.988769830,
-            0.951909478,
-            0.877526853,
-            0.721066082,
-            0.673838851,
-            0.417864608,
-            0.091652858,
-        ],
-    }
-    GOLDEN_DELICIOUS: Dict[str, List[float]] = {
-        "index": [1.0, 1.2, 1.5, 1.8, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0],
-        "rating": [
-            0.998544220,
-            0.981819854,
-            0.974722333,
-            0.902015343,
-            0.893566670,
-            0.784215902,
-            0.780621478,
-            0.607040963,
-            0.717128225,
-            0.485321449,
-            0.279959478,
-            0.068212979,
-        ],
-    }
-    GRANNY_SMITH: Dict[str, List[float]] = {
-        "index": [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-        "rating": [
-            0.920742836,
-            0.890332499,
-            0.808227909,
-            0.721813109,
-            0.595806394,
-            0.278299256,
-            0.104111379,
-        ],
-    }
-    JONAGOLD: Dict[str, List[float]] = {
-        "index": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
-        "rating": [
-            0.898336414,
-            0.859494456,
-            0.806417832,
-            0.742177914,
-            0.653981582,
-            0.483778570,
-            0.387202327,
-            0.284663986,
-            0.175593498,
-        ],
-    }
-    CORNELL: Dict[str, List[float]] = {
-        "index": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0],
-        "rating": [
-            0.990554095,
-            0.915430492,
-            0.822470328,
-            0.726896529,
-            0.610745795,
-            0.338955981,
-            0.150869695,
-            0.041547982,
-        ],
-    }
+
+# Load starch scales from YAML and dynamically set them as class attributes
+_starch_data = load_starch_scales()
+for variety_name, scale_data in _starch_data.items():
+    setattr(StarchScales, variety_name, scale_data)
 
 
 class StarchArea(Analysis):
