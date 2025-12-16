@@ -4,7 +4,9 @@ requirements = """
 ultralytics
 numpy
 opencv-python
+pandas
 pytest
+pytest-cov
 """.split()
 
 
