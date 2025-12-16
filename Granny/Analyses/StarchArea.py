@@ -34,9 +34,9 @@ from numpy.typing import NDArray
 
 def load_starch_scales() -> Dict[str, Dict[str, List[float]]]:
     """
-    Load starch scale data from YAML configuration file.
+    Load starch scale data from YAML asset file.
 
-    Reads the starch_scales.yml file from Granny/config/ directory and returns
+    Reads the starch_scales.yml file from Granny/assets/ directory and returns
     the variety-specific starch index and rating mappings.
 
     Returns:
@@ -46,8 +46,8 @@ def load_starch_scales() -> Dict[str, Dict[str, List[float]]]:
     # Get path to this file (Granny/Analyses/StarchArea.py)
     current_dir = os.path.dirname(__file__)
 
-    # Navigate to Granny/config/starch_scales.yml
-    yaml_path = os.path.join(current_dir, '..', 'config', 'starch_scales.yml')
+    # Navigate to Granny/assets/starch_scales.yml
+    yaml_path = os.path.join(current_dir, '..', 'assets', 'starch_scales.yml')
 
     # Load and return the YAML data
     with open(yaml_path, 'r') as file:
@@ -61,7 +61,7 @@ class StarchScales:
     A class to store starch scale indices and corresponding ratings for different apple varieties.
 
     This class provides predefined starch index and rating values for various apple varieties
-    loaded from the YAML configuration file (Granny/config/starch_scales.yml).
+    loaded from the YAML asset file (Granny/assets/starch_scales.yml).
     These values are used to evaluate the starch content in apples, which is an indicator of
     their ripeness and suitability for consumption or storage.
 
