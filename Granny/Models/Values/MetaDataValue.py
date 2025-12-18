@@ -47,7 +47,7 @@ class MetaDataValue(FileNameValue):
         )
         image_rating.to_csv(os.path.join(self.value, "results.csv"), header=True, index=False)
         tray_avg = image_rating.drop(columns=["Name"])
-        tray_avg = tray_avg.groupby("TrayName").mean().reset_index()
+        tray_avg = tray_avg.groupby("TrayName").mean(numeric_only=True).reset_index()
         tray_avg.to_csv(os.path.join(self.value, "tray_summary.csv"), header=True, index=False)
 
     def getImageList(self):

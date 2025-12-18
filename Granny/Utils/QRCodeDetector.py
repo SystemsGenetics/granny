@@ -49,27 +49,60 @@ class QRCodeDetector:
         """
         Parse variety information from QR code data.
 
-        Expected format: "BB-Late", "CC-Early", etc.
+        Supports two formats:
+        1. New format: "PROJECT|LOT|DATE|VARIETY" (pipe-delimited)
+        2. Legacy format: "BB-Late" (dash-separated variety only)
 
         Args:
-            qr_data: Raw QR code string (e.g., "BB-Late")
+            qr_data: Raw QR code string
 
         Returns:
             Dictionary with parsed variety information:
                 {
-                    'raw': 'BB-Late',      # Original QR code data
-                    'full': 'BB-Late',     # Full variety string
-                    'variety': 'BB',       # Variety code
-                    'timing': 'Late'       # Timing info
+                    'raw': original QR string,
+                    'project': project code or 'UNKNOWN',
+                    'lot': lot code or 'UNKNOWN',
+                    'date': date string or 'UNKNOWN',
+                    'variety': variety code (e.g., 'BB'),
+                    'timing': timing info (e.g., 'Late'),
+                    'full': full variety string (e.g., 'BB-Late')
                 }
         """
-        parts = qr_data.split('-')
+        variety_info = {'raw': qr_data}
 
-        variety_info = {
-            'raw': qr_data,
-            'full': qr_data,
-            'variety': parts[0] if len(parts) > 0 else '',
-            'timing': parts[1] if len(parts) > 1 else ''
-        }
+        # Check if new pipe-delimited format
+        if '|' in qr_data:
+            parts = qr_data.split('|')
+            if len(parts) >= 4:
+                variety_info['project'] = parts[0]
+                variety_info['lot'] = parts[1]
+                variety_info['date'] = parts[2]
+                variety_info['full'] = parts[3]
+
+                # Parse variety and timing from full variety string
+                variety_parts = parts[3].split('-')
+                variety_info['variety'] = variety_parts[0] if len(variety_parts) > 0 else ''
+                variety_info['timing'] = variety_parts[1] if len(variety_parts) > 1 else ''
+            else:
+                # Malformed pipe-delimited format
+                variety_info.update({
+                    'project': 'UNKNOWN',
+                    'lot': 'UNKNOWN',
+                    'date': 'UNKNOWN',
+                    'full': qr_data,
+                    'variety': '',
+                    'timing': ''
+                })
+        else:
+            # Legacy format (just variety, e.g., "BB-Late")
+            parts = qr_data.split('-')
+            variety_info.update({
+                'project': 'UNKNOWN',
+                'lot': 'UNKNOWN',
+                'date': 'UNKNOWN',
+                'full': qr_data,
+                'variety': parts[0] if len(parts) > 0 else '',
+                'timing': parts[1] if len(parts) > 1 else ''
+            })
 
         return variety_info

@@ -270,7 +270,7 @@ class Segmentation(Analysis):
 
         # Initialize QR code detector for variety information extraction
         self.qr_detector = QRCodeDetector()
-        self.variety_info = None  # Will store detected variety information
+        self.variety_info = None  # Will store detected variety information if QR code found
 
         self.addInParam(
             self.model,
@@ -547,7 +547,19 @@ class Segmentation(Analysis):
             mask = sorted_masks[i]
             for channel in range(3):
                 individual_image[:, :, channel] = tray_image_array[y1:y2, x1:x2, channel] * mask[y1:y2, x1:x2]  # type: ignore
-            image_name = pathlib.Path(tray_image.getImageName()).stem + f"_fruit_{i+1:02d}" + ".png"
+
+            # Build filename: use QR data if detected, otherwise use default tray name
+            if self.variety_info is not None:
+                # QR code detected - use PROJECT_LOT_DATE_VARIETY_fruit_##.png
+                project = self.variety_info['project']
+                lot = self.variety_info['lot']
+                date = self.variety_info['date']
+                variety = self.variety_info['full']
+                image_name = f"{project}_{lot}_{date}_{variety}_fruit_{i+1:02d}.png"
+            else:
+                # No QR code - use default naming: tray_name_fruit_##.png
+                image_name = pathlib.Path(tray_image.getImageName()).stem + f"_fruit_{i+1:02d}" + ".png"
+
             image_instance: Image = RGBImage(image_name)
             image_instance.setImage(individual_image)
             individual_images.append(image_instance)
@@ -620,11 +632,16 @@ class Segmentation(Analysis):
                 qr_data, qr_points = self.qr_detector.detect(image_instance.getImage())
                 if qr_data:
                     self.variety_info = self.qr_detector.extract_variety_info(qr_data)
-                    print(f"QR Code detected: {self.variety_info['full']}")
-                    print(f"  Variety: {self.variety_info['variety']}, Timing: {self.variety_info['timing']}")
+                    print(f"QR Code detected: {qr_data}")
+                    print(f"  Project: {self.variety_info['project']}, Lot: {self.variety_info['lot']}")
+                    print(f"  Date: {self.variety_info['date']}, Variety: {self.variety_info['full']}")
+                else:
+                    print("No QR code detected - using default naming")
+                    self.variety_info = None
             except Exception as e:
-                # QR detection failed, continue without variety info
-                print(f"QR detection skipped: {str(e)}")
+                # QR detection failed, continue with default naming
+                print(f"QR detection error: {str(e)} - using default naming")
+                self.variety_info = None
 
             # predicts fruit instances in the image
             result = self._segmentInstances(image=image_instance.getImage())
@@ -653,19 +670,6 @@ class Segmentation(Analysis):
                 self.masked_images.setImageList([masked_image])
                 self.masked_images.writeValue()
 
-                # Save variety info to text file if QR code was detected
-                if self.variety_info:
-                    variety_file_path = os.path.join(
-                        os.curdir,
-                        "results",
-                        self.__analysis_name__,
-                        self.analysis_time,
-                        "variety_info.txt"
-                    )
-                    with open(variety_file_path, 'w') as f:
-                        f.write(f"variety_code={self.variety_info['variety']}\n")
-                        f.write(f"timing={self.variety_info['timing']}\n")
-                        f.write(f"full_variety={self.variety_info['full']}\n")
             except:
                 AttributeError("Error with the results.")
 

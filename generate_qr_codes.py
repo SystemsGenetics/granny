@@ -17,7 +17,7 @@ import os
 from datetime import datetime
 
 
-def generate_qr_code(project, lot, date, variety, output_dir="qr_codes"):
+def generate_qr_code(project, lot, date, variety, output_dir="QR_Output"):
     """
     Generate a QR code with experimental information.
 
@@ -104,7 +104,7 @@ def main():
             break
 
     print("\n" + "=" * 60)
-    print("Done! Check the 'qr_codes' folder for your QR codes.")
+    print("Done! Check the 'QR_Output' folder for your QR codes.")
     print("=" * 60)
 
 

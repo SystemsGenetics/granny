@@ -136,6 +136,56 @@ class Analysis(ABC):
         """
         self.ret_values = {}
 
+    def _parse_qr_from_filename(self, filename: str) -> dict:
+        """
+        Extract QR code information from segmented image filename.
+
+        Expected format: PROJECT_LOT_DATE_VARIETY_fruit_##.png
+        Example: APPLE2025_LOT001_2025-12-02_BB-Late_fruit_01.png
+
+        Args:
+            filename: Image filename (with or without path)
+
+        Returns:
+            Dictionary with QR information:
+            {
+                'project': project code or empty string,
+                'lot': lot code or empty string,
+                'date': date string or empty string,
+                'variety': variety string or empty string
+            }
+
+        Notes:
+            - Returns empty strings for all fields if parsing fails
+            - Handles legacy filenames gracefully (no QR data)
+        """
+        import re
+        from pathlib import Path
+
+        # Extract just the filename without path
+        filename_only = Path(filename).name
+
+        # Pattern: PROJECT_LOT_DATE_VARIETY_fruit_##.png
+        # Use regex to match everything before "_fruit_##"
+        pattern = r'^(.+?)_(.+?)_(.+?)_(.+?)_fruit_\d+\.(?:png|jpg|jpeg)$'
+        match = re.match(pattern, filename_only)
+
+        if match:
+            return {
+                'project': match.group(1),
+                'lot': match.group(2),
+                'date': match.group(3),
+                'variety': match.group(4)
+            }
+        else:
+            # Parsing failed - return empty strings (no QR data)
+            return {
+                'project': '',
+                'lot': '',
+                'date': '',
+                'variety': ''
+            }
+
     def performAnalysis(self) -> List[Image]:
         """
         Once all required parameters have been set, this function is used
