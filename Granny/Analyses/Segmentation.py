@@ -211,6 +211,36 @@ class Segmentation(Analysis):
         self.text_thickness.setValue(3)
         self.text_thickness.setIsRequired(False)
 
+        self.text_color_r = IntValue(
+            "text_color_r",
+            "text_color_r",
+            "Red channel value for text color (0-255). Default is 0 (black).",
+        )
+        self.text_color_r.setMin(0)
+        self.text_color_r.setMax(255)
+        self.text_color_r.setValue(0)
+        self.text_color_r.setIsRequired(False)
+
+        self.text_color_g = IntValue(
+            "text_color_g",
+            "text_color_g",
+            "Green channel value for text color (0-255). Default is 0 (black).",
+        )
+        self.text_color_g.setMin(0)
+        self.text_color_g.setMax(255)
+        self.text_color_g.setValue(0)
+        self.text_color_g.setIsRequired(False)
+
+        self.text_color_b = IntValue(
+            "text_color_b",
+            "text_color_b",
+            "Blue channel value for text color (0-255). Default is 0 (black).",
+        )
+        self.text_color_b.setMin(0)
+        self.text_color_b.setMax(255)
+        self.text_color_b.setValue(0)
+        self.text_color_b.setIsRequired(False)
+
         # Sorting/grouping parameter
         self.row_tolerance = IntValue(
             "row_tolerance",
@@ -277,6 +307,9 @@ class Segmentation(Analysis):
             self.bbox_thickness,
             self.font_scale,
             self.text_thickness,
+            self.text_color_r,
+            self.text_color_g,
+            self.text_color_b,
             self.row_tolerance,
         )
 
@@ -388,7 +421,7 @@ class Segmentation(Analysis):
                 (x1, y1),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=self.font_scale.getValue(),
-                color=(255, 255, 255),
+                color=(self.text_color_b.getValue(), self.text_color_g.getValue(), self.text_color_r.getValue()),
                 thickness=self.text_thickness.getValue(),
             )
         image_instance: Image = RGBImage(
