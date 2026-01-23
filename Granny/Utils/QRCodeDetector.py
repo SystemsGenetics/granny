@@ -1,8 +1,8 @@
 """
-QR Code Detection Utility
+QR Code and Barcode Detection Utility
 
-This module provides functionality to detect and decode QR codes in images,
-primarily used to extract variety information from tray images.
+This module provides functionality to detect and decode QR codes and barcodes
+in images, primarily used to extract variety information from tray images.
 
 date: November 18, 2025
 author: Aden Athar
@@ -12,37 +12,97 @@ import cv2
 import numpy as np
 from typing import Optional, Tuple
 
+try:
+    from pyzbar import pyzbar
+    PYZBAR_AVAILABLE = True
+except ImportError as e:
+    PYZBAR_AVAILABLE = False
+    PYZBAR_ERROR = str(e)
+
 
 class QRCodeDetector:
     """
-    Detects and decodes QR codes from images.
+    Detects and decodes QR codes and barcodes from images.
 
-    This class uses OpenCV's QRCodeDetector to find QR codes in tray images
-    and extract variety information (e.g., "BB-Late", "CC-Early").
+    This class uses OpenCV's QRCodeDetector for QR codes and pyzbar for
+    1D barcodes (Code128, Code39, EAN, UPC, etc.) to find codes in tray
+    images and extract variety information (e.g., "BB-Late", "CC-Early").
     """
 
     def __init__(self):
-        """Initialize the QR code detector."""
+        """Initialize the QR code and barcode detector."""
         self.detector = cv2.QRCodeDetector()
+        self.barcode_enabled = PYZBAR_AVAILABLE
+
+        if not PYZBAR_AVAILABLE:
+            print("WARNING: Barcode detection unavailable. Install libzbar0:")
+            print("  Ubuntu/Debian: sudo apt-get install libzbar0")
+            print("  macOS: brew install zbar")
+            print("  Windows: Download from http://zbar.sourceforge.net/")
 
     def detect(self, image: np.ndarray) -> Tuple[Optional[str], Optional[np.ndarray]]:
         """
-        Detect and decode a QR code in an image.
+        Detect and decode a QR code or barcode in an image.
+
+        Tries QR code detection first, then falls back to barcode detection
+        if no QR code is found and pyzbar is available.
 
         Args:
             image: Input image as numpy array (BGR format from OpenCV)
 
         Returns:
             Tuple of (decoded_data, points) where:
-                - decoded_data: String containing QR code data, or None if not found
-                - points: numpy array of QR code corner points, or None if not found
+                - decoded_data: String containing code data, or None if not found
+                - points: numpy array of code corner points, or None if not found
         """
-        # Detect and decode QR code
+        # Try QR code detection first
         data, points, _ = self.detector.detectAndDecode(image)
 
-        # Return data if found, otherwise None
         if data:
             return data, points
+
+        # Fall back to barcode detection if pyzbar is available
+        if self.barcode_enabled:
+            barcode_data, barcode_points = self._detect_barcode(image)
+            if barcode_data:
+                return barcode_data, barcode_points
+
+        return None, None
+
+    def _detect_barcode(self, image: np.ndarray) -> Tuple[Optional[str], Optional[np.ndarray]]:
+        """
+        Detect and decode a barcode using pyzbar.
+
+        Args:
+            image: Input image as numpy array (BGR format from OpenCV)
+
+        Returns:
+            Tuple of (decoded_data, points) where:
+                - decoded_data: String containing barcode data, or None if not found
+                - points: numpy array of barcode corner points, or None if not found
+        """
+        if not PYZBAR_AVAILABLE:
+            return None, None
+
+        # Convert to grayscale for better detection
+        if len(image.shape) == 3:
+            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        else:
+            gray = image
+
+        # Detect barcodes
+        barcodes = pyzbar.decode(gray)
+
+        if barcodes:
+            # Return the first barcode found
+            barcode = barcodes[0]
+            data = barcode.data.decode('utf-8')
+
+            # Convert polygon points to numpy array
+            points = np.array(barcode.polygon, dtype=np.float32)
+
+            return data, points
+
         return None, None
 
     def extract_variety_info(self, qr_data: str) -> dict:

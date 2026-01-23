@@ -5,6 +5,7 @@ ultralytics
 numpy
 opencv-python
 pytest
+pyzbar
 """.split()
 
 
