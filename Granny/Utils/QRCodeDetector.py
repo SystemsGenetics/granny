@@ -71,7 +71,11 @@ class QRCodeDetector:
 
     def _detect_barcode(self, image: np.ndarray) -> Tuple[Optional[str], Optional[np.ndarray]]:
         """
-        Detect and decode a barcode using pyzbar.
+        Detect and decode a barcode using pyzbar, trying multiple rotations.
+
+        Barcodes may appear at any angle in the image. This method tries the
+        original orientation first, then rotates by 90, 180, and 270 degrees
+        to ensure detection regardless of how the image was captured.
 
         Args:
             image: Input image as numpy array (BGR format from OpenCV)
@@ -90,18 +94,23 @@ class QRCodeDetector:
         else:
             gray = image
 
-        # Detect barcodes
-        barcodes = pyzbar.decode(gray)
+        # Try original and 3 rotations (0, 90, 180, 270 degrees)
+        rotations = [
+            None,
+            cv2.ROTATE_90_CLOCKWISE,
+            cv2.ROTATE_180,
+            cv2.ROTATE_90_COUNTERCLOCKWISE,
+        ]
 
-        if barcodes:
-            # Return the first barcode found
-            barcode = barcodes[0]
-            data = barcode.data.decode('utf-8')
+        for rotation in rotations:
+            rotated = gray if rotation is None else cv2.rotate(gray, rotation)
+            barcodes = pyzbar.decode(rotated)
 
-            # Convert polygon points to numpy array
-            points = np.array(barcode.polygon, dtype=np.float32)
-
-            return data, points
+            if barcodes:
+                barcode = barcodes[0]
+                data = barcode.data.decode('utf-8')
+                points = np.array(barcode.polygon, dtype=np.float32)
+                return data, points
 
         return None, None
 
