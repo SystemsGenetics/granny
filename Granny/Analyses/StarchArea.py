@@ -421,24 +421,8 @@ class StarchArea(Analysis):
         result_img: Image = RGBImage(image_instance.getImageName())
         result_img.setImage(result)
 
-        # Extract and add QR metadata from filename (if present)
-        qr_info = self._parse_qr_from_filename(image_instance.getImageName())
-        if qr_info['project']:  # Only add if QR data exists
-            project_val = StringValue("project", "project", "Project code from QR code")
-            project_val.setValue(qr_info['project'])
-            result_img.addValue(project_val)
-
-            lot_val = StringValue("lot", "lot", "Lot code from QR code")
-            lot_val.setValue(qr_info['lot'])
-            result_img.addValue(lot_val)
-
-            date_val = StringValue("date", "date", "Date from QR code")
-            date_val.setValue(qr_info['date'])
-            result_img.addValue(date_val)
-
-            variety_val = StringValue("variety", "variety", "Variety from QR code")
-            variety_val.setValue(qr_info['variety'])
-            result_img.addValue(variety_val)
+        # Extract and add QR/barcode metadata from filename (if present)
+        self._add_qr_metadata(result_img, image_instance.getImageName())
 
         # saves the calculated score to the image_instance as a parameter
         rating = FloatValue(

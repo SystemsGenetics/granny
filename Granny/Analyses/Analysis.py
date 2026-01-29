@@ -186,6 +186,32 @@ class Analysis(ABC):
                 'variety': ''
             }
 
+    def _add_qr_metadata(self, result_img, filename: str):
+        """
+        Parse QR/barcode metadata from filename and add to result image.
+
+        Args:
+            result_img: Image instance to add metadata values to
+            filename: Image filename to parse
+        """
+        qr_info = self._parse_qr_from_filename(filename)
+        if qr_info['project']:
+            project_val = StringValue("project", "project", "Project code from QR code")
+            project_val.setValue(qr_info['project'])
+            result_img.addValue(project_val)
+
+            lot_val = StringValue("lot", "lot", "Lot code from QR code")
+            lot_val.setValue(qr_info['lot'])
+            result_img.addValue(lot_val)
+
+            date_val = StringValue("date", "date", "Date from QR code")
+            date_val.setValue(qr_info['date'])
+            result_img.addValue(date_val)
+
+            variety_val = StringValue("variety", "variety", "Variety from QR code")
+            variety_val.setValue(qr_info['variety'])
+            result_img.addValue(variety_val)
+
     def performAnalysis(self) -> List[Image]:
         """
         Once all required parameters have been set, this function is used

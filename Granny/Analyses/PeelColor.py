@@ -494,24 +494,8 @@ class PeelColor(Analysis):
         )
         b_value.setValue(b)
 
-        # Extract and add QR metadata from filename (if present)
-        qr_info = self._parse_qr_from_filename(image_instance.getImageName())
-        if qr_info['project']:  # Only add if QR data exists
-            project_val = StringValue("project", "project", "Project code from QR code")
-            project_val.setValue(qr_info['project'])
-            image_instance.addValue(project_val)
-
-            lot_val = StringValue("lot", "lot", "Lot code from QR code")
-            lot_val.setValue(qr_info['lot'])
-            image_instance.addValue(lot_val)
-
-            date_val = StringValue("date", "date", "Date from QR code")
-            date_val.setValue(qr_info['date'])
-            image_instance.addValue(date_val)
-
-            variety_val = StringValue("variety", "variety", "Variety from QR code")
-            variety_val.setValue(qr_info['variety'])
-            image_instance.addValue(variety_val)
+        # Extract and add QR/barcode metadata from filename (if present)
+        self._add_qr_metadata(image_instance, image_instance.getImageName())
 
         # adds ratings to  to the image_instance as parameters
         image_instance.addValue(
