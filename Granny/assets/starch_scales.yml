@@ -36,9 +36,61 @@ GRANNY_SMITH:
   rating: [0.920742836, 0.890332499, 0.808227909, 0.721813109, 0.595806394, 0.278299256, 0.104111379]
 
 JONAGOLD:
+  # Updated with transparent background images (2026-01-22)
+  # Note: Minor non-monotonic at indices 7.0 and 9.0
   index: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
-  rating: [0.898336414, 0.859494456, 0.806417832, 0.742177914, 0.653981582, 0.483778570, 0.387202327, 0.284663986, 0.175593498]
+  rating: [0.904449699, 0.874103352, 0.836673554, 0.838637605, 0.784962049, 0.594890812, 0.701861145, 0.443807162, 0.596292231]
 
 CORNELL:
   index: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
   rating: [0.990554095, 0.915430492, 0.822470328, 0.726896529, 0.610745795, 0.338955981, 0.150869695, 0.041547982]
+
+PURDUE:
+  index: [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+  rating: [0.942025840, 0.858846162, 0.767229201, 0.564366621, 0.484868413, 0.266928900, 0.074313346]
+  # Threshold 150 alternative (for comparison):
+  #   index: [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+  #   rating: [0.904324121, 0.755849937, 0.675973804, 0.411188084, 0.330359199, 0.160435085, 0.058093191]
+
+DANJOU:
+  # Updated with transparent background images (2026-01-22)
+  # Note: Minor non-monotonic at index 3.5
+  index: [1.2, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0]
+  rating: [0.936809998, 0.922681876, 0.872891694, 0.751986331, 0.632509641, 0.675894367, 0.385525954, 0.269095698]
+
+AMBROSIA:
+  # Updated with transparent background images (2026-01-22)
+  # Ratings averaged across A/B/C variants for each index
+  index: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
+  rating: [0.938836999, 0.918713937, 0.899148039, 0.800415449, 0.743251611, 0.546193038, 0.434137897, 0.190703881]
+
+MINNEISKA:
+  # Updated with transparent background images (2026-01-22)
+  # WARNING: Still non-monotonic - source images have quality issues
+  # Index 6.0 missing (reference card says "apple clear of starch")
+  index: [1.0, 2.0, 3.0, 4.0, 5.0]
+  rating: [0.941631104, 0.906756575, 0.579645190, 0.643510650, 0.441163061]
+
+PINKLADY:
+  # Updated with transparent background images (2026-01-22)
+  # Excellent monotonic decrease
+  index: [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+  rating: [0.959550159, 0.699509917, 0.614671054, 0.502103609, 0.491582825, 0.311998962, 0.147608409]
+
+REDDELICIOUS1980:
+  # Updated with transparent background images (2026-01-22)
+  # Excellent monotonic decrease
+  index: [1.2, 1.5, 1.8, 2.0, 2.2, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0]
+  rating: [0.930329713, 0.915044820, 0.856309558, 0.853819411, 0.792795414, 0.761423428, 0.711408319, 0.619893048, 0.495924193, 0.480951636, 0.431083558, 0.203781176]
+
+REDDELICIOUS1990:
+  # Updated with transparent background images (2026-01-22)
+  # Excellent monotonic decrease
+  index: [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+  rating: [0.969424567, 0.945761350, 0.935346949, 0.880456871, 0.816953597, 0.736772334, 0.669650642, 0.579715970, 0.442378759, 0.320778000, 0.203632175, 0.181581181]
+
+ROYAL_GALA:
+  # Updated with transparent background images (2026-01-22)
+  # Note: Minor non-monotonic at index 3.0
+  index: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+  rating: [0.910532554, 0.839360955, 0.928483858, 0.863534479, 0.774230735, 0.737439732, 0.568495148, 0.480588864, 0.325108538]

@@ -11,6 +11,7 @@ dist/
 06-Package
 *logs/
 _build/
+results/
 
 # Files
 *.pyc
