@@ -122,11 +122,11 @@ class StarchArea(Analysis):
             + "percentage (value/255) and applied to each image's actual pixel range. "
             + "Pixels with gray values <= threshold percentage are considered starch. "
             + "Lower values detect only darker starch regions, higher values include lighter regions. "
-            + "Default is 172 (67.45% of range).",
+            + "Default is 140 (55% of range).",
         )
         self.starch_threshold.setMin(0)
         self.starch_threshold.setMax(255)
-        self.starch_threshold.setValue(172)
+        self.starch_threshold.setValue(140)
         self.starch_threshold.setIsRequired(False)
 
         # Gaussian blur kernel size parameter
