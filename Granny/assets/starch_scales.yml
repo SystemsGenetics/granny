@@ -1,0 +1,96 @@
+# Starch Scale Data for Apple Varieties
+#
+# This file contains starch index and rating mappings for different apple varieties.
+# These values are used to evaluate starch content in apples, which indicates
+# ripeness and suitability for consumption or storage.
+#
+# Format:
+#   variety_name:
+#     index: [list of starch index values]
+#     rating: [corresponding rating values]
+#
+# Each variety has its own starch scale based on research and industry standards.
+
+HONEY_CRISP:
+  index: [1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0]
+  rating: [0.998998748, 0.947464712, 0.868898986, 0.783941273, 0.676589664, 0.329929925, 0.024131710]
+
+WA38_1:
+  index: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+  rating: [0.893993948, 0.855859903, 0.757963861, 0.597765822, 0.164192649, 0.080528335]
+
+WA38_2:
+  index: [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0]
+  rating: [0.950925926, 0.912917454, 0.839858059, 0.749211356, 0.770660718, 0.634160550, 0.571832210, 0.522944438, 0.178909419, 0.017493382, 0.075675075]
+
+ALLAN_BROS:
+  index: [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]
+  rating: [0.997783524, 0.988769830, 0.951909478, 0.877526853, 0.721066082, 0.673838851, 0.417864608, 0.091652858]
+
+GOLDEN_DELICIOUS:
+  index: [1.0, 1.2, 1.5, 1.8, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0]
+  rating: [0.998544220, 0.981819854, 0.974722333, 0.902015343, 0.893566670, 0.784215902, 0.780621478, 0.607040963, 0.717128225, 0.485321449, 0.279959478, 0.068212979]
+
+GRANNY_SMITH:
+  index: [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+  rating: [0.920742836, 0.890332499, 0.808227909, 0.721813109, 0.595806394, 0.278299256, 0.104111379]
+
+JONAGOLD:
+  # Updated with transparent background images (2026-01-22)
+  # Note: Minor non-monotonic at indices 7.0 and 9.0
+  index: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+  rating: [0.904449699, 0.874103352, 0.836673554, 0.838637605, 0.784962049, 0.594890812, 0.701861145, 0.443807162, 0.596292231]
+
+CORNELL:
+  index: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
+  rating: [0.990554095, 0.915430492, 0.822470328, 0.726896529, 0.610745795, 0.338955981, 0.150869695, 0.041547982]
+
+PURDUE:
+  index: [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+  rating: [0.942025840, 0.858846162, 0.767229201, 0.564366621, 0.484868413, 0.266928900, 0.074313346]
+  # Threshold 150 alternative (for comparison):
+  #   index: [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+  #   rating: [0.904324121, 0.755849937, 0.675973804, 0.411188084, 0.330359199, 0.160435085, 0.058093191]
+
+DANJOU:
+  # Updated with transparent background images (2026-01-22)
+  # Note: Minor non-monotonic at index 3.5
+  index: [1.2, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0]
+  rating: [0.936809998, 0.922681876, 0.872891694, 0.751986331, 0.632509641, 0.675894367, 0.385525954, 0.269095698]
+
+AMBROSIA:
+  # Updated with transparent background images (2026-01-22)
+  # Ratings averaged across A/B/C variants for each index
+  index: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
+  rating: [0.938836999, 0.918713937, 0.899148039, 0.800415449, 0.743251611, 0.546193038, 0.434137897, 0.190703881]
+
+MINNEISKA:
+  # Updated with transparent background images (2026-01-22)
+  # WARNING: Still non-monotonic - source images have quality issues
+  # Index 6.0 missing (reference card says "apple clear of starch")
+  index: [1.0, 2.0, 3.0, 4.0, 5.0]
+  rating: [0.941631104, 0.906756575, 0.579645190, 0.643510650, 0.441163061]
+
+PINKLADY:
+  # Updated with transparent background images (2026-01-22)
+  # Excellent monotonic decrease
+  index: [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+  rating: [0.959550159, 0.699509917, 0.614671054, 0.502103609, 0.491582825, 0.311998962, 0.147608409]
+
+REDDELICIOUS1980:
+  # Updated with transparent background images (2026-01-22)
+  # Excellent monotonic decrease
+  index: [1.2, 1.5, 1.8, 2.0, 2.2, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0]
+  rating: [0.930329713, 0.915044820, 0.856309558, 0.853819411, 0.792795414, 0.761423428, 0.711408319, 0.619893048, 0.495924193, 0.480951636, 0.431083558, 0.203781176]
+
+REDDELICIOUS1990:
+  # Updated with transparent background images (2026-01-22)
+  # Excellent monotonic decrease
+  index: [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+  rating: [0.969424567, 0.945761350, 0.935346949, 0.880456871, 0.816953597, 0.736772334, 0.669650642, 0.579715970, 0.442378759, 0.320778000, 0.203632175, 0.181581181]
+
+ROYAL_GALA:
+  # Updated with transparent background images (2026-01-22)
+  # Note: Minor non-monotonic at index 3.0
+  index: [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+  rating: [0.910532554, 0.839360955, 0.928483858, 0.863534479, 0.774230735, 0.737439732, 0.568495148, 0.480588864, 0.325108538]

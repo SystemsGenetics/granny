@@ -11,9 +11,6 @@ dist/
 06-Package
 *logs/
 _build/
-venv/
-.coverage
-coverage.lcov
 results/
 
 # Files
