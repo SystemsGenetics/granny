@@ -6,6 +6,7 @@ numpy
 opencv-python
 pandas
 pytest
+pyzbar
 pytest-cov
 """.split()
 

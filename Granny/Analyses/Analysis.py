@@ -136,6 +136,82 @@ class Analysis(ABC):
         """
         self.ret_values = {}
 
+    def _parse_qr_from_filename(self, filename: str) -> dict:
+        """
+        Extract QR code information from segmented image filename.
+
+        Expected format: PROJECT_LOT_DATE_VARIETY_fruit_##.png
+        Example: APPLE2025_LOT001_2025-12-02_BB-Late_fruit_01.png
+
+        Args:
+            filename: Image filename (with or without path)
+
+        Returns:
+            Dictionary with QR information:
+            {
+                'project': project code or empty string,
+                'lot': lot code or empty string,
+                'date': date string or empty string,
+                'variety': variety string or empty string
+            }
+
+        Notes:
+            - Returns empty strings for all fields if parsing fails
+            - Handles legacy filenames gracefully (no QR data)
+        """
+        import re
+        from pathlib import Path
+
+        # Extract just the filename without path
+        filename_only = Path(filename).name
+
+        # Pattern: PROJECT_LOT_DATE_VARIETY_fruit_##.png
+        # Use regex to match everything before "_fruit_##"
+        pattern = r'^(.+?)_(.+?)_(.+?)_(.+?)_fruit_\d+\.(?:png|jpg|jpeg)$'
+        match = re.match(pattern, filename_only)
+
+        if match:
+            return {
+                'project': match.group(1),
+                'lot': match.group(2),
+                'date': match.group(3),
+                'variety': match.group(4)
+            }
+        else:
+            # Parsing failed - return empty strings (no QR data)
+            return {
+                'project': '',
+                'lot': '',
+                'date': '',
+                'variety': ''
+            }
+
+    def _add_qr_metadata(self, result_img, filename: str):
+        """
+        Parse QR/barcode metadata from filename and add to result image.
+
+        Args:
+            result_img: Image instance to add metadata values to
+            filename: Image filename to parse
+        """
+        qr_info = self._parse_qr_from_filename(filename)
+        if qr_info['project']:
+            project_val = StringValue("project", "project", "Project code from QR code")
+            project_val.setValue(qr_info['project'])
+            result_img.addValue(project_val)
+
+            lot_val = StringValue("lot", "lot", "Lot code from QR code")
+            lot_val.setValue(qr_info['lot'])
+            result_img.addValue(lot_val)
+
+            date_val = StringValue("date", "date", "Date from QR code")
+            date_val.setValue(qr_info['date'])
+            result_img.addValue(date_val)
+
+            variety_val = StringValue("variety", "variety", "Variety from QR code")
+            variety_val.setValue(qr_info['variety'])
+            result_img.addValue(variety_val)
+
     def performAnalysis(self) -> List[Image]:
         """
         Once all required parameters have been set, this function is used
