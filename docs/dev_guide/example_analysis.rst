@@ -12,7 +12,7 @@ This example implements a **BruiseDetection** analysis that:
 - Calculates bruise percentage
 - Provides adjustable threshold and visualization parameters
 - Outputs annotated images and CSV results
-- Follows all Granny best practices
+- Uses the multiprocessing architecture via ``_preRun()``, ``_processImage()``, ``_postRun()``
 
 The algorithm uses LAB color space to detect darker regions that indicate bruising.
 
@@ -39,10 +39,10 @@ File: ``Granny/Analyses/BruiseDetection.py``
    Date: 2024-01-15
    """
 
-   import os
    import csv
+   import os
    from datetime import datetime
-   from typing import List, Tuple
+   from typing import Dict, List, Tuple
 
    import cv2
    import numpy as np
@@ -50,11 +50,10 @@ File: ``Granny/Analyses/BruiseDetection.py``
 
    from Granny.Analyses.Analysis import Analysis
    from Granny.Models.Images.Image import Image
-   from Granny.Models.Images.RGBImage import RGBImage
-   from Granny.Models.IO.ImageIO import ImageIO
    from Granny.Models.IO.RGBImageFile import RGBImageFile
    from Granny.Models.Values.IntValue import IntValue
    from Granny.Models.Values.FloatValue import FloatValue
+   from Granny.Models.Values.StringValue import StringValue
    from Granny.Models.Values.ImageListValue import ImageListValue
    from Granny.Models.Values.MetaDataValue import MetaDataValue
 
@@ -67,16 +66,24 @@ File: ``Granny/Analyses/BruiseDetection.py``
        identifying darker regions in LAB color space. Results include both
        visual annotations and quantitative measurements.
 
+       The base Analysis class handles:
+       - Loading images from input directory
+       - Parallel processing via multiprocessing.Pool
+       - CPU core management
+
+       You implement:
+       - _preRun(): Setup before processing
+       - _processImage(): Process single image (runs in parallel)
+       - _postRun(): Save results after all images processed
+
        Attributes:
-           images (List[Image]): Loaded input images
+           images (List[Image]): Loaded input images (set by base class)
            input_images (ImageListValue): Input directory parameter
            output_images (ImageListValue): Output directory for annotated images
-           output_results (MetaDataValue): Output directory for CSV results
            lightness_threshold (IntValue): L-channel threshold for bruise detection
            min_bruise_area (IntValue): Minimum area (pixels) for valid bruise
            morphological_kernel (IntValue): Kernel size for noise removal
            mask_alpha (FloatValue): Transparency for bruise mask overlay
-           bruise_color (tuple): Color for bruise mask visualization (BGR)
        """
 
        # This name will be used in CLI: granny -i cli --analysis bruise
@@ -89,11 +96,8 @@ File: ``Granny/Analyses/BruiseDetection.py``
            Sets up input/output directories, detection thresholds, and
            visualization parameters with sensible defaults.
            """
-           # STEP 1: Initialize base class
+           # STEP 1: Initialize base class (REQUIRED)
            super().__init__()
-
-           # Initialize image list
-           self.images: List[Image] = []
 
            # STEP 2: Set up input parameter
            self.input_images = ImageListValue(
@@ -198,45 +202,35 @@ File: ``Granny/Analyses/BruiseDetection.py``
            self.font_scale.setIsRequired(False)
            self.addInParam(self.font_scale)
 
-           self.text_thickness = IntValue(
-               "text_thick",
-               "text_thickness",
-               "Thickness of text annotations in pixels. "
-               "Range: 1-50, default: 2."
-           )
-           self.text_thickness.setMin(1)
-           self.text_thickness.setMax(50)
-           self.text_thickness.setValue(2)
-           self.text_thickness.setIsRequired(False)
-           self.addInParam(self.text_thickness)
-
            # Bruise mask color (BGR format for OpenCV)
            self.bruise_color = (0, 0, 255)  # Red
 
-       def performAnalysis(self) -> List[Image]:
+       # =========================================================================
+       # REQUIRED ABSTRACT METHODS
+       # =========================================================================
+
+       def _preRun(self):
            """
-           Perform bruise detection on all input images.
+           Setup before image processing begins.
 
-           Workflow:
-           1. Load images from input directory
-           2. Process each image to detect bruises
-           3. Create annotated output images
-           4. Save results to disk (images and CSV)
-           5. Return processed images
+           Called once by performAnalysis() before parallel processing starts.
+           self.images is already populated with loaded Image objects.
 
-           Returns:
-               List[Image]: List of processed Image objects with bruise annotations
+           Use this for:
+           - Getting parameter values
+           - Initializing output directory
+           - Printing analysis info
            """
-           # STEP 1: Get parameter values
-           input_dir = self.input_images.getValue()
-           output_dir = self.output_images.getValue()
-           results_dir = self.output_results.getValue()
+           # Get output directory path
+           self.output_dir = self.output_images.getValue()
+           self.results_dir = self.output_results.getValue()
 
+           # Print analysis info
            print(f"\n{'='*60}")
            print(f"BRUISE DETECTION ANALYSIS")
            print(f"{'='*60}")
-           print(f"Input directory:  {input_dir}")
-           print(f"Output directory: {output_dir}")
+           print(f"Input directory:  {self.input_images.getValue()}")
+           print(f"Output directory: {self.output_dir}")
            print(f"\nAnalysis Parameters:")
            print(f"  Lightness threshold: {self.lightness_threshold.getValue()}")
            print(f"  Min bruise area:     {self.min_bruise_area.getValue()} pixels")
@@ -244,74 +238,123 @@ File: ``Granny/Analyses/BruiseDetection.py``
            print(f"\nVisualization Parameters:")
            print(f"  Mask alpha:          {self.mask_alpha.getValue()}")
            print(f"  Font scale:          {self.font_scale.getValue()}")
+           print(f"\nProcessing {len(self.images)} images...")
            print(f"{'='*60}\n")
 
-           # STEP 2: Load images
-           print(f"Loading images from: {input_dir}")
-           imageIO = ImageIO()
-           self.images = imageIO.load(input_dir, RGBImageFile)
+       def _processImage(self, image: Image) -> Image:
+           """
+           Process a single image for bruise detection.
 
-           if not self.images:
-               print("ERROR: No images found in input directory.")
-               return []
+           This method runs in PARALLEL across multiple CPU cores.
+           Each call receives one Image and must return the processed Image.
 
-           print(f"Found {len(self.images)} images to process.\n")
+           IMPORTANT: Don't modify shared state here - it won't work
+           with multiprocessing. Return all results via the Image object.
 
-           # STEP 3: Process each image
-           result_images = []
-           results_data = []
+           Args:
+               image: Input Image instance (filepath set, image not loaded)
 
-           for idx, image in enumerate(self.images, 1):
-               filename = image.getFileName()
-               print(f"Processing {idx}/{len(self.images)}: {filename}")
+           Returns:
+               Image: The same Image with processed data and metadata
+           """
+           # Get parameter values (safe - these are read-only)
+           l_thresh = self.lightness_threshold.getValue()
+           min_area = self.min_bruise_area.getValue()
+           kernel_size = self.morphological_kernel.getValue()
+           alpha = self.mask_alpha.getValue()
+           font_scale = self.font_scale.getValue()
 
-               # Get the image as NumPy array (BGR format from OpenCV)
-               img_array = image.getImageFile().getImage()
+           # Load the image data
+           image_io = RGBImageFile()
+           image_io.setFilePath(image.getFilePath())
+           image.loadImage(image_io)
 
-               # Perform bruise detection
-               annotated_img, bruise_pct, bruise_count = self._detect_bruises(img_array)
+           # Get the numpy array (BGR format from OpenCV)
+           img_array = image.getImage()
 
-               print(f"  -> Bruise coverage: {bruise_pct:.2f}%")
-               print(f"  -> Bruise regions:  {bruise_count}")
+           # Perform bruise detection
+           result_array, bruise_pct, bruise_count = self._detect_bruises(
+               img_array, l_thresh, min_area, kernel_size, alpha, font_scale
+           )
 
-               # Create result image
-               result_image = RGBImage()
-               result_file = RGBImageFile()
-               result_file.setImage(annotated_img)
-               result_file.setFileName(filename)
-               result_file.setFilePath(output_dir)
-               result_image.setImageFile(result_file)
+           # Update the image with processed result
+           image.setImage(result_array)
 
-               # Add metadata
-               result_image.addMetadata(self.metadata)  # Standard metadata
-               result_image.addMetadata([
-                   {"name": "bruise_percentage", "value": bruise_pct},
-                   {"name": "bruise_count", "value": bruise_count},
-                   {"name": "lightness_threshold", "value": self.lightness_threshold.getValue()}
-               ])
+           # Add metadata to the image (will be collected in _postRun)
+           bruise_pct_val = FloatValue("bruise_percentage", "bruise_pct", "Bruise percentage")
+           bruise_pct_val.setValue(bruise_pct)
+           image.addValue(bruise_pct_val)
 
-               result_images.append(result_image)
-               results_data.append({
-                   "filename": filename,
-                   "bruise_percentage": f"{bruise_pct:.2f}",
-                   "bruise_count": bruise_count,
-                   "lightness_threshold": self.lightness_threshold.getValue()
+           bruise_count_val = IntValue("bruise_count", "bruise_count", "Number of bruise regions")
+           bruise_count_val.setValue(bruise_count)
+           image.addValue(bruise_count_val)
+
+           threshold_val = IntValue("threshold_used", "threshold", "L threshold used")
+           threshold_val.setValue(l_thresh)
+           image.addValue(threshold_val)
+
+           return image
+
+       def _postRun(self, results: List[Image]) -> List[Image]:
+           """
+           Post-processing after all images are processed.
+
+           Called once with all processed Image objects.
+           Use this to save images, generate CSV reports, print summaries.
+
+           Args:
+               results: List of processed Image objects from _processImage()
+
+           Returns:
+               List[Image]: The final list of result images
+           """
+           print(f"\nSaving {len(results)} images to: {self.output_dir}")
+
+           # Ensure output directory exists
+           os.makedirs(self.output_dir, exist_ok=True)
+
+           # Save each image and collect CSV data
+           image_io = RGBImageFile()
+           csv_data = []
+
+           for image in results:
+               # Save the image
+               image.saveImage(image_io, self.output_dir)
+
+               # Collect data for CSV
+               metadata = image.getMetaData()
+               csv_data.append({
+                   "filename": image.getImageName(),
+                   "bruise_percentage": f"{metadata['bruise_percentage'].getValue():.2f}",
+                   "bruise_count": metadata['bruise_count'].getValue(),
+                   "lightness_threshold": metadata['threshold_used'].getValue()
                })
 
-           # STEP 4: Save results
-           print(f"\nSaving annotated images to: {output_dir}")
-           imageIO.save(result_images)
+               print(f"  Saved: {image.getImageName()} - "
+                     f"Bruise: {metadata['bruise_percentage'].getValue():.2f}%")
 
-           print(f"Saving CSV results to: {results_dir}")
-           self._save_csv(results_data, results_dir)
+           # Save CSV results
+           self._save_csv(csv_data, self.results_dir)
 
            print(f"\n{'='*60}")
-           print(f"Analysis complete! Processed {len(result_images)} images.")
+           print(f"Analysis complete! Processed {len(results)} images.")
            print(f"{'='*60}\n")
 
-           return result_images
+           return results
 
-       def _detect_bruises(self, img: NDArray) -> Tuple[NDArray, float, int]:
+       # =========================================================================
+       # HELPER METHODS
+       # =========================================================================
+
+       def _detect_bruises(
+           self,
+           img: NDArray,
+           l_thresh: int,
+           min_area: int,
+           kernel_size: int,
+           alpha: float,
+           font_scale: float
+       ) -> Tuple[NDArray, float, int]:
            """
            Detect bruises on a single fruit image.
 
@@ -325,16 +368,15 @@ File: ``Granny/Analyses/BruiseDetection.py``
 
            Args:
                img: Input image as NumPy array (BGR format)
+               l_thresh: Lightness threshold
+               min_area: Minimum bruise area in pixels
+               kernel_size: Morphological kernel size
+               alpha: Mask transparency
+               font_scale: Text font scale
 
            Returns:
                Tuple of (annotated_image, bruise_percentage, bruise_count)
            """
-           # Get parameter values
-           l_thresh = self.lightness_threshold.getValue()
-           min_area = self.min_bruise_area.getValue()
-           kernel_size = self.morphological_kernel.getValue()
-           alpha = self.mask_alpha.getValue()
-
            # Convert to LAB color space
            lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
            l_channel, a_channel, b_channel = cv2.split(lab)
@@ -370,7 +412,7 @@ File: ``Granny/Analyses/BruiseDetection.py``
 
            # Create visualization
            annotated = self._create_visualization(
-               img, bruise_mask, bruise_pct, bruise_count, alpha
+               img, bruise_mask, bruise_pct, bruise_count, alpha, font_scale
            )
 
            return annotated, bruise_pct, bruise_count
@@ -381,7 +423,8 @@ File: ``Granny/Analyses/BruiseDetection.py``
            bruise_mask: NDArray,
            bruise_pct: float,
            bruise_count: int,
-           alpha: float
+           alpha: float,
+           font_scale: float
        ) -> NDArray:
            """
            Create annotated visualization of bruise detection results.
@@ -392,6 +435,7 @@ File: ``Granny/Analyses/BruiseDetection.py``
                bruise_pct: Bruise percentage
                bruise_count: Number of bruise regions
                alpha: Transparency for mask overlay
+               font_scale: Font scale for text
 
            Returns:
                Annotated image
@@ -404,8 +448,7 @@ File: ``Granny/Analyses/BruiseDetection.py``
            result = cv2.addWeighted(img, 1.0, mask_color, alpha, 0)
 
            # Add text annotations
-           font_scale = self.font_scale.getValue()
-           thickness = self.text_thickness.getValue()
+           thickness = 2
            font = cv2.FONT_HERSHEY_SIMPLEX
 
            # Bruise percentage
@@ -444,22 +487,15 @@ File: ``Granny/Analyses/BruiseDetection.py``
                writer.writeheader()
                writer.writerows(data)
 
-           print(f"  -> CSV saved: {csv_path}")
+           print(f"Results saved to: {csv_path}")
+
 
 Integration Steps
 -----------------
 
 After creating the file, follow these steps to integrate it into Granny:
 
-1. **Update Analysis Imports**
-
-   Edit ``Granny/Analyses/__init__.py``:
-
-   .. code-block:: python
-
-      from .BruiseDetection import BruiseDetection
-
-2. **Update CLI Interface**
+1. **Update CLI Interface**
 
    Edit ``Granny/Interfaces/UI/GrannyCLI.py``:
 
@@ -475,7 +511,7 @@ After creating the file, follow these steps to integrate it into Granny:
 
       choices=["segmentation", "blush", "color", "scald", "starch", "bruise"]
 
-3. **Create Test File**
+2. **Create Test File**
 
    Create ``tests/test_Analyses/test_BruiseDetection.py``:
 
@@ -547,11 +583,13 @@ Usage Examples
        --mask_alpha 0.7 \
        --font_scale 1.5
 
-**Check available parameters:**
+**Specify CPU cores:**
 
 .. code-block:: bash
 
-   granny -i cli --analysis bruise --help
+   granny -i cli --analysis bruise \
+       --input ./images/ \
+       --cpu 4
 
 Running Tests
 -------------
@@ -570,18 +608,40 @@ Key Takeaways
 This example demonstrates:
 
 1. **Proper class structure** with inheritance from ``Analysis``
-2. **Complete parameter setup** including both analysis and visualization parameters
-3. **Type-safe parameters** using IntValue, FloatValue, ImageListValue
-4. **Parameter constraints** with min/max ranges
-5. **Comprehensive docstrings** for class and methods
-6. **Image processing workflow** using OpenCV and NumPy
-7. **Result storage** for both images and CSV data
-8. **Metadata handling** for result images
-9. **User feedback** via print statements
-10. **Clean code organization** with helper methods
+2. **Three abstract methods**: ``_preRun()``, ``_processImage()``, ``_postRun()``
+3. **Parallel processing** via the base class (no manual Pool management)
+4. **Type-safe parameters** using IntValue, FloatValue, ImageListValue
+5. **Parameter constraints** with min/max ranges
+6. **Comprehensive docstrings** for class and methods
+7. **Image processing workflow** using OpenCV and NumPy
+8. **Result storage** for both images and CSV data
+9. **Metadata handling** via ``addValue()`` on Image objects
+10. **User feedback** via print statements
 
-Best Practices Demonstrated
-----------------------------
+Architecture Notes
+------------------
+
+**Why three methods instead of one performAnalysis()?**
+
+The base ``Analysis.performAnalysis()`` handles:
+
+- Loading images from the input directory
+- Managing the multiprocessing Pool
+- CPU core allocation (80% default, or user-specified)
+- Calling your methods in the right order
+
+This means you get parallel processing for free just by implementing the three methods correctly.
+
+**Multiprocessing constraints in _processImage():**
+
+Since ``_processImage()`` runs in separate processes:
+
+- Don't modify instance variables (changes won't propagate)
+- Return results via the Image object's metadata
+- Aggregation happens in ``_postRun()``
+- Parameter values can be read (they're pickled with the object)
+
+**Best Practices Demonstrated:**
 
 - **Separation of concerns:** Detection logic separate from visualization
 - **Configurable parameters:** All magic numbers are parameters
@@ -599,6 +659,5 @@ Next Steps
 - Modify this example for your specific use case
 - Add additional parameters as needed
 - Implement more sophisticated algorithms
-- Add multiprocessing for better performance
 - Create unit tests for your specific analysis
 - Update documentation with your analysis details

@@ -57,6 +57,16 @@ Analysis Base Class
       - ``id`` - Unique analysis identifier (UUID)
       - ``path`` - Current directory path
 
+   .. py:attribute:: cpu
+      :type: IntValue
+
+      Number of CPU cores for parallel processing. Default 0 = auto (80% of cores).
+
+   .. py:attribute:: images
+      :type: List[Image]
+
+      List of loaded images (populated by ``performAnalysis()``).
+
    **Methods:**
 
    .. py:method:: __init__()
@@ -111,23 +121,54 @@ Analysis Base Class
       Clear all return values.
 
    .. py:method:: performAnalysis() -> List[Image]
-      :abstractmethod:
 
-      **ABSTRACT:** Perform the analysis on input images.
+      Perform the analysis on input images. **Do not override this method.**
 
-      This method must be implemented by all subclasses.
+      The default implementation:
+      1. Loads images from ``input_images`` parameter via ``ImageListValue.readValue()``
+      2. Calls ``_preRun()`` for setup
+      3. Processes images in parallel using ``multiprocessing.Pool``
+      4. Calls ``_postRun()`` with results
 
-      :return: List of processed Image objects
+      :return: List of processed Image objects (from ``_postRun()``)
       :rtype: List[Image]
 
-      **Implementation guidelines:**
+   **Abstract Methods (must implement):**
 
-      1. Load images from ``input_images`` parameter
-      2. Process each image
-      3. Create result Image objects with results
-      4. Add metadata to result images
-      5. Save results (images and CSV)
-      6. Return list of result images
+   .. py:method:: _preRun() -> None
+      :abstractmethod:
+
+      Setup before image processing begins. Called once before any images are processed.
+
+      Use this for:
+      - Initializing result containers
+      - Loading models or resources
+      - Printing analysis parameters
+
+   .. py:method:: _processImage(image: Image) -> Image
+      :abstractmethod:
+
+      Process a single image. Runs in parallel across CPU cores.
+
+      :param image: Input Image instance
+      :return: Processed Image instance
+      :rtype: Image
+
+      **Important:** This method runs in separate processes. Avoid modifying shared state.
+
+   .. py:method:: _postRun(results: List[Image]) -> List[Image]
+      :abstractmethod:
+
+      Post-processing after all images are done. Called once with all results.
+
+      Use this for:
+      - Saving images to disk
+      - Generating CSV reports
+      - Computing aggregate statistics
+
+      :param results: List of processed Image objects from ``_processImage()``
+      :return: Final list of result images
+      :rtype: List[Image]
 
 GrannyUI Base Class
 ~~~~~~~~~~~~~~~~~~~
@@ -171,19 +212,8 @@ GrannyUI Base Class
       5. Call ``analysis.performAnalysis()``
       6. Handle/display results
 
-   .. py:method:: addProgramArgs() -> None
-      :abstractmethod:
-
-      **ABSTRACT:** Add interface-specific arguments to the argument parser.
-
-      This method is called during initialization to set up command-line arguments
-      that the interface needs.
-
-      Example::
-
-         def addProgramArgs(self):
-             grp = self.parser.add_argument_group("My Interface Args")
-             grp.add_argument("--my-option", type=str, help="...")
+   **Note:** ``addProgramArgs()`` is commonly implemented but not required by the base class.
+   See ``GrannyCLI`` for an example implementation.
 
 Value Classes
 -------------
@@ -240,11 +270,6 @@ Value Base Class
       :type: bool
 
       Whether the user has set this value.
-
-   .. py:attribute:: required
-      :type: bool
-
-      Whether this parameter is required.
 
    **Methods:**
 
@@ -433,11 +458,31 @@ FileDirValue
 ImageListValue
 ~~~~~~~~~~~~~~
 
-.. py:class:: ImageListValue(Value)
+.. py:class:: ImageListValue(FileDirValue)
 
    Image list/directory parameter type. Represents a directory containing images.
+   Handles loading and saving of image lists.
 
    **Location:** ``Granny/Models/Values/ImageListValue.py``
+
+   **Additional Methods:**
+
+   .. py:method:: readValue() -> None
+
+      Load all images from the directory into the internal image list.
+      Called automatically by ``Analysis.performAnalysis()``.
+
+   .. py:method:: writeValue() -> None
+
+      Save all images in the internal list to the directory.
+
+   .. py:method:: getImageList() -> List[Image]
+
+      Get the list of loaded Image objects.
+
+   .. py:method:: setImageList(images: List[Image]) -> None
+
+      Set the list of Image objects.
 
    **Example:**
 
@@ -450,6 +495,9 @@ ImageListValue
       )
       input_images.setIsRequired(True)
       input_images.setValue("./demo/images")
+
+      # After readValue() is called:
+      images = input_images.getImageList()
 
 MetaDataValue
 ~~~~~~~~~~~~~
@@ -474,158 +522,245 @@ MetaDataValue
 Image Classes
 -------------
 
-Image
-~~~~~
+Image Base Class
+~~~~~~~~~~~~~~~~
 
 .. py:class:: Image
 
-   Base class for images in Granny.
+   Abstract base class for images in Granny.
 
    **Location:** ``Granny/Models/Images/Image.py``
 
+   **Constructor:**
+
+   .. py:method:: __init__(filepath: str)
+
+      Initialize the Image with a file path.
+
+      :param filepath: Path to the image file
+
+   **Attributes:**
+
+   .. py:attribute:: filepath
+      :type: str
+
+      Absolute file path of the image.
+
+   .. py:attribute:: image
+      :type: NDArray[np.uint8]
+
+      The image data as a NumPy array.
+
+   .. py:attribute:: metadata
+      :type: Dict[str, Value]
+
+      Dictionary of metadata values attached to this image.
+
+   .. py:attribute:: results
+      :type: Any
+
+      Segmentation results (for use with YOLO models).
+
    **Methods:**
 
-   .. py:method:: setImageFile(image_file: ImageFile) -> None
+   .. py:method:: addValue(*values: Value) -> None
 
-      Set the ImageFile object containing the actual image data.
+      Add metadata values to the image.
 
-   .. py:method:: getImageFile() -> ImageFile
+      :param values: One or more Value objects to attach
 
-      Get the ImageFile object.
+      Example::
 
-   .. py:method:: getFileName() -> str
+         score = FloatValue("score", "score", "Analysis score")
+         score.setValue(95.5)
+         image.addValue(score)
 
-      Get the image filename.
+   .. py:method:: getValue(key: str) -> Value
 
-   .. py:method:: addMetadata(metadata: List[dict]) -> None
+      Get a metadata value by name.
 
-      Add metadata to the image.
+      :param key: The name of the metadata value
+      :return: The Value object
 
-      :param metadata: List of metadata dictionaries with "name" and "value" keys
+   .. py:method:: getFilePath() -> str
 
-   .. py:method:: getMetadata() -> List[dict]
+      Get the absolute file path.
+
+   .. py:method:: getImageName() -> str
+
+      Get the filename (without path).
+
+   .. py:method:: getShape() -> tuple
+
+      Get the image dimensions (height, width, channels).
+
+   **Abstract Methods:**
+
+   .. py:method:: loadImage(image_io: ImageIO) -> None
+      :abstractmethod:
+
+      Load image data using the provided ImageIO instance.
+
+   .. py:method:: saveImage(image_io: ImageIO, folder: str) -> None
+      :abstractmethod:
+
+      Save image data to the specified folder.
+
+   .. py:method:: getImage() -> NDArray[np.uint8]
+      :abstractmethod:
+
+      Get the image data as a NumPy array.
+
+   .. py:method:: setImage(image: NDArray[np.uint8]) -> None
+      :abstractmethod:
+
+      Set the image data from a NumPy array.
+
+   .. py:method:: getMetaData() -> Dict[str, Value]
+      :abstractmethod:
 
       Get all metadata attached to this image.
+
+   .. py:method:: setMetaData(metadata: Dict[str, Value]) -> None
+      :abstractmethod:
+
+      Set the metadata for the image.
 
 RGBImage
 ~~~~~~~~
 
 .. py:class:: RGBImage(Image)
 
-   RGB color image type.
+   RGB color image type. The most common image type used in Granny analyses.
 
    **Location:** ``Granny/Models/Images/RGBImage.py``
 
-   This is the most common image type used in Granny analyses.
+   **Constructor:**
+
+   .. py:method:: __init__(filepath: str)
+
+      Initialize with a file path.
+
+      :param filepath: Path to the image file
+
+   **Additional Methods:**
+
+   .. py:method:: toRGB() -> None
+
+      Convert image from BGR to RGB format.
+
+   .. py:method:: toBGR() -> None
+
+      Convert image from RGB to BGR format.
+
+   .. py:method:: rotateImage() -> None
+
+      Rotate the image 90 degrees clockwise.
 
    **Example:**
 
    .. code-block:: python
 
-      result_image = RGBImage()
-      result_file = RGBImageFile()
-      result_file.setImage(processed_array)
-      result_file.setFileName("result.jpg")
-      result_file.setFilePath("./output")
-      result_image.setImageFile(result_file)
-      result_image.addMetadata([{"name": "score", "value": 95.5}])
+      # Load an image
+      image = RGBImage("/path/to/image.jpg")
+      image_io = RGBImageFile()
+      image_io.setFilePath(image.getFilePath())
+      image.loadImage(image_io)
 
-ImageFile Classes
------------------
+      # Process the image
+      img_array = image.getImage()
+      processed = cv2.cvtColor(img_array, cv2.COLOR_BGR2GRAY)
+      image.setImage(processed)
 
-ImageFile
-~~~~~~~~~
+      # Add metadata
+      score = FloatValue("score", "score", "Analysis score")
+      score.setValue(95.5)
+      image.addValue(score)
 
-.. py:class:: ImageFile
+      # Save
+      image.saveImage(image_io, "./output")
 
-   Base class for image file handlers.
+ImageIO Classes
+---------------
+
+ImageIO Base Class
+~~~~~~~~~~~~~~~~~~
+
+.. py:class:: ImageIO
+
+   Abstract base class for image file handlers. Handles loading and saving individual images.
 
    **Location:** ``Granny/Models/IO/ImageIO.py``
 
+   **Attributes:**
+
+   .. py:attribute:: filepath
+      :type: str
+
+      Full path to the image file.
+
+   .. py:attribute:: image_dir
+      :type: str
+
+      Directory containing the image.
+
+   .. py:attribute:: image_name
+      :type: str
+
+      Filename of the image.
+
    **Methods:**
 
-   .. py:method:: setImage(image: NDArray) -> None
+   .. py:method:: setFilePath(filepath: str) -> None
 
-      Set the image data as a NumPy array.
+      Set the file path and extract directory/filename.
 
-   .. py:method:: getImage() -> NDArray
+      :param filepath: Full path to the image file
 
-      Get the image data as a NumPy array.
+   **Abstract Methods:**
 
-   .. py:method:: setFileName(name: str) -> None
+   .. py:method:: loadImage() -> NDArray[np.uint8]
+      :abstractmethod:
 
-      Set the filename.
+      Load and return the image data.
 
-   .. py:method:: getFileName() -> str
+   .. py:method:: saveImage(image: NDArray[np.uint8], output_path: str) -> None
+      :abstractmethod:
 
-      Get the filename.
+      Save the image to the specified directory.
 
-   .. py:method:: setFilePath(path: str) -> None
+   .. py:method:: getType() -> str
+      :abstractmethod:
 
-      Set the directory path.
-
-   .. py:method:: getFilePath() -> str
-
-      Get the directory path.
+      Get the image type (e.g., "rgb", "gray").
 
 RGBImageFile
 ~~~~~~~~~~~~
 
-.. py:class:: RGBImageFile(ImageFile)
+.. py:class:: RGBImageFile(ImageIO)
 
    RGB image file handler. Uses OpenCV for loading/saving.
 
    **Location:** ``Granny/Models/IO/RGBImageFile.py``
 
-   Automatically handles image I/O in BGR format (OpenCV convention).
+   Images are loaded/saved in BGR format (OpenCV convention).
 
-I/O Classes
------------
+   **Example:**
 
-ImageIO
-~~~~~~~
+   .. code-block:: python
 
-.. py:class:: ImageIO
+      from Granny.Models.IO.RGBImageFile import RGBImageFile
 
-   Handles loading and saving of images.
+      # Load an image
+      image_io = RGBImageFile()
+      image_io.setFilePath("/path/to/image.jpg")
+      img_array = image_io.loadImage()  # Returns NDArray in BGR format
 
-   **Location:** ``Granny/Models/IO/ImageIO.py``
-
-   **Methods:**
-
-   .. py:method:: load(path: str, file_class: Type[ImageFile]) -> List[Image]
-
-      Load all images from a directory.
-
-      :param path: Directory path
-      :param file_class: ImageFile class to use (e.g., RGBImageFile)
-      :return: List of loaded Image objects
-
-      **Example:**
-
-      .. code-block:: python
-
-         imageIO = ImageIO()
-         images = imageIO.load("./input", RGBImageFile)
-
-   .. py:method:: save(images: List[Image]) -> None
-
-      Save all images to their designated paths.
-
-      :param images: List of Image objects to save
-
-      **Example:**
-
-      .. code-block:: python
-
-         imageIO = ImageIO()
-         imageIO.save(result_images)
+      # Save an image
+      image_io.saveImage(img_array, "/output/directory")
 
 Scheduler Class
 ---------------
-
-Scheduler
-~~~~~~~~~
 
 .. py:class:: Scheduler
 
@@ -660,11 +795,18 @@ Scheduler
          scheduler.add_analysis(segmentation, [])
          scheduler.add_analysis(starch, [segmentation])
 
-   .. py:method:: schedule() -> List[Any]
+   .. py:method:: schedule() -> List[int]
+
+      Determine execution order based on dependencies.
+
+      :return: List of analysis IDs in the order they should be run
+      :raises ValueError: If there is a cycle in the dependencies
+
+   .. py:method:: run() -> None
 
       Execute all analyses in dependency order.
 
-      :return: List of results from all analyses
+      Calls ``schedule()`` internally, then runs each analysis via ``performAnalysis()``.
 
 Utility Functions
 -----------------
@@ -715,47 +857,63 @@ Loading and Processing Images
 
 .. code-block:: python
 
-   from Granny.Models.IO.ImageIO import ImageIO
-   from Granny.Models.IO.RGBImageFile import RGBImageFile
-
-   # Load images
-   imageIO = ImageIO()
-   images = imageIO.load("./input", RGBImageFile)
-
-   # Process each image
-   for image in images:
-       img_array = image.getImageFile().getImage()  # Get NumPy array
-       # Process img_array with OpenCV/NumPy
-       result_array = cv2.cvtColor(img_array, cv2.COLOR_BGR2GRAY)
-
-Creating Result Images
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
    from Granny.Models.Images.RGBImage import RGBImage
    from Granny.Models.IO.RGBImageFile import RGBImageFile
 
-   # Create result image
-   result_image = RGBImage()
-   result_file = RGBImageFile()
-   result_file.setImage(processed_array)
-   result_file.setFileName("output.jpg")
-   result_file.setFilePath("./results")
-   result_image.setImageFile(result_file)
+   # In _processImage():
+   def _processImage(self, image: Image) -> Image:
+       # Load image data
+       image_io = RGBImageFile()
+       image_io.setFilePath(image.getFilePath())
+       image.loadImage(image_io)
 
-   # Add metadata
-   result_image.addMetadata([
-       {"name": "score", "value": 85.5},
-       {"name": "threshold", "value": 128}
-   ])
-   result_image.addMetadata(self.metadata)  # Add standard metadata
+       # Get NumPy array (BGR format)
+       img_array = image.getImage()
 
-   # Save
-   imageIO.save([result_image])
+       # Process with OpenCV/NumPy
+       result = cv2.cvtColor(img_array, cv2.COLOR_BGR2GRAY)
 
-Setting Analysis Parameters
+       # Update image
+       image.setImage(result)
+       return image
+
+Saving Results in _postRun()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   from Granny.Models.IO.RGBImageFile import RGBImageFile
+
+   def _postRun(self, results: List[Image]) -> List[Image]:
+       output_dir = self.output_images.getValue()
+
+       image_io = RGBImageFile()
+       for image in results:
+           image.saveImage(image_io, output_dir)
+
+       return results
+
+Adding Metadata to Images
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   from Granny.Models.Values.StringValue import StringValue
+   from Granny.Models.Values.FloatValue import FloatValue
+
+   # Add metadata in _processImage()
+   score = FloatValue("score", "score", "Analysis score")
+   score.setValue(95.5)
+   image.addValue(score)
+
+   # Retrieve metadata in _postRun()
+   for image in results:
+       metadata = image.getMetaData()
+       if "score" in metadata:
+           score_value = metadata["score"].getValue()
+
+Setting Analysis Parameters (in interfaces)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -787,13 +945,16 @@ For better type checking, use these type hints:
    from Granny.Models.Images.Image import Image
    from Granny.Models.Values.Value import Value
 
-   def performAnalysis(self) -> List[Image]:
+   def _processImage(self, image: Image) -> Image:
+       ...
+
+   def _postRun(self, results: List[Image]) -> List[Image]:
        ...
 
    def getInParams(self) -> Dict[str, Value]:
        ...
 
-   def process_image(self, img: NDArray) -> NDArray:
+   def process_array(self, img: NDArray) -> NDArray:
        ...
 
 See Also
