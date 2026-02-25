@@ -216,16 +216,16 @@ class StarchArea(Analysis):
                 - NDArray[np.uint8]: The modified image with identified starch regions.
         """
 
-        def extractImage(img: NDArray[np.uint8]) -> Tuple[int, int]:
+        def getPixelRange(img: NDArray[np.uint8]) -> Tuple[int, int]:
             """
             Extracts minimum and maximum pixel value of an image
             """
-            hist, _ = np.histogram(gray, bins=256, range=(0, 255))
+            hist, _ = np.histogram(grayscale, bins=256, range=(0, 255))
             low = (hist != 0).argmax()
             high = 255 - (hist[::-1] != 0).argmax()
             return low, high
 
-        def adjustImage(img: NDArray[np.uint8], lIn: int, hIn: int, lOut: int = 0, hOut: int = 255):
+        def remapToRange(img: NDArray[np.uint8], lIn: int, hIn: int, lOut: int = 0, hOut: int = 255):
             """
             Adjusts the intensity values of an image I to new values. This function is equivalent
             to normalize the image pixel values to [0, 255].
@@ -246,10 +246,10 @@ class StarchArea(Analysis):
         # blurs the image to remove sharp noises, then converts it to gray scale
         kernel_size = self.blur_kernel.getValue()
         img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (kernel_size, kernel_size), 0))
-        gray = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
+        grayscale = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
 
         # extract actual min/max pixel values from the image
-        low, high = extractImage(gray)
+        low, high = getPixelRange(grayscale)
 
         # calculate percentage-based threshold
         # User inputs threshold in 0-255 range (e.g., 172)
@@ -259,10 +259,10 @@ class StarchArea(Analysis):
         threshold_value = low + (high - low) * threshold_percentage
 
         # create thresholded matrices using percentage-based threshold on original range
-        mask = np.logical_and((gray > 0), (gray <= threshold_value)).astype(np.uint8)
+        mask = np.logical_and((grayscale > 0), (grayscale <= threshold_value)).astype(np.uint8)
 
         # normalize image to [0, 255] for visualization only
-        gray_normalized = adjustImage(gray, low, high)
+        grayscale_normalized = remapToRange(grayscale, low, high)
 
         # creates new image using threshold matrices
         new_img = self._drawMask(new_img, mask)
