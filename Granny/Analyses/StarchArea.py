@@ -119,13 +119,15 @@ class StarchArea(Analysis):
         self.starch_threshold = IntValue(
             "starch_threshold",
             "starch_threshold",
-            "Threshold value for starch detection. Pixels with gray values <= this threshold "
-            + "are considered starch. Lower values detect only darker starch regions, higher "
-            + "values include lighter regions. Range is 0 to 255, default is 172.",
+            "Threshold value for starch detection (0-255 range). This value is converted to a "
+            + "percentage (value/255) and applied to each image's actual pixel range. "
+            + "Pixels with gray values <= threshold percentage are considered starch. "
+            + "Lower values detect only darker starch regions, higher values include lighter regions. "
+            + "Default is 140 (55% of range).",
         )
         self.starch_threshold.setMin(0)
         self.starch_threshold.setMax(255)
-        self.starch_threshold.setValue(172)
+        self.starch_threshold.setValue(140)
         self.starch_threshold.setIsRequired(False)
 
         # Gaussian blur kernel size parameter
@@ -199,10 +201,12 @@ class StarchArea(Analysis):
         Calculates the starch content in the given image and return the modified image.
 
         This function processes the input image to calculate the starch content. The process
-        involves blurring the image to remove noise, converting it to grayscale, adjusting
-        its intensity values, and creating a binary thresholded image to identify the starch
-        regions. The ratio of starch pixels to the total pixels in the ground truth is
-        returned along with the modified image.
+        involves blurring the image to remove noise, converting it to grayscale, extracting
+        the actual pixel range (min/max), and applying a percentage-based threshold to identify
+        starch regions. The threshold value (0-255) is converted to a percentage and applied
+        to each image's actual pixel range, ensuring consistent starch detection across images
+        with different lighting conditions. The ratio of starch pixels to the total pixels in
+        the ground truth is returned along with the modified image.
 
         Args:
             img (NDArray[np.uint8]): The input image as a NumPy array of type np.uint8.
@@ -212,48 +216,29 @@ class StarchArea(Analysis):
                 - float: The ratio of starch pixels to total pixels in the ground truth.
                 - NDArray[np.uint8]: The modified image with identified starch regions.
         """
-
-        def extractImage(img: NDArray[np.uint8]) -> Tuple[int, int]:
-            """
-            Extracts minimum and maximum pixel value of an image
-            """
-            hist, _ = np.histogram(gray, bins=256, range=(0, 255))
-            low = (hist != 0).argmax()
-            high = 255 - (hist[::-1] != 0).argmax()
-            return low, high
-
-        def adjustImage(img: NDArray[np.uint8], lIn: int, hIn: int, lOut: int = 0, hOut: int = 255):
-            """
-            Adjusts the intensity values of an image I to new values. This function is equivalent
-            to normalize the image pixel values to [0, 255].
-            """
-            # Ensure img is in the range [lIn, hIn]
-            img = np.clip(img, lIn, hIn)
-
-            # Normalize the image to the range [0, 1]
-            out = (img - lIn) / (hIn - lIn)
-
-            # Scale and shift the normalized image to the range [lOut, hOut]
-            out = out * (hOut - lOut) + lOut
-
-            return out.astype(np.uint8)
-
         new_img = img.copy()
 
-        # blurs the image to remove sharp noises, then converts it to gray scale
+        # Blur the image to remove sharp noises, then convert to grayscale
         kernel_size = self.blur_kernel.getValue()
         img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (kernel_size, kernel_size), 0))
-        gray = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
+        grayscale = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
 
-        # re-adjusts the image to [0 255]
-        low, high = extractImage(gray)
-        gray = adjustImage(gray, low, high)
+        # Get actual min/max pixel values from histogram
+        hist, _ = np.histogram(grayscale, bins=256, range=(0, 255))
+        low = (hist != 0).argmax()
+        high = 255 - (hist[::-1] != 0).argmax()
 
-        # create thresholded matrices
+        # Calculate percentage-based threshold
+        # User inputs threshold in 0-255 range (e.g., 140)
+        # Convert to percentage and apply to actual image range
         image_threshold = self.starch_threshold.getValue()
-        mask = np.logical_and((gray > 0), (gray <= image_threshold)).astype(np.uint8)
+        threshold_percentage = image_threshold / 255.0
+        threshold_value = low + (high - low) * threshold_percentage
 
-        # creates new image using threshold matrices
+        # Create thresholded mask using percentage-based threshold on original range
+        mask = np.logical_and((grayscale > 0), (grayscale <= threshold_value)).astype(np.uint8)
+
+        # Apply mask overlay to image
         new_img = self._drawMask(new_img, mask)
 
         ground_truth = np.count_nonzero(
