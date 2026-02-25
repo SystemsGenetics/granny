@@ -215,56 +215,29 @@ class StarchArea(Analysis):
                 - float: The ratio of starch pixels to total pixels in the ground truth.
                 - NDArray[np.uint8]: The modified image with identified starch regions.
         """
-
-        def getPixelRange(img: NDArray[np.uint8]) -> Tuple[int, int]:
-            """
-            Extracts minimum and maximum pixel value of an image
-            """
-            hist, _ = np.histogram(grayscale, bins=256, range=(0, 255))
-            low = (hist != 0).argmax()
-            high = 255 - (hist[::-1] != 0).argmax()
-            return low, high
-
-        def remapToRange(img: NDArray[np.uint8], lIn: int, hIn: int, lOut: int = 0, hOut: int = 255):
-            """
-            Adjusts the intensity values of an image I to new values. This function is equivalent
-            to normalize the image pixel values to [0, 255].
-            """
-            # Ensure img is in the range [lIn, hIn]
-            img = np.clip(img, lIn, hIn)
-
-            # Normalize the image to the range [0, 1]
-            out = (img - lIn) / (hIn - lIn)
-
-            # Scale and shift the normalized image to the range [lOut, hOut]
-            out = out * (hOut - lOut) + lOut
-
-            return out.astype(np.uint8)
-
         new_img = img.copy()
 
-        # blurs the image to remove sharp noises, then converts it to gray scale
+        # Blur the image to remove sharp noises, then convert to grayscale
         kernel_size = self.blur_kernel.getValue()
         img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (kernel_size, kernel_size), 0))
         grayscale = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
 
-        # extract actual min/max pixel values from the image
-        low, high = getPixelRange(grayscale)
+        # Get actual min/max pixel values from histogram
+        hist, _ = np.histogram(grayscale, bins=256, range=(0, 255))
+        low = (hist != 0).argmax()
+        high = 255 - (hist[::-1] != 0).argmax()
 
-        # calculate percentage-based threshold
-        # User inputs threshold in 0-255 range (e.g., 172)
+        # Calculate percentage-based threshold
+        # User inputs threshold in 0-255 range (e.g., 140)
         # Convert to percentage and apply to actual image range
         image_threshold = self.starch_threshold.getValue()
         threshold_percentage = image_threshold / 255.0
         threshold_value = low + (high - low) * threshold_percentage
 
-        # create thresholded matrices using percentage-based threshold on original range
+        # Create thresholded mask using percentage-based threshold on original range
         mask = np.logical_and((grayscale > 0), (grayscale <= threshold_value)).astype(np.uint8)
 
-        # normalize image to [0, 255] for visualization only
-        grayscale_normalized = remapToRange(grayscale, low, high)
-
-        # creates new image using threshold matrices
+        # Apply mask overlay to image
         new_img = self._drawMask(new_img, mask)
 
         ground_truth = np.count_nonzero(
