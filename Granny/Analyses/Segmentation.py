@@ -143,7 +143,7 @@ class Segmentation(Analysis):
         )
         self.conf_threshold.setMin(0.0)
         self.conf_threshold.setMax(1.0)
-        self.conf_threshold.setValue(0.25)
+        self.conf_threshold.setValue(0.7)
         self.conf_threshold.setIsRequired(False)
 
         # YOLO IOU threshold parameter
