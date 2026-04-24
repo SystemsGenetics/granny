@@ -11,6 +11,7 @@ dist/
 06-Package
 *logs/
 _build/
+venv/
 
 # Files
 *.pyc
@@ -26,7 +27,6 @@ output.out
 *.sh
 *.zip
 test_perf.py
-*.csv
 *.onnx
 *.pt
 *.lock
@@ -38,3 +38,5 @@ test_perf.py
 *.jpg
 *.tiff
 CLAUDE.md
+.coverage
+coverage.lcov
