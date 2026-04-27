@@ -95,3 +95,45 @@ def test_extract_variety_info_malformed_pipe():
     info = detector.extract_variety_info("only|two")
     assert info["project"] == "UNKNOWN"
     assert info["full"] == "only|two"
+
+
+def test_extract_variety_info_raw_field_always_set():
+    detector = QRCodeDetector()
+    raw = "PROJ|LOT|2026-01-01|HC-Late"
+    info = detector.extract_variety_info(raw)
+    assert info["raw"] == raw
+
+
+def test_extract_variety_info_no_timing():
+    detector = QRCodeDetector()
+    info = detector.extract_variety_info("HONEYCRISP")
+    assert info["variety"] == "HONEYCRISP"
+    assert info["timing"] == ""
+
+
+def test_extract_variety_info_pipe_variety_no_dash():
+    detector = QRCodeDetector()
+    info = detector.extract_variety_info("P|L|D|HONEYCRISP")
+    assert info["variety"] == "HONEYCRISP"
+    assert info["timing"] == ""
+
+
+def test_detect_grayscale_image_does_not_crash():
+    detector = QRCodeDetector()
+    gray = np.zeros((100, 100), dtype=np.uint8)
+    if detector.barcode_enabled:
+        data, points = detector._detect_barcode(gray)
+        assert data is None
+
+
+def test_detect_returns_two_values():
+    detector = QRCodeDetector()
+    result = detector.detect(np.zeros((100, 100, 3), dtype=np.uint8))
+    assert len(result) == 2
+
+
+def test_extract_variety_info_three_pipe_parts():
+    detector = QRCodeDetector()
+    info = detector.extract_variety_info("A|B|C")
+    assert info["project"] == "UNKNOWN"
+    assert info["lot"] == "UNKNOWN"

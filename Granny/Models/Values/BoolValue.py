@@ -13,7 +13,7 @@ class BoolValue(Value):
         super().__init__(name, label, help)
         self.type = bool
 
-    def validate(self) -> bool:
+    def validate(self, value=None) -> bool:
         """
         {@inheritdoc}
         """
