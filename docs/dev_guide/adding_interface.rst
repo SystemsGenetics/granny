@@ -124,10 +124,13 @@ Create your class inheriting from ``GrannyUI``:
            self.analysis_name: str = ""
            self.port: int = 5000
 
-Step 4: Implement addProgramArgs()
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Step 4: Implement addProgramArgs() (Optional but Recommended)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This method adds interface-specific arguments to the argument parser:
+This method adds interface-specific arguments to the argument parser.
+
+**Note:** ``addProgramArgs()`` is NOT an abstract method in the base class - only ``run()``
+is required. However, most interfaces implement this method to add their own arguments:
 
 .. code-block:: python
 
@@ -236,7 +239,7 @@ This is the main entry point for your interface:
                return jsonify({
                    "success": True,
                    "message": f"Processed {len(results)} images",
-                   "results": [img.getFileName() for img in results]
+                   "results": [img.getImageName() for img in results]
                })
 
            except Exception as e:

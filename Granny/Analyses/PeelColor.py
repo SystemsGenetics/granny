@@ -27,6 +27,7 @@ from Granny.Models.Values.FloatValue import FloatValue
 from Granny.Models.Values.ImageListValue import ImageListValue
 from Granny.Models.Values.IntValue import IntValue
 from Granny.Models.Values.MetaDataValue import MetaDataValue
+from Granny.Models.Values.StringValue import StringValue
 from numpy.typing import NDArray
 
 
@@ -492,6 +493,9 @@ class PeelColor(Analysis):
             "b", "B", "Granny calculated B value of the image in the LAB space."
         )
         b_value.setValue(b)
+
+        # Extract and add QR/barcode metadata from filename (if present)
+        self._add_qr_metadata(image_instance, image_instance.getImageName())
 
         # adds ratings to  to the image_instance as parameters
         image_instance.addValue(

@@ -25,6 +25,7 @@ from Granny.Models.Values.FloatValue import FloatValue
 from Granny.Models.Values.ImageListValue import ImageListValue
 from Granny.Models.Values.IntValue import IntValue
 from Granny.Models.Values.MetaDataValue import MetaDataValue
+from Granny.Models.Values.StringValue import StringValue
 from numpy.typing import NDArray
 
 
@@ -265,6 +266,9 @@ class BlushColor(Analysis):
         # initiate a result Image instance with a rating and sets the NDArray to the result
         result_img: Image = RGBImage(image_instance.getImageName())
         result_img.setImage(result)
+
+        # Extract and add QR/barcode metadata from filename (if present)
+        self._add_qr_metadata(result_img, image_instance.getImageName())
 
         # saves the calculated score to the image_instance as a parameter
         rating = FloatValue(
