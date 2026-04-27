@@ -10,10 +10,27 @@ An analysis module in Granny:
 
 - Inherits from the ``Analysis`` abstract base class
 - Defines input parameters using the Value system
-- Implements the ``performAnalysis()`` method
+- Implements three abstract methods: ``_preRun()``, ``_processImage()``, and ``_postRun()``
 - Returns a list of processed ``Image`` objects
 - Automatically integrates with all Granny interfaces (CLI, GUI)
+- Leverages built-in multiprocessing for parallel image processing
 - Can be chained with other analyses using the Scheduler
+
+The Analysis Architecture
+-------------------------
+
+The base ``Analysis`` class provides a ``performAnalysis()`` method that:
+
+1. Loads images from the input directory via ``ImageListValue``
+2. Calls your ``_preRun()`` method for setup
+3. Processes images in parallel using ``multiprocessing.Pool``
+4. Calls your ``_postRun()`` method for post-processing and saving results
+
+You implement the three abstract methods to customize behavior:
+
+- ``_preRun()``: Setup before processing (initialize variables, load models, etc.)
+- ``_processImage(image)``: Process a single image (runs in parallel across CPU cores)
+- ``_postRun(results)``: Post-processing after all images are done (save CSV, cleanup)
 
 The Value System
 ----------------
@@ -34,7 +51,7 @@ Granny uses a type-safe Value system for parameters. Each parameter is represent
 - ``BoolValue`` - Boolean flags
 - ``FileNameValue`` - File paths
 - ``FileDirValue`` - Directory paths
-- ``ImageListValue`` - Lists of images (typically input/output directories)
+- ``ImageListValue`` - Directory containing images (handles loading/saving)
 - ``MetaDataValue`` - Metadata storage for results
 
 Step-by-Step Guide
@@ -65,7 +82,7 @@ Start your file with necessary imports:
 
    import os
    from datetime import datetime
-   from typing import List
+   from typing import Dict, List, Tuple
 
    import cv2
    import numpy as np
@@ -74,10 +91,10 @@ Start your file with necessary imports:
    from Granny.Analyses.Analysis import Analysis
    from Granny.Models.Images.Image import Image
    from Granny.Models.Images.RGBImage import RGBImage
-   from Granny.Models.IO.ImageIO import ImageIO
    from Granny.Models.IO.RGBImageFile import RGBImageFile
    from Granny.Models.Values.IntValue import IntValue
    from Granny.Models.Values.FloatValue import FloatValue
+   from Granny.Models.Values.StringValue import StringValue
    from Granny.Models.Values.ImageListValue import ImageListValue
    from Granny.Models.Values.MetaDataValue import MetaDataValue
 
@@ -98,7 +115,6 @@ Create your class inheriting from ``Analysis``:
            images (List[Image]): List of loaded images for processing
            input_images (ImageListValue): Input directory parameter
            output_images (ImageListValue): Output directory parameter
-           output_results (MetaDataValue): Results directory parameter
            my_threshold (IntValue): Example threshold parameter
        """
 
@@ -118,6 +134,7 @@ Initialize your analysis with parameters:
        super().__init__()
 
        self.images: List[Image] = []
+       self.results_data: List[dict] = []  # For collecting CSV data
 
        # Required: Input images parameter
        self.input_images = ImageListValue(
@@ -142,14 +159,6 @@ Initialize your analysis with parameters:
        )
        self.output_images.setValue(result_dir)        # Set default value
        self.addInParam(self.output_images)
-
-       # Output directory for CSV results
-       self.output_results = MetaDataValue(
-           "results",
-           "results",
-           "The output directory where analysis results are written."
-       )
-       self.output_results.setValue(result_dir)
 
        # Analysis parameter: threshold
        self.my_threshold = IntValue(
@@ -184,95 +193,130 @@ Initialize your analysis with parameters:
 - Use ``addRetValue()`` for values that other analyses can use
 - Set ``setIsRequired(True)`` for mandatory parameters
 
-Step 5: Implement performAnalysis()
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Step 5: Implement the Three Abstract Methods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is the core method that executes your analysis:
+Instead of overriding ``performAnalysis()``, implement these three methods:
 
 .. code-block:: python
 
-   def performAnalysis(self) -> List[Image]:
+   def _preRun(self):
        """
-       Perform the analysis on all input images.
+       Setup before image processing begins.
 
-       Returns:
-           List[Image]: List of processed Image objects with analysis results
+       This method is called once before any images are processed.
+       Use it to:
+       - Initialize result containers
+       - Load models or resources
+       - Print analysis parameters
        """
-       # Step 1: Load input images
-       input_dir = self.input_images.getValue()
-       output_dir = self.output_images.getValue()
-       results_dir = self.output_results.getValue()
+       self.results_data = []  # Reset results for this run
 
-       print(f"Loading images from: {input_dir}")
-       imageIO = ImageIO()
-       self.images = imageIO.load(input_dir, RGBImageFile)
+       # Get output directory
+       self.output_dir = self.output_images.getValue()
 
-       if not self.images:
-           print("No images found to analyze.")
-           return []
-
+       # Print analysis info
+       print(f"\n{'='*60}")
+       print(f"MY NEW ANALYSIS")
+       print(f"{'='*60}")
+       print(f"Input directory:  {self.input_images.getValue()}")
+       print(f"Output directory: {self.output_dir}")
+       print(f"Threshold: {self.my_threshold.getValue()}")
+       print(f"Mask alpha: {self.mask_alpha.getValue()}")
        print(f"Processing {len(self.images)} images...")
+       print(f"{'='*60}\n")
 
-       # Step 2: Process each image
-       result_images = []
-       results_data = []  # For CSV output
-
-       for idx, image in enumerate(self.images, 1):
-           print(f"  Processing image {idx}/{len(self.images)}: {image.getFileName()}")
-
-           # Get the numpy array
-           img_array = image.getImageFile().getImage()
-
-           # Perform your analysis
-           result_array, metric_value = self._analyze_image(img_array)
-
-           # Create result image
-           result_image = RGBImage()
-           result_file = RGBImageFile()
-           result_file.setImage(result_array)
-           result_file.setFileName(image.getFileName())
-           result_file.setFilePath(output_dir)
-           result_image.setImageFile(result_file)
-
-           # Add metadata to the image
-           result_image.addMetadata(self.metadata)
-           result_image.addMetadata([
-               {"name": "metric_value", "value": metric_value}
-           ])
-
-           result_images.append(result_image)
-           results_data.append({
-               "filename": image.getFileName(),
-               "metric_value": metric_value
-           })
-
-       # Step 3: Save results
-       print(f"Saving results to: {output_dir}")
-       imageIO.save(result_images)
-
-       # Save CSV
-       self._save_csv(results_data, results_dir)
-
-       print("Analysis complete!")
-       return result_images
-
-   def _analyze_image(self, img: NDArray) -> tuple[NDArray, float]:
+   def _processImage(self, image: Image) -> Image:
        """
-       Perform analysis on a single image.
+       Process a single image.
+
+       This method runs in parallel across multiple CPU cores.
+       Each call receives one Image instance and should return a processed Image.
 
        Args:
-           img: Input image as numpy array (BGR format)
+           image: The input Image instance to process
 
        Returns:
-           Tuple of (processed_image, metric_value)
+           Image: The processed Image with results
        """
        # Get parameter values
        threshold = self.my_threshold.getValue()
        alpha = self.mask_alpha.getValue()
 
-       # Your image processing logic here
-       # This is a simple example - replace with your actual algorithm
+       # Load the image data
+       image_io = RGBImageFile()
+       image_io.setFilePath(image.getFilePath())
+       image.loadImage(image_io)
 
+       # Get the numpy array (BGR format from OpenCV)
+       img_array = image.getImage()
+
+       # Perform your analysis
+       result_array, metric_value = self._analyze_image(img_array, threshold, alpha)
+
+       # Update the image with the result
+       image.setImage(result_array)
+
+       # Add metadata to the image
+       metric_val = StringValue("metric", "metric", "Analysis metric value")
+       metric_val.setValue(str(metric_value))
+       image.addValue(metric_val)
+
+       return image
+
+   def _postRun(self, results: List[Image]) -> List[Image]:
+       """
+       Post-processing after all images are processed.
+
+       This method is called once after all images have been processed.
+       Use it to:
+       - Save images to disk
+       - Generate CSV reports
+       - Print summary statistics
+
+       Args:
+           results: List of processed Image objects from _processImage()
+
+       Returns:
+           List[Image]: The final list of result images
+       """
+       print(f"\nSaving {len(results)} images to: {self.output_dir}")
+
+       # Save each image
+       image_io = RGBImageFile()
+       for image in results:
+           image.saveImage(image_io, self.output_dir)
+
+       # Collect data for CSV
+       csv_data = []
+       for image in results:
+           metadata = image.getMetaData()
+           csv_data.append({
+               "filename": image.getImageName(),
+               "metric": metadata.get("metric", StringValue("", "", "")).getValue()
+           })
+
+       # Save CSV
+       self._save_csv(csv_data, self.output_dir)
+
+       print(f"\n{'='*60}")
+       print(f"Analysis complete! Processed {len(results)} images.")
+       print(f"{'='*60}\n")
+
+       return results
+
+   def _analyze_image(self, img: NDArray, threshold: int, alpha: float) -> Tuple[NDArray, float]:
+       """
+       Perform analysis on a single image array.
+
+       Args:
+           img: Input image as numpy array (BGR format)
+           threshold: Detection threshold
+           alpha: Mask transparency
+
+       Returns:
+           Tuple of (processed_image, metric_value)
+       """
        # Convert to grayscale
        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -319,18 +363,7 @@ This is the core method that executes your analysis:
 
        print(f"Results saved to: {csv_path}")
 
-Step 6: Add Your Analysis to the Import Path
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Edit ``Granny/Analyses/__init__.py`` to include your new analysis:
-
-.. code-block:: python
-
-   from .MyNewAnalysis import MyNewAnalysis
-
-This makes your analysis discoverable by the CLI interface.
-
-Step 7: Update the CLI Interface
+Step 6: Update the CLI Interface
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Edit ``Granny/Interfaces/UI/GrannyCLI.py`` to add your analysis to the choices list:
@@ -352,7 +385,7 @@ Also import your analysis class at the top of the file:
 
    from Granny.Analyses.MyNewAnalysis import MyNewAnalysis
 
-Step 8: Create Tests
+Step 7: Create Tests
 ~~~~~~~~~~~~~~~~~~~~~
 
 Create a test file ``tests/test_Analyses/test_MyNewAnalysis.py``:
@@ -367,22 +400,19 @@ Create a test file ``tests/test_Analyses/test_MyNewAnalysis.py``:
        assert analysis.__analysis_name__ == "myanalysis"
        assert analysis.my_threshold.getValue() == 128
 
-   def test_performAnalysis():
-       """Test the analysis with sample data."""
+   def test_parameters():
+       """Test parameter constraints."""
        analysis = MyNewAnalysis()
 
-       # Set test parameters
-       analysis.input_images.setValue("test-assets/sample_images")
-       analysis.my_threshold.setValue(100)
+       # Test threshold bounds
+       assert analysis.my_threshold.getMin() == 0
+       assert analysis.my_threshold.getMax() == 255
 
-       # Run analysis
-       results = analysis.performAnalysis()
+       # Test alpha bounds
+       assert analysis.mask_alpha.getMin() == 0.0
+       assert analysis.mask_alpha.getMax() == 1.0
 
-       # Verify results
-       assert isinstance(results, list)
-       # Add more specific assertions based on your analysis
-
-Step 9: Test Your Analysis
+Step 8: Test Your Analysis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Run your analysis from the command line:
@@ -400,6 +430,16 @@ Run the test suite:
 Best Practices
 --------------
 
+Multiprocessing Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Since ``_processImage()`` runs in parallel:
+
+- Don't modify shared state (use return values instead)
+- Each image should be processed independently
+- Heavy initialization belongs in ``_preRun()``
+- Aggregation and saving belongs in ``_postRun()``
+
 Parameter Naming
 ~~~~~~~~~~~~~~~~
 
@@ -415,18 +455,10 @@ Documentation
 - Include examples in the module docstring
 - Explain the scientific/algorithmic basis of your analysis
 
-Performance
-~~~~~~~~~~~
-
-- Process images efficiently using NumPy operations
-- Consider multiprocessing for independent image processing (see ``BlushColor`` for example)
-- Minimize memory usage for large image sets
-- Provide progress feedback via print statements
-
 Error Handling
 ~~~~~~~~~~~~~~
 
-- Validate input parameters in ``performAnalysis()``
+- Validate input parameters in ``_preRun()``
 - Handle cases where no images are found
 - Provide clear error messages to users
 - Gracefully handle edge cases (empty images, invalid formats)
@@ -476,17 +508,37 @@ If your analysis produces values that other analyses might use:
    )
    self.addRetValue(self.fruit_coordinates)
 
-   # In performAnalysis()
+   # In _postRun()
    self.fruit_coordinates.setValue([(x1, y1, x2, y2), ...])
 
-Custom Image Types
-~~~~~~~~~~~~~~~~~~
+CPU Core Configuration
+~~~~~~~~~~~~~~~~~~~~~~
 
-If you need a specialized image type beyond ``RGBImage``:
+The base ``Analysis`` class automatically handles CPU core allocation:
 
-1. Create a new class inheriting from ``Image`` in ``Granny/Models/Images/``
-2. Create a corresponding file class inheriting from ``ImageFile`` in ``Granny/Models/IO/``
-3. Implement required methods for loading and saving
+- Default (0): Uses 80% of available cores
+- User can override via ``--cpu N`` CLI argument
+- Set ``self.cpu.setValue(4)`` in ``__init__`` to change default
+
+Working with Image Metadata
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Add metadata to images using ``Value`` objects:
+
+.. code-block:: python
+
+   from Granny.Models.Values.StringValue import StringValue
+   from Granny.Models.Values.FloatValue import FloatValue
+
+   # In _processImage()
+   score_val = FloatValue("score", "score", "Analysis score")
+   score_val.setValue(95.5)
+   image.addValue(score_val)
+
+   # In _postRun(), retrieve metadata
+   for image in results:
+       metadata = image.getMetaData()
+       score = metadata.get("score").getValue()
 
 Troubleshooting
 ---------------
@@ -495,7 +547,6 @@ Troubleshooting
 
 - Verify ``__analysis_name__`` is set correctly
 - Check that you added the analysis to GrannyCLI's choices list
-- Ensure the import statement is in ``Granny/Analyses/__init__.py``
 
 **Parameters not showing in help:**
 
@@ -506,16 +557,14 @@ Troubleshooting
 **Images not loading:**
 
 - Verify the input directory path is correct
-- Check that images are in a supported format (JPG, PNG)
-- Ensure ``ImageIO`` is initialized correctly
-- Use ``RGBImageFile`` for standard RGB images
+- Check that images are in a supported format (JPG, PNG, JPEG, TIFF)
+- Ensure ``RGBImageFile`` is used correctly with ``setFilePath()``
 
-**Results not saving:**
+**Multiprocessing errors:**
 
-- Verify the output directory is writable
-- Check that ``imageIO.save()`` is called with the result images
-- Ensure each image has both an ImageFile and metadata set
-- Verify directory paths are created with ``os.makedirs(path, exist_ok=True)``
+- Ensure ``_processImage()`` doesn't access shared mutable state
+- Check that all objects passed between processes are picklable
+- Move file I/O to ``_preRun()`` or ``_postRun()`` if needed
 
 Next Steps
 ----------

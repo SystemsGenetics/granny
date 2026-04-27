@@ -13,6 +13,7 @@ author: Nhan H. Nguyen
 """
 
 import os
+import yaml
 from datetime import datetime
 from multiprocessing import Pool
 from typing import Dict, List, Tuple, cast
@@ -28,18 +29,44 @@ from Granny.Models.Values.FloatValue import FloatValue
 from Granny.Models.Values.ImageListValue import ImageListValue
 from Granny.Models.Values.IntValue import IntValue
 from Granny.Models.Values.MetaDataValue import MetaDataValue
+from Granny.Models.Values.StringValue import StringValue
 from numpy.typing import NDArray
+
+
+def load_starch_scales() -> Dict[str, Dict[str, List[float]]]:
+    """
+    Load starch scale data from YAML asset file.
+
+    Reads the starch_scales.yml file from Granny/assets/ directory and returns
+    the variety-specific starch index and rating mappings.
+
+    Returns:
+        Dict[str, Dict[str, List[float]]]: Dictionary mapping variety names to their
+            starch scales. Format: {'HONEY_CRISP': {'index': [...], 'rating': [...]}, ...}
+    """
+    # Get path to this file (Granny/Analyses/StarchArea.py)
+    current_dir = os.path.dirname(__file__)
+
+    # Navigate to Granny/assets/starch_scales.yml
+    yaml_path = os.path.join(current_dir, '..', 'assets', 'starch_scales.yml')
+
+    # Load and return the YAML data
+    with open(yaml_path, 'r') as file:
+        starch_data = yaml.safe_load(file)
+
+    return starch_data
 
 
 class StarchScales:
     """
     A class to store starch scale indices and corresponding ratings for different apple varieties.
 
-    This class provides predefined starch index and rating values for various apple varieties.
+    This class provides predefined starch index and rating values for various apple varieties
+    loaded from the YAML asset file (Granny/assets/starch_scales.yml).
     These values are used to evaluate the starch content in apples, which is an indicator of
     their ripeness and suitability for consumption or storage.
 
-    Attributes: (Refers to docs/_static/users_guide/ for the list of starch indices in this module)
+    Attributes: (Loaded from starch_scales.yml)
         HONEY_CRISP (Dict[str, List[float]]): Starch index and rating for Honey Crisp apples.
         WA38_1 (Dict[str, List[float]]): Starch index and rating for WA38_1 apples.
         WA38_2 (Dict[str, List[float]]): Starch index and rating for WA38_2 apples.
@@ -49,115 +76,13 @@ class StarchScales:
         JONAGOLD (Dict[str, List[float]]): Starch index and rating for Jonagold apples.
         CORNELL (Dict[str, List[float]]): Starch index and rating for Cornell apples.
     """
+    pass
 
-    HONEY_CRISP: Dict[str, List[float]] = {
-        "index": [1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0],
-        "rating": [
-            0.998998748,
-            0.947464712,
-            0.868898986,
-            0.783941273,
-            0.676589664,
-            0.329929925,
-            0.024131710,
-        ],
-    }
-    WA38_1: Dict[str, List[float]] = {
-        "index": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-        "rating": [
-            0.893993948,
-            0.855859903,
-            0.757963861,
-            0.597765822,
-            0.164192649,
-            0.080528335,
-        ],
-    }
-    WA38_2: Dict[str, List[float]] = {
-        "index": [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0],
-        "rating": [
-            0.950925926,
-            0.912917454,
-            0.839858059,
-            0.749211356,
-            0.770660718,
-            0.634160550,
-            0.571832210,
-            0.522944438,
-            0.178909419,
-            0.017493382,
-            0.075675075,
-        ],
-    }
-    ALLAN_BROS: Dict[str, List[float]] = {
-        "index": [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
-        "rating": [
-            0.997783524,
-            0.988769830,
-            0.951909478,
-            0.877526853,
-            0.721066082,
-            0.673838851,
-            0.417864608,
-            0.091652858,
-        ],
-    }
-    GOLDEN_DELICIOUS: Dict[str, List[float]] = {
-        "index": [1.0, 1.2, 1.5, 1.8, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0],
-        "rating": [
-            0.998544220,
-            0.981819854,
-            0.974722333,
-            0.902015343,
-            0.893566670,
-            0.784215902,
-            0.780621478,
-            0.607040963,
-            0.717128225,
-            0.485321449,
-            0.279959478,
-            0.068212979,
-        ],
-    }
-    GRANNY_SMITH: Dict[str, List[float]] = {
-        "index": [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
-        "rating": [
-            0.920742836,
-            0.890332499,
-            0.808227909,
-            0.721813109,
-            0.595806394,
-            0.278299256,
-            0.104111379,
-        ],
-    }
-    JONAGOLD: Dict[str, List[float]] = {
-        "index": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0],
-        "rating": [
-            0.898336414,
-            0.859494456,
-            0.806417832,
-            0.742177914,
-            0.653981582,
-            0.483778570,
-            0.387202327,
-            0.284663986,
-            0.175593498,
-        ],
-    }
-    CORNELL: Dict[str, List[float]] = {
-        "index": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0],
-        "rating": [
-            0.990554095,
-            0.915430492,
-            0.822470328,
-            0.726896529,
-            0.610745795,
-            0.338955981,
-            0.150869695,
-            0.041547982,
-        ],
-    }
+
+# Load starch scales from YAML and dynamically set them as class attributes
+_starch_data = load_starch_scales()
+for variety_name, scale_data in _starch_data.items():
+    setattr(StarchScales, variety_name, scale_data)
 
 
 class StarchArea(Analysis):
@@ -194,13 +119,15 @@ class StarchArea(Analysis):
         self.starch_threshold = IntValue(
             "starch_threshold",
             "starch_threshold",
-            "Threshold value for starch detection. Pixels with gray values <= this threshold "
-            + "are considered starch. Lower values detect only darker starch regions, higher "
-            + "values include lighter regions. Range is 0 to 255, default is 172.",
+            "Threshold value for starch detection (0-255 range). This value is converted to a "
+            + "percentage (value/255) and applied to each image's actual pixel range. "
+            + "Pixels with gray values <= threshold percentage are considered starch. "
+            + "Lower values detect only darker starch regions, higher values include lighter regions. "
+            + "Default is 140 (55% of range).",
         )
         self.starch_threshold.setMin(0)
         self.starch_threshold.setMax(255)
-        self.starch_threshold.setValue(172)
+        self.starch_threshold.setValue(140)
         self.starch_threshold.setIsRequired(False)
 
         # Gaussian blur kernel size parameter
@@ -274,10 +201,12 @@ class StarchArea(Analysis):
         Calculates the starch content in the given image and return the modified image.
 
         This function processes the input image to calculate the starch content. The process
-        involves blurring the image to remove noise, converting it to grayscale, adjusting
-        its intensity values, and creating a binary thresholded image to identify the starch
-        regions. The ratio of starch pixels to the total pixels in the ground truth is
-        returned along with the modified image.
+        involves blurring the image to remove noise, converting it to grayscale, extracting
+        the actual pixel range (min/max), and applying a percentage-based threshold to identify
+        starch regions. The threshold value (0-255) is converted to a percentage and applied
+        to each image's actual pixel range, ensuring consistent starch detection across images
+        with different lighting conditions. The ratio of starch pixels to the total pixels in
+        the ground truth is returned along with the modified image.
 
         Args:
             img (NDArray[np.uint8]): The input image as a NumPy array of type np.uint8.
@@ -287,48 +216,29 @@ class StarchArea(Analysis):
                 - float: The ratio of starch pixels to total pixels in the ground truth.
                 - NDArray[np.uint8]: The modified image with identified starch regions.
         """
-
-        def extractImage(img: NDArray[np.uint8]) -> Tuple[int, int]:
-            """
-            Extracts minimum and maximum pixel value of an image
-            """
-            hist, _ = np.histogram(gray, bins=256, range=(0, 255))
-            low = (hist != 0).argmax()
-            high = 255 - (hist[::-1] != 0).argmax()
-            return low, high
-
-        def adjustImage(img: NDArray[np.uint8], lIn: int, hIn: int, lOut: int = 0, hOut: int = 255):
-            """
-            Adjusts the intensity values of an image I to new values. This function is equivalent
-            to normalize the image pixel values to [0, 255].
-            """
-            # Ensure img is in the range [lIn, hIn]
-            img = np.clip(img, lIn, hIn)
-
-            # Normalize the image to the range [0, 1]
-            out = (img - lIn) / (hIn - lIn)
-
-            # Scale and shift the normalized image to the range [lOut, hOut]
-            out = out * (hOut - lOut) + lOut
-
-            return out.astype(np.uint8)
-
         new_img = img.copy()
 
-        # blurs the image to remove sharp noises, then converts it to gray scale
+        # Blur the image to remove sharp noises, then convert to grayscale
         kernel_size = self.blur_kernel.getValue()
         img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (kernel_size, kernel_size), 0))
-        gray = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
+        grayscale = cast(NDArray[np.uint8], cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
 
-        # re-adjusts the image to [0 255]
-        low, high = extractImage(gray)
-        gray = adjustImage(gray, low, high)
+        # Get actual min/max pixel values from histogram
+        hist, _ = np.histogram(grayscale, bins=256, range=(0, 255))
+        low = (hist != 0).argmax()
+        high = 255 - (hist[::-1] != 0).argmax()
 
-        # create thresholded matrices
+        # Calculate percentage-based threshold
+        # User inputs threshold in 0-255 range (e.g., 140)
+        # Convert to percentage and apply to actual image range
         image_threshold = self.starch_threshold.getValue()
-        mask = np.logical_and((gray > 0), (gray <= image_threshold)).astype(np.uint8)
+        threshold_percentage = image_threshold / 255.0
+        threshold_value = low + (high - low) * threshold_percentage
 
-        # creates new image using threshold matrices
+        # Create thresholded mask using percentage-based threshold on original range
+        mask = np.logical_and((grayscale > 0), (grayscale <= threshold_value)).astype(np.uint8)
+
+        # Apply mask overlay to image
         new_img = self._drawMask(new_img, mask)
 
         ground_truth = np.count_nonzero(
@@ -419,6 +329,9 @@ class StarchArea(Analysis):
         # initiate a result Image instance with a rating and sets the NDArray to the result
         result_img: Image = RGBImage(image_instance.getImageName())
         result_img.setImage(result)
+
+        # Extract and add QR/barcode metadata from filename (if present)
+        self._add_qr_metadata(result_img, image_instance.getImageName())
 
         # saves the calculated score to the image_instance as a parameter
         rating = FloatValue(
