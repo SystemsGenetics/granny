@@ -205,15 +205,21 @@ class BlushColor(Analysis):
         self, img: NDArray[np.uint8]
     ) -> Tuple[float, NDArray[np.uint8]]:
         """
-        Calculate the percentage of blush area on the pear fruit image using LAB color space.
+        Calculate the blush area ratio on a pear image using LAB color space thresholding.
+
+        LAB is used instead of BGR/HSV because it separates color (A, B channels) from
+        luminance (L), making thresholds lighting-independent. The A channel (green-red
+        axis) captures the red-pink blush pigment on pear skin; the B channel
+        (blue-yellow axis) separates yellow pear skin from a white/grey background,
+        providing a reliable fruit mask without needing segmentation.
 
         Args:
-            img : NDArray[np.uint8]
-                The input image in BGR format.
+            img: Input image in BGR format.
 
         Returns:
-            Tuple[float, NDArray[np.uint8]]:
-                Tuple containing the percentage of blush area and the processed image with marked blush regions.
+            A tuple of (blush_ratio, annotated_image) where blush_ratio is the fraction
+            of fruit pixels classified as blush (0.0–1.0), and annotated_image has blush
+            pixels recolored and the percentage printed on the image.
         """
         # convert from BGR to Lab color space
         new_img = img.copy()
@@ -242,14 +248,14 @@ class BlushColor(Analysis):
 
     def _processImage(self, image_instance: Image) -> Image:
         """
-        1. Loads and performs analysis on the provided Image instance.
-        2. Saves the instance to result directory
+        Load an image from disk, calculate its blush ratio, and return an annotated result.
 
-        @param image_instance: An GRANNY.Models.Images.Image instance
+        Args:
+            image_instance: An Image instance whose file path points to the image to analyze.
 
-        @return
-            image_name: file name of the image instance
-            score: rating for the instance
+        Returns:
+            A new Image instance containing the annotated image and a 'rating' FloatValue
+            (0.0–1.0) representing the fraction of fruit pixels classified as blush.
         """
         # initiates ImageIO
         self.image_io.setFilePath(image_instance.getFilePath())
