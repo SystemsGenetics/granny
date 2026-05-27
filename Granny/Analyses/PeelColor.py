@@ -287,11 +287,13 @@ class PeelColor(Analysis):
             lab_img[:, :, i] = lab_img[:, :, i] * th123
 
         # get mean values from each channel
-        mean_l = (
-            np.sum(lab_img[:, :, 0]) / np.count_nonzero(lab_img[:, :, 0]) * 100 / 255
-        )
-        mean_a = np.sum(lab_img[:, :, 1]) / np.count_nonzero(lab_img[:, :, 1]) - 128
-        mean_b = np.sum(lab_img[:, :, 2]) / np.count_nonzero(lab_img[:, :, 2]) - 128
+        pixel_count = np.count_nonzero(th123)
+        if pixel_count == 0:
+            return (float('nan'), float('nan'), float('nan'))
+
+        mean_l = np.sum(lab_img[:, :, 0]) / pixel_count * 100 / 255
+        mean_a = np.sum(lab_img[:, :, 1]) / pixel_count - 128
+        mean_b = np.sum(lab_img[:, :, 2]) / pixel_count - 128
 
         # normalize by shifting point in the spherical coordinates
         radius = np.sqrt(mean_l**2 + mean_a**2 + mean_b**2)
