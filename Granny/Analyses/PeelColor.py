@@ -289,7 +289,7 @@ class PeelColor(Analysis):
         # get mean values from each channel
         pixel_count = np.count_nonzero(th123)
         if pixel_count == 0:
-            return (float('nan'), float('nan'), float('nan'))
+            return (float('nan'), float('nan'), float('nan'), float('nan'))
 
         mean_l = np.sum(lab_img[:, :, 0]) / pixel_count * 100 / 255
         mean_a = np.sum(lab_img[:, :, 1]) / pixel_count - 128
@@ -303,7 +303,7 @@ class PeelColor(Analysis):
         )
         scaled_b = np.sign(mean_b) * mean_b / mean_a * scaled_a
 
-        return (scaled_l, scaled_a, scaled_b)
+        return (scaled_l, scaled_a, scaled_b, mean_l)
 
     def calculate_bin_distance(
         self, color_list: List[float], method: str = "Euclidean"
@@ -435,7 +435,7 @@ class PeelColor(Analysis):
         img = cast(NDArray[np.uint8], cv2.GaussianBlur(img, (3, 3), sigmaX=0, sigmaY=0))
 
         # get image values
-        l, a, b = self.get_green_yellow_values(img)
+        l, a, b, raw_l = self.get_green_yellow_values(img)
 
         # calculate distance to the least-mean-square line
         (
@@ -494,6 +494,10 @@ class PeelColor(Analysis):
             "b", "B", "Granny calculated B value of the image in the LAB space."
         )
         b_value.setValue(b)
+        raw_l_value = FloatValue(
+            "raw_l", "raw_L", "Measured L value before normalization, for visualization."
+        )
+        raw_l_value.setValue(raw_l)
 
         # adds ratings to  to the image_instance as parameters
         image_instance.addValue(
@@ -504,9 +508,125 @@ class PeelColor(Analysis):
             l_value,
             a_value,
             b_value,
+            raw_l_value,
         )
 
         return image_instance
+
+
+    def _generateColorspacePlot(self, result_dir: str) -> None:
+        """
+        Generate a self-contained HTML LAB color space scatter plot
+        from results.csv and write it to the output directory.
+        """
+        import csv
+        import json
+
+        results_path = os.path.join(result_dir, "results.csv")
+        if not os.path.exists(results_path):
+            return
+
+        points = []
+        with open(results_path, newline="") as f:
+            for row in csv.DictReader(f):
+                name = row.get("Name", "")
+                a = row.get("a", "")
+                b = row.get("b", "")
+                raw_l = row.get("raw_L", "")
+                if a and b and raw_l:
+                    try:
+                        points.append({
+                            "name": name.replace(".png", ""),
+                            "a": float(a),
+                            "b": float(b),
+                            "l": float(raw_l),
+                            "side": "A" if " A_fruit" in name else "B" if " B_fruit" in name else "?",
+                            "score": row.get("score", ""),
+                            "bin": row.get("bin", ""),
+                        })
+                    except ValueError:
+                        pass
+
+        js_data = json.dumps(points)
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Granny — Peel Color Space</title>
+<style>
+  body {{ font-family: sans-serif; margin: 2rem; background: #fafafa; color: #333; }}
+  h1 {{ font-size: 1.2rem; font-weight: 500; margin-bottom: 0.25rem; }}
+  p {{ font-size: 0.85rem; color: #666; margin-bottom: 1.5rem; }}
+  .legend {{ display: flex; gap: 1.5rem; font-size: 0.8rem; color: #555; margin-bottom: 1rem; }}
+  .legend span {{ display: flex; align-items: center; gap: 6px; }}
+  .dot {{ width: 10px; height: 10px; border-radius: 50%; display: inline-block; }}
+  .diamond {{ width: 10px; height: 10px; transform: rotate(45deg); display: inline-block; }}
+  #chart-wrap {{ position: relative; width: 100%; max-width: 800px; height: 500px; }}
+</style>
+</head>
+<body>
+<h1>Peel color space — a* vs b*</h1>
+<p>Each point is colored using its measured L value (raw_L). Circles = shade side (B), diamonds = sun side (A).</p>
+<div class="legend">
+  <span><span class="dot" style="background:#4a9e6b;border:1.5px solid #2d7a4f"></span>B-side (shade)</span>
+  <span><span class="diamond" style="background:#e07b3a;border:1.5px solid #b85c1e"></span>A-side (sun)</span>
+</div>
+<div id="chart-wrap"><canvas id="c" role="img" aria-label="LAB color space scatter plot"></canvas></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+function labToRgb(L,a,b){{
+  let fy=(L+16)/116,fx=a/500+fy,fz=fy-b/200;
+  let x=(fx>0.2069?fx*fx*fx:(fx-16/116)/7.787)*0.95047;
+  let y=(fy>0.2069?fy*fy*fy:(fy-16/116)/7.787)*1.00000;
+  let z=(fz>0.2069?fz*fz*fz:(fz-16/116)/7.787)*1.08883;
+  let r=x*3.2406+y*-1.5372+z*-0.4986;
+  let g=x*-0.9689+y*1.8758+z*0.0415;
+  let bv=x*0.0557+y*-0.2040+z*1.0570;
+  r=r>0.0031308?1.055*Math.pow(r,1/2.4)-0.055:12.92*r;
+  g=g>0.0031308?1.055*Math.pow(g,1/2.4)-0.055:12.92*g;
+  bv=bv>0.0031308?1.055*Math.pow(bv,1/2.4)-0.055:12.92*bv;
+  return [Math.min(255,Math.max(0,Math.round(r*255))),Math.min(255,Math.max(0,Math.round(g*255))),Math.min(255,Math.max(0,Math.round(bv*255)))];
+}}
+const data = {js_data};
+const bPts = data.filter(d=>d.side==="B");
+const aPts = data.filter(d=>d.side==="A");
+function toDataset(pts){{
+  return pts.map(d=>{{
+    const [r,g,bv]=labToRgb(d.l,d.a,d.b);
+    return {{x:d.a,y:d.b,label:d.name,score:d.score,bin:d.bin,color:`rgb(${{r}},${{g}},${{bv}})`}};
+  }});
+}}
+const bDs = toDataset(bPts);
+const aDs = toDataset(aPts);
+new Chart(document.getElementById("c"),{{
+  type:"scatter",
+  data:{{datasets:[
+    {{label:"B-side",data:bDs,pointStyle:"circle",pointRadius:9,pointHoverRadius:11,
+      backgroundColor:bDs.map(d=>d.color),borderColor:bDs.map(d=>d.color),borderWidth:2}},
+    {{label:"A-side",data:aDs,pointStyle:"rectRot",pointRadius:9,pointHoverRadius:11,
+      backgroundColor:aDs.map(d=>d.color),borderColor:aDs.map(d=>d.color),borderWidth:2}},
+  ]}},
+  options:{{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{{legend:{{display:false}},tooltip:{{callbacks:{{
+      title:items=>items[0].raw.label,
+      label:ctx=>[`a*: ${{ctx.raw.x.toFixed(2)}}`,`b*: ${{ctx.raw.y.toFixed(2)}}`,`score: ${{ctx.raw.score||"n/a"}}`,`bin: ${{ctx.raw.bin||"n/a"}}`]
+    }}}}}},
+    scales:{{
+      x:{{title:{{display:true,text:"a* (green ← → red)"}},grid:{{color:"rgba(0,0,0,0.05)"}}}},
+      y:{{title:{{display:true,text:"b* (blue ← → yellow)"}},grid:{{color:"rgba(0,0,0,0.05)"}}}}
+    }}
+  }}
+}});
+</script>
+</body>
+</html>"""
+
+        out_path = os.path.join(result_dir, "colorspace_plot.html")
+        with open(out_path, "w") as f:
+            f.write(html)
+        print(f"Color space plot written to {out_path}")
 
     def _preRun(self):
         """
@@ -528,5 +648,7 @@ class PeelColor(Analysis):
         self.output_results.writeValue()
 
         self.addRetValue(self.output_images)
+
+        self._generateColorspacePlot(self.output_results.getValue())
 
         return self.output_images.getImageList()
