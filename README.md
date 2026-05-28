@@ -1,5 +1,12 @@
 # **Granny** is going to rate your fruits!
 
+> **Note for Loren's local fork:** This fork contains a bug fix for a divide-by-zero error in `PeelColor.get_green_yellow_values` (see [PR](https://github.com/SystemsGenetics/granny/pulls)). To revert to the original upstream version of Granny, run:
+> ```zsh
+> pipx install granny --force
+> ```
+> This will reinstall the original PyPI version and remove the local fork as the active install.
+
+
 [![Documentation Status](https://readthedocs.org/projects/granny/badge/?version=latest)](https://granny.readthedocs.io/en/latest/?badge=latest)
 
 ## About
